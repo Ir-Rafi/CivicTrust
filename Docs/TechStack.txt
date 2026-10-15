@@ -1,0 +1,10 @@
+TECH STACK (Tentative)
+
+
+  Frontend       :  React / React Native (cross-platform mobile + web)
+  Backend        :  Node.js / Django
+  Database       :  PostgreSQL with PostGIS (geospatial queries)
+  Maps           :  Leaflet.js / Google Maps API
+  AI/ML Model    :  Python (TensorFlow/PyTorch) — image classification
+  Cloud/Hosting  :  AWS / Firebase
+  Notifications  :  Firebase Cloud Messaging / OneSignal
