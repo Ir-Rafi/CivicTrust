@@ -1,6 +1,8 @@
 import "server-only";
 import { analyzeIssuePhoto, compareForDuplicate, type ImageInput } from "@/lib/ai/gemini";
-import { explainSeverity } from "@/lib/ai/groq";
+import { explainSeverity as explainWithGlm } from "@/lib/ai/glm";
+import { explainSeverity as explainWithGroq } from "@/lib/ai/groq";
+import type { Explanation } from "@/lib/ai/schemas";
 import type { IssueAnalysis } from "@/lib/ai/schemas";
 import { audit } from "@/lib/audit";
 import { DUPLICATE_RADIUS_M, MAX_PHOTO_AGE_MINUTES } from "@/lib/geo";
@@ -27,6 +29,18 @@ export type ReportOutcome =
 
 /** Stored in issues.severity_components so the score can be recomputed and explained later. */
 export type StoredSeverity = SeverityResult & { context: LocationContext; analysis: IssueAnalysis };
+
+async function explainSeverity(facts: {
+  issueType: string;
+  observations: string;
+  severity: SeverityResult;
+}): Promise<Explanation> {
+  try {
+    return await explainWithGlm(facts);
+  } catch {
+    return explainWithGroq(facts);
+  }
+}
 
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_BYTES = 4 * 1024 * 1024;

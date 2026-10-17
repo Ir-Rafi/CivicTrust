@@ -20,6 +20,12 @@ const groqSchema = z.object({
   GROQ_TEXT_MODEL: z.string().default("openai/gpt-oss-120b"),
 });
 
+const glmSchema = z.object({
+  GLM_API_KEY: z.string().min(10),
+  GLM_API_BASE: z.url().default("https://open.bigmodel.cn/api/paas/v4"),
+  GLM_TEXT_MODEL: z.string().default("glm-4-flash"),
+});
+
 function lazyEnv<S extends z.ZodObject>(schema: S, name: string): () => z.infer<S> {
   let cached: z.infer<S> | undefined;
   return () => {
@@ -37,6 +43,7 @@ function lazyEnv<S extends z.ZodObject>(schema: S, name: string): () => z.infer<
 export const supabaseEnv = lazyEnv(supabaseSchema, "Supabase");
 export const geminiEnv = lazyEnv(geminiSchema, "Gemini");
 export const groqEnv = lazyEnv(groqSchema, "Groq");
+export const glmEnv = lazyEnv(glmSchema, "GLM");
 
 /** Which integrations are configured, without throwing. Used by /api/health. */
 export function envStatus() {
@@ -44,5 +51,6 @@ export function envStatus() {
     supabase: supabaseSchema.safeParse(process.env).success,
     gemini: geminiSchema.safeParse(process.env).success,
     groq: groqSchema.safeParse(process.env).success,
+    glm: glmSchema.safeParse(process.env).success,
   };
 }
