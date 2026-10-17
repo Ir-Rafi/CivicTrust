@@ -7,7 +7,7 @@ contractors; AI verifies the repair photo before a job can close. Plan and judgi
 ## Stack
 
 Next.js 16 · Supabase (Postgres + PostGIS + pgvector, Storage) · Gemini (vision, embeddings) ·
-Groq (bilingual text) · Leaflet + OpenStreetMap.
+GLM (primary bilingual text) + Groq (fallback) · Leaflet + OpenStreetMap.
 
 ## Setup
 
@@ -59,7 +59,7 @@ curl localhost:3000/api/health   # shows which integrations are configured
 1. Vercel → **Add New → Project** → import `Ir-Rafi/CivicTrust` (the repo owner may need to install the Vercel GitHub app for this private repo).
 2. **Root Directory: `web`**. Framework, pnpm and build command are detected automatically.
 3. **Environment Variables** (Production + Preview), copied from `.env.local`, marked *Sensitive*:
-   `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `GEMINI_API_KEY`, `GEMINI_VISION_MODEL`, `GEMINI_EMBEDDING_MODEL`, `GROQ_API_KEY`, `GROQ_TEXT_MODEL`.
+   `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `GEMINI_API_KEY`, `GEMINI_VISION_MODEL`, `GEMINI_EMBEDDING_MODEL`, `GLM_API_KEY`, `GLM_API_BASE`, `GLM_TEXT_MODEL`, `GROQ_API_KEY`, `GROQ_TEXT_MODEL`.
    Not needed on Vercel: `DATABASE_URL` and the `*_BACKUP` keys. Never add a `NEXT_PUBLIC_` prefix.
 4. **Settings → Functions → Region:** pick the one closest to the database (Sydney `syd1` for the current project).
 5. Deploy, then open `https://<your-app>.vercel.app/api/health`: all three integrations should be `true` and `database.ok` should be `true`.
@@ -78,7 +78,8 @@ pnpm test && pnpm typecheck && pnpm lint && pnpm build
 | Path | What |
 |---|---|
 | `src/lib/ai/gemini.ts` | M1 issue analysis, M3 duplicate compare, M4 repair verify, embeddings |
-| `src/lib/ai/groq.ts` | Bangla + English severity explanation |
+| `src/lib/ai/glm.ts` | Primary Bangla + English severity explanation via GLM |
+| `src/lib/ai/groq.ts` | Fallback Bangla + English severity explanation |
 | `src/lib/severity.ts` | M2 explainable severity score + SLA deadline bands |
 | `src/lib/audit.ts` | Append to the hash-chained audit log |
 | `src/lib/session.ts`, `src/app/actions/session.ts` | Role switcher + language cookie (no login, by design) |
