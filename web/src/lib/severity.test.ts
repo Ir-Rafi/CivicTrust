@@ -51,6 +51,21 @@ test("nearest sensitive site wins when both school and hospital are close", () =
   assert.match(proximity.detail, /hospital/);
 });
 
+test("Bangla details use Bangla digits and road terms", () => {
+  const r = computeSeverity({
+    visualClass: "moderate",
+    context: {
+      ...emptyContext,
+      road: { highway: "residential", name: null, distance_m: 1 },
+      nearest_school: { name: "Academia", distance_m: 61 },
+    },
+    reportCount: 1,
+    daysOpen: 0,
+  });
+  assert.equal(r.components.find((c) => c.key === "road")!.detailBn, "আবাসিক রাস্তা");
+  assert.equal(r.components.find((c) => c.key === "proximity")!.detailBn, "স্কুল থেকে ৬১ মিটার দূরে");
+});
+
 test("deadline bands match the pilot policy", () => {
   assert.equal(deadlineHoursFor(9).hours, 48);
   assert.equal(deadlineHoursFor(5).hours, 168);

@@ -67,8 +67,8 @@ def table(rows, widths, header=True, bold_first=False):
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("LEFTPADDING", (0, 0), (-1, -1), 6),
         ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-        ("TOPPADDING", (0, 0), (-1, -1), 5),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4.5),
         ("LINEBELOW", (0, 0), (-1, -1), 0.5, LINE),
     ]
     if header:
@@ -225,7 +225,7 @@ def make_story():
     s.append(Paragraph(
         "CivicTrust lets citizens report potholes and garbage with a photo. AI measures the problem and scores its "
         "urgency, the city assigns it to a contractor or an NGO, and AI checks the repair photo before the job closes. "
-        "Entry for the International AI Builders Congress 2026, CivicSphere AI domain.", lead))
+        "Entry for the International AI Builders Congress 2026, CivicSphere AI domain, Transparent Government challenge: no payment for a repair until AI verifies it, an audit trail nobody can edit, and public contractor scorecards.", lead))
 
     changes = [
         "<b>One app on Supabase.</b> The prototype is a single Next.js app with Supabase (Postgres, PostGIS, pgvector, "
@@ -282,11 +282,12 @@ def make_story():
     s.append(feature_table([
         ("AI-ranked issue queue, filtered by ward, type and status", "P0"),
         ("Live city map of all issues with clustering", "P0"),
-        ("Assign to a contractor; deadline set automatically from severity, citing the policy rule used", "P0"),
+        ("Assign to a contractor with the agreed cost; deadline set automatically from severity, citing the policy rule used", "P0"),
         ("Correct the AI's issue type or severity, with a reason; every correction is logged", "P0"),
         ('"Ask CivicTrust" assistant: questions about rules and live issues, in Bangla or English', "P1"),
         ("Approve NGO claims", "P1"),
-        ("Heatmap of hotspots, overdue alerts, contractor scorecards", "P1"),
+        ("Contractor scorecards: repairs approved vs. rejected by AI, on-time rate, disputes", "P0"),
+        ("Heatmap of hotspots, overdue alerts; recurring-hotspot insights for planning", "P1"),
         ("AI weekly summary per ward", "P2"),
     ], header=False))
 
@@ -294,6 +295,7 @@ def make_story():
     s.append(feature_table([
         ("Contractor inbox of work orders", "P0"),
         ("Upload after-photo at the same spot; AI closes the job only if it is fixed; unclear cases go to an officer", "P0"),
+        ("Payment counts as released only after the AI-verified repair; withheld when the AI rejects it", "P0"),
         ("NGO board of claimable issues", "P1"),
         ('Directions to the issue; mark "work started"', "P1"),
     ], header=False))
@@ -301,6 +303,7 @@ def make_story():
     s.append(Paragraph("Public transparency portal", h3))
     s.append(feature_table([
         ("Open vs. fixed issues and average fix time per ward", "P0"),
+        ("Money released for verified repairs vs. withheld for rejected ones", "P0"),
         ("Before/after gallery of verified repairs", "P0"),
     ], header=False))
 
@@ -367,8 +370,7 @@ def make_story():
         ["Access", "Role switcher; row-level security; server-only database access", "One-click demo roles; database closed to the browser"],
         ["Audit", "Hash-chained, append-only Postgres table", "Tamper-evident record of every action and AI correction"],
         ["Hosting", "Vercel + Supabase cloud", "Public URL for judges"],
-        ["Finals ML", "PyTorch, Ultralytics YOLO, CLIP; ONNX Runtime; Label Studio or Roboflow", "Self-hosted detection and similarity; photos stay on our servers"],
-        ["Roadmap", "Phone OTP; web push (FCM) + SMS gateway", "Sign-up and notifications, including basic phones"],
+        ["Finals ML", "YOLO + CLIP on ONNX Runtime", "Self-hosted detection; photos stay on our servers"],
     ], [92, 190, CONTENT_W - 282], bold_first=True))
     return s
 

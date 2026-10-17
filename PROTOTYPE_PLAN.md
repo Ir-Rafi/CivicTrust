@@ -17,7 +17,8 @@ Every feature, page and minute of video below exists because it earns points som
 | AI | Verified end to end on a real photo: Gemini analysis (~7 s), severity, Groq Bangla/English reason (~1.4 s), policy RAG returns the right rule. Primary + backup keys for both. |
 | Docs | `CivicTrust.pdf` updated to v2 |
 | Blockers | **Ward boundaries** (see §8 risks) |
-| Next | Days 3–5: citizen report flow with live AI |
+| Citizen flow | Built and tested end to end with real AI: photo → Gemini → duplicate merge → severity → Bangla/English reason → saved + audit-logged; non-civic photos rejected and not stored. Too slow (~20 s); speed-up next. |
+| Next | Speed up the report pipeline; then days 6–7: officer queue, map, assign with cost + cited deadline |
 
 ---
 
@@ -27,7 +28,10 @@ Every feature, page and minute of video below exists because it earns points som
 |---|---|
 | Competition | **Competition 1 — Team-Built Product** (3–5 members) |
 | Domain | **CivicSphere AI** — Government, Public Services & Digital Nations |
-| Challenge area | **Transparent Government** (self-defined idea within it). Winning signal named in the guide: *"Accountability and trust gains"*; capabilities named: *"Knowledge graphs + public dashboards"* |
+| Challenge area | **Transparent Government** — *"Open, accountable public-spending and service insight"* |
+| Official specific ask | *"Accountability and trust gains"* → AI-verified repair closure, payment released only for verified repairs, tamper-evident audit log, citizen confirm/dispute |
+| Official details | *"Knowledge graphs + public dashboards"* → accountability graph (issue ↔ ward ↔ road ↔ contractor ↔ payment) with contractor scorecards; public transparency portal |
+| Why not Smart Nation | Smart Nation asks for *planning* intelligence ("evidence-based policy outcomes"), and its own example prompt is a vision road-safety audit, so a road-defect detector would look like the obvious entry there. Under Transparent Government, AI-verified public works is a distinctive answer to the accountability ask. Planning insights (recurring hotspots, where to rebuild vs. patch) stay as a secondary benefit in the pitch. |
 | One-line pitch | *Citizens photograph a pothole or garbage pile; AI measures and ranks it; the city assigns it; and **AI checks the repair photo — the job closes only if the road is actually fixed.*** |
 | Domain warning | CivicSphere must apply **extra rigor to privacy, accuracy and public safety** (Sec. 15, 20.5) |
 
@@ -42,7 +46,7 @@ Every feature, page and minute of video below exists because it earns points som
 |---|---|---|---|
 | M1 | 3-minute structured video | Script in §5 | Video ≤ 180 s, follows 5 segments |
 | M2 | Clear problem & user definition | Problem statement + 5 user roles | Sourced facts, named users |
-| M3 | AI-native approach (LLM / RAG / Graph / ML) | Vision model (Gemini) + severity model + LLM explanations (Groq) + RAG over city rules | All shown in video; graph is a finals item |
+| M3 | AI-native approach (LLM / RAG / Graph / ML) | Vision model (Gemini) + severity model + LLM explanations (Groq) + RAG over city rules + accountability graph (contractor scorecards) | All shown in video |
 | M4 | Basic system flow input → AI → output | Architecture diagram + live flow | Diagram on screen ≥ 10 s |
 | M5 | Initial demo / prototype / workflow | Deployed app, public URL | Core loop works live |
 | M6 | Bangla / localization | Bangla UI (default) + Bangla AI explanations | Demo shown in Bangla |
@@ -97,7 +101,9 @@ Rubric columns: A Innovation · B Technical · C Business · D Scale/Impact · E
 | Contractor inbox → after-photo at same spot | | ● | | | | |
 | **AI repair verifier** (GPS ±15 m + before/after vision comparison + fresh capture time) → approve / reject / send to officer | ● | ● | ● | | ● | **Headline innovation** |
 | Citizen confirms or disputes fix | | | | | ● | Closes trust loop |
-| Public transparency portal: open vs fixed per ward, avg fix time, before/after gallery | ● | | | ● | ● | Matches challenge area; needs ward boundaries (§8) |
+| Public transparency portal: open vs fixed per ward, avg fix time, before/after gallery, money released vs withheld | ● | | | ● | ● | The challenge's "public dashboards"; needs ward boundaries (§8) |
+| **Payment tied to verification**: each work order records the agreed cost; payment counts as released only after AI-verified repair, withheld on rejection | ● | | ● | | ● | The challenge's "accountable public-spending"; demo shows "payment withheld" when AI rejects a fake repair |
+| **Contractor scorecards** from the accountability graph: repairs approved vs rejected by AI, on-time rate, disputes | ● | ● | ● | | ● | The challenge's "knowledge graphs" (minimal version for the preliminary) |
 | Bangla + English throughout (Bangla default) | | | | ● | | M6 |
 | Role switcher (Citizen / Officer / Contractor / NGO / Public) — **no login, by design** | | | | | | One-click access for judges |
 
@@ -119,7 +125,8 @@ Rubric columns: A Innovation · B Technical · C Business · D Scale/Impact · E
 | Self-hosted YOLO detector + CLIP similarity (ONNX) replacing Gemini for M1/M3/M4 | B, E | Model-selection logic + **data sovereignty** (photos stay on city-controlled infra) |
 | **Agent pipeline** made explicit: Triage → Dedupe → Routing → Verifier agents with an orchestrator, traced per issue | A, B | "Agentic", "multi-agent" are named preferred capabilities |
 | "Ask CivicTrust" officer copilot (RAG over rules + live issue data, Bangla/English) | B | RAG beyond one citation |
-| Accountability graph: issue ↔ ward ↔ road ↔ contractor → contractor scorecards | A, C | Guide's named capability for Transparent Government; satisfies "Graph" in M3 |
+| Full accountability graph view: issue ↔ ward ↔ road ↔ contractor ↔ payment, repeat-failure and anomaly flags | A, B, C | Extends the preliminary's scorecards into the challenge's "knowledge graph" |
+| Planning insights: recurring hotspots, road segments repaired repeatedly (rebuild vs patch) | C, D | Secondary benefit for city planning |
 | Citizen trust score (verified reports up, fake ones down) | B, E | Personalization + anti-fraud (mistake #5) |
 | Offline report queue + low-bandwidth mode | D | UI/UX role must cover low-bandwidth |
 | Heatmap, overdue alerts | C | |
@@ -194,9 +201,9 @@ Only measured numbers go in the video. Targets are labelled as targets.
 
 | Time | Segment (official) | Judges look for | What we show |
 |---|---|---|---|
-| 0:00–0:30 | **Problem** | Clarity, relevance | Real Dhaka street footage; who suffers (commuters, school children, ambulance routes); why reports go nowhere today and repairs aren't verified; same problem globally. Sourced numbers. |
+| 0:00–0:30 | **Problem** | Clarity, relevance | Real Dhaka street footage; who suffers (commuters, school children, ambulance routes); reports go nowhere, and **public money is paid for repairs nobody checks**, so citizens stop trusting the system; same accountability gap in cities worldwide. Sourced numbers. |
 | 0:30–1:00 | **Solution** | Simplicity, uniqueness | One-line pitch; the 5 roles in one graphic; the differentiator: *AI closes the job only if it's really fixed* |
-| 1:00–2:00 | **Demo** | Feasibility, logic | Live, in Bangla: snap → AI result + severity breakdown (10 s) → duplicate prompt (5 s) → officer queue + map, override, assign with cited deadline (15 s) → contractor uploads a **bad** repair → AI rejects with reason (10 s) → good repair → approved (10 s) → citizen confirms → public portal updates (10 s) |
+| 1:00–2:00 | **Demo** | Feasibility, logic | Live, in Bangla: snap → AI result + severity breakdown (10 s) → duplicate prompt (5 s) → officer queue + map, override, assign with cited deadline and agreed cost (15 s) → contractor uploads a **bad** repair → AI rejects with reason, **payment withheld** (10 s) → good repair → approved, payment released (10 s) → citizen confirms → public portal and contractor scorecard update (10 s) |
 | 2:00–2:30 | **AI approach** | Depth, structure | Architecture diagram: Gemini vision → severity model (OSM facts) → dedupe (PostGIS + AI) → RAG rules → verifier; Groq explanations; model-selection logic; safeguards |
 | 2:30–3:00 | **Impact & next step** | Vision, potential | Measured KPIs; business model; pilot → city → national → global; Nov/Dec roadmap (self-hosted models, agents, graph) |
 
@@ -271,10 +278,10 @@ Pilot data: Dhanmondi area, Dhaka (bbox 23.735,90.365 → 23.760,90.390). OSM ro
 | Days | Dates | Build | Rubric target | Status |
 |---|---|---|---|---|
 | 1–2 | 17–18 Oct | Scaffold, schema, AI helpers, severity + tests, role switcher, Bangla/English, OSM data, pilot policy | M5, M6 | **Done** (database live and loaded) |
-| 3–5 | 19–21 Oct | Citizen report: camera + GPS, Gemini analysis, explainable severity, Groq reasons | A, B, M3 | Next |
+| 3–5 | 19–21 Oct | Citizen report: camera + GPS, Gemini analysis, explainable severity, Groq reasons | A, B, M3 | **Built 17 Oct**; speed-up pending |
 | 6–7 | 22–23 Oct | Dedupe + report counting; officer queue, map, override, assign with RAG citation | B, E | |
 | 8–9 | 24–25 Oct | Contractor after-photo + AI verifier; citizen confirm/dispute | A (headline) | |
-| 10 | 26 Oct | Public portal; audit page; EXIF strip; `/architecture` `/data` `/security` `/audit` | D, E | |
+| 10 | 26 Oct | Public portal (incl. money released vs withheld); contractor scorecards; audit page; EXIF strip; `/architecture` `/data` `/security` `/audit` | D, E | |
 | 11 | 27 Oct | Deploy public URL; blur (stretch); polish | M5 | |
 | 12 | 28 Oct | Field test in pilot area; measure KPIs | M7, D | |
 | 13–14 | 29–30 Oct | Record video per §5; 1-page summary; submission package | M1, M2, M4 | |
@@ -284,7 +291,7 @@ Pilot data: Dhanmondi area, Dhaka (bbox 23.735,90.365 → 23.760,90.390). OSM ro
 | Window | Work | Rubric target |
 |---|---|---|
 | Nov | Self-hosted YOLO + CLIP; agent pipeline; offline mode | B, E (sovereignty), D |
-| Early Dec | Copilot, accountability graph + scorecards, trust score, NGO board, Open311/MCP | A, B, C |
+| Early Dec | Copilot, full accountability graph + anomaly flags, planning insights, trust score, NGO board, Open311/MCP | A, B, C |
 | Mid Dec | Expand pilot, real user feedback, updated KPIs | C, D |
 | 20–25 Dec | 3-min pitch rehearsal (timed), backup video, judge Q&A drill | E (presentation) |
 
@@ -296,7 +303,8 @@ Pilot data: Dhanmondi area, Dhaka (bbox 23.735,90.365 → 23.760,90.390). OSM ro
 |---|---|
 | What if the AI is wrong? | Confidence threshold → officer review; officer override logged; citizen can dispute; measured accuracy shown |
 | Can a contractor fake the repair photo? | Camera-only capture, GPS ±15 m, capture time, scene match vs. before photo, citizen confirmation |
-| Isn't this just another complaint app? | Complaint apps stop at reporting; we verify outcomes and publish them |
+| Isn't this just another complaint app? | Complaint apps stop at reporting; we verify outcomes, tie payment to verified repairs, and publish them |
+| Why Transparent Government, not Smart Nation? | The core value is accountability for public works spending: no payment for unverified repairs, an audit trail nobody can edit, public scorecards. Planning insights are a secondary benefit. |
 | Who pays? | City corporations (per-ward SaaS); development programs needing verified outcomes |
 | There's no login — is it secure? | The demo uses one-click roles so judges can try it. The database is closed to the browser and every action is audit-logged. Production adds phone-OTP login (roadmap). |
 | Privacy of people in photos? | Blur faces/plates, EXIF strip, area-level public view, retention policy |

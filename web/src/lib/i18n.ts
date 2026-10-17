@@ -5,6 +5,11 @@ export function isLang(value: unknown): value is Lang {
   return value === "bn" || value === "en";
 }
 
+/** Format a number with Bangla digits when lang is bn. */
+export function num(n: number, lang: Lang, digits = 0): string {
+  return n.toLocaleString(lang === "bn" ? "bn-BD" : "en-US", { maximumFractionDigits: digits });
+}
+
 const en = {
   appName: "CivicTrust",
   tagline: "Report it. AI ranks it. The city fixes it. AI checks the fix.",
@@ -41,7 +46,79 @@ const en = {
     disputed: "Disputed",
     rejected: "Rejected",
   },
-  buildingNote: "This screen is being built.",
+  issueType: {
+    pothole: "Pothole",
+    road_crack: "Road crack",
+    garbage: "Garbage pile",
+    open_drain: "Open drain",
+    waterlogging: "Waterlogging",
+    other: "Other",
+  },
+  visualClass: { minor: "Minor", moderate: "Moderate", severe: "Severe" },
+  screens: {
+    officer: "Ward officer — AI-ranked queue",
+    contractor: "Contractor — work orders",
+    ngo: "NGO — claimable issues",
+    public: "Public transparency portal",
+    architecture: "Architecture",
+    data: "Data sources and lineage",
+    security: "Security and responsible AI",
+    audit: "Audit report",
+  },
+  comingSoon: "This screen is coming soon.",
+  citizen: {
+    title: "Report a problem",
+    intro: "Take a photo of a pothole, garbage pile, open drain or waterlogging. AI will assess it in about 10 seconds.",
+    takePhoto: "Take photo",
+    retake: "Retake",
+    photoHint: "Use the camera at the spot. Old photos from the gallery are not accepted.",
+    location: "Location",
+    locating: "Getting your location…",
+    gpsOk: "GPS location found (±{m} m)",
+    gpsFailed: "Couldn't get GPS location.",
+    useDemo: "Use a demo location in the pilot area instead",
+    demoLabel: "Demo location (pilot area, Dhanmondi)",
+    demoNote: "Demo locations are for testing from a laptop and are recorded as such.",
+    submit: "Send report",
+    analysing: "AI is analysing your photo — about 10 seconds…",
+    needPhoto: "Take a photo first.",
+    needLocation: "Waiting for a location.",
+    myReports: "My reports",
+    noReports: "No reports yet.",
+    reportsCount: "{n} report(s)",
+    mergedTag: "added to an existing report",
+  },
+  issue: {
+    back: "← My reports",
+    newBanner: "Report received. Here is what the AI found.",
+    mergedBanner: "This problem was already reported nearby. Your report was added to it instead of creating a duplicate.",
+    severity: "Severity",
+    outOf: "out of 10",
+    why: "Why this score",
+    points: "points",
+    reason: "AI explanation",
+    status: "Status",
+    aiDetails: "AI details",
+    confidence: "Confidence",
+    observations: "What the AI saw",
+    hazards: "Hazards",
+    privacy: "Faces or number plates visible — will be blurred before public display.",
+    reports: "Reports",
+    reportedAt: "Reported",
+    location: "Location",
+    nearSchool: "School",
+    nearHospital: "Hospital/clinic",
+    noWard: "Ward not set (boundaries pending)",
+    notFound: "Issue not found.",
+    verifiedNote: "AI confirmed this is a real civic problem.",
+    reportedNote: "Waiting for an officer to verify.",
+  },
+  errors: {
+    generic: "Something went wrong. Please try again.",
+    tooOld: "This photo is too old. Take a new photo at the spot.",
+    badFile: "Please use a JPG, PNG or WebP photo under 4 MB.",
+    rejected: "This doesn't look like a public road, drain or garbage problem.",
+  },
 };
 
 type Dict = typeof en;
@@ -82,9 +159,88 @@ const bn: Dict = {
     disputed: "আপত্তি",
     rejected: "বাতিল",
   },
-  buildingNote: "এই স্ক্রিনটি তৈরি হচ্ছে।",
+  issueType: {
+    pothole: "গর্ত",
+    road_crack: "রাস্তায় ফাটল",
+    garbage: "ময়লার স্তূপ",
+    open_drain: "খোলা ড্রেন",
+    waterlogging: "জলাবদ্ধতা",
+    other: "অন্যান্য",
+  },
+  visualClass: { minor: "সামান্য", moderate: "মাঝারি", severe: "গুরুতর" },
+  screens: {
+    officer: "ওয়ার্ড কর্মকর্তা — এআই-সাজানো তালিকা",
+    contractor: "ঠিকাদার — কাজের আদেশ",
+    ngo: "এনজিও — দাবিযোগ্য সমস্যা",
+    public: "পাবলিক স্বচ্ছতা পোর্টাল",
+    architecture: "আর্কিটেকচার",
+    data: "ডেটার উৎস",
+    security: "নিরাপত্তা ও দায়িত্বশীল এআই",
+    audit: "অডিট রিপোর্ট",
+  },
+  comingSoon: "এই স্ক্রিনটি শীঘ্রই আসছে।",
+  citizen: {
+    title: "সমস্যা রিপোর্ট করুন",
+    intro: "গর্ত, ময়লার স্তূপ, খোলা ড্রেন বা জলাবদ্ধতার ছবি তুলুন। প্রায় ১০ সেকেন্ডে এআই মূল্যায়ন করবে।",
+    takePhoto: "ছবি তুলুন",
+    retake: "আবার তুলুন",
+    photoHint: "ঘটনাস্থলে ক্যামেরা ব্যবহার করুন। গ্যালারির পুরোনো ছবি গ্রহণ করা হয় না।",
+    location: "অবস্থান",
+    locating: "আপনার অবস্থান নেওয়া হচ্ছে…",
+    gpsOk: "জিপিএস অবস্থান পাওয়া গেছে (±{m} মিটার)",
+    gpsFailed: "জিপিএস অবস্থান পাওয়া যায়নি।",
+    useDemo: "এর বদলে পাইলট এলাকার একটি ডেমো অবস্থান ব্যবহার করুন",
+    demoLabel: "ডেমো অবস্থান (পাইলট এলাকা, ধানমন্ডি)",
+    demoNote: "ডেমো অবস্থান ল্যাপটপ থেকে পরীক্ষার জন্য, এবং সেভাবেই রেকর্ড হয়।",
+    submit: "রিপোর্ট পাঠান",
+    analysing: "এআই আপনার ছবি বিশ্লেষণ করছে — প্রায় ১০ সেকেন্ড…",
+    needPhoto: "আগে একটি ছবি তুলুন।",
+    needLocation: "অবস্থানের জন্য অপেক্ষা করা হচ্ছে।",
+    myReports: "আমার রিপোর্ট",
+    noReports: "এখনো কোনো রিপোর্ট নেই।",
+    reportsCount: "{n}টি রিপোর্ট",
+    mergedTag: "আগের রিপোর্টে যোগ হয়েছে",
+  },
+  issue: {
+    back: "← আমার রিপোর্ট",
+    newBanner: "রিপোর্ট পাওয়া গেছে। এআই যা পেয়েছে তা নিচে দেখুন।",
+    mergedBanner: "এই সমস্যাটি কাছাকাছি আগেই রিপোর্ট হয়েছে। নতুন টিকিট না খুলে আপনার রিপোর্টটি এতে যোগ করা হয়েছে।",
+    severity: "গুরুত্ব",
+    outOf: "১০-এর মধ্যে",
+    why: "এই স্কোর কেন",
+    points: "পয়েন্ট",
+    reason: "এআই ব্যাখ্যা",
+    status: "অবস্থা",
+    aiDetails: "এআই বিস্তারিত",
+    confidence: "নিশ্চয়তা",
+    observations: "এআই যা দেখেছে",
+    hazards: "ঝুঁকি",
+    privacy: "মুখ বা গাড়ির নম্বর প্লেট দেখা যাচ্ছে — প্রকাশের আগে ঝাপসা করা হবে।",
+    reports: "রিপোর্ট",
+    reportedAt: "রিপোর্টের সময়",
+    location: "অবস্থান",
+    nearSchool: "স্কুল",
+    nearHospital: "হাসপাতাল/ক্লিনিক",
+    noWard: "ওয়ার্ড নির্ধারিত হয়নি (সীমানা আসছে)",
+    notFound: "সমস্যাটি পাওয়া যায়নি।",
+    verifiedNote: "এআই নিশ্চিত করেছে এটি একটি প্রকৃত নাগরিক সমস্যা।",
+    reportedNote: "একজন কর্মকর্তার যাচাইয়ের অপেক্ষায়।",
+  },
+  errors: {
+    generic: "কিছু একটা ভুল হয়েছে। আবার চেষ্টা করুন।",
+    tooOld: "ছবিটি অনেক পুরোনো। ঘটনাস্থলে নতুন ছবি তুলুন।",
+    badFile: "৪ এমবির কম আকারের JPG, PNG বা WebP ছবি ব্যবহার করুন।",
+    rejected: "এটি কোনো সড়ক, ড্রেন বা ময়লার সমস্যা বলে মনে হচ্ছে না।",
+  },
 };
+
+export type { Dict };
 
 export function dict(lang: Lang): Dict {
   return lang === "bn" ? bn : en;
+}
+
+/** Replace {key} placeholders. */
+export function fill(template: string, values: Record<string, string>): string {
+  return template.replace(/\{(\w+)\}/g, (_, k: string) => values[k] ?? `{${k}}`);
 }
