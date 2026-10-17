@@ -1,4 +1,4 @@
-"""Regenerate CivicTrust.pdf (features + tech stack), v2, matching the v1 ReportLab style."""
+"""Regenerate CivicTrust.pdf: product brief and preliminary requirements."""
 import sys
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
@@ -157,7 +157,7 @@ class Diagram(Flowable):
                   "SLA deadlines · Repair verification · Audit log"], highlight=True)
         self.box(c, x3, r2, col, bh, "Seed scripts", ["loaded once into", "PostGIS layers"])
         # Row 3
-        self.box(c, x1, r3, col, bh, "AI APIs", ["Gemini: vision + embeddings", "Groq: Bangla-English text"],
+        self.box(c, x1, r3, col, bh, "AI APIs", ["Gemini: vision + embeddings", "GLM text · Groq fallback"],
                  highlight=True)
         self.box(c, x2, r3, col, bh, "Supabase", ["Postgres + PostGIS + pgvector", "private photo storage · Realtime"])
         self.box(c, x3, r3, col, bh, "Finals: self-hosted ML (ONNX)",
@@ -197,7 +197,7 @@ def on_page(c, doc):
     c.setFont("Sans", 7.5)
     c.setFillColor(MUTED)
     if doc.page > 1:
-        c.drawString(MARGIN, PAGE_H - 34, "CivicTrust — Features and Tech Stack · v2")
+        c.drawString(MARGIN, PAGE_H - 34, "CivicTrust — Product Brief and Preliminary Requirements")
     c.drawRightString(PAGE_W - MARGIN, 30, f"Page {doc.page} of {doc.total_pages}")
     c.restoreState()
 
@@ -208,7 +208,7 @@ class Doc(BaseDocTemplate):
 
 def build(story, total_pages):
     doc = Doc(OUT, pagesize=A4, leftMargin=MARGIN, rightMargin=MARGIN, topMargin=52, bottomMargin=52,
-              title="CivicTrust — Features and Tech Stack (v2)",
+              title="CivicTrust — Product Brief and Preliminary Requirements",
               subject="Civic issue reporting platform, CivicSphere AI", author="CivicTrust team")
     doc.total_pages = total_pages
     frame = Frame(MARGIN, 52, CONTENT_W, PAGE_H - 104, id="f", leftPadding=0, rightPadding=0,
@@ -221,20 +221,20 @@ def build(story, total_pages):
 def make_story():
     s = []
     s.append(Paragraph("CivicTrust", title))
-    s.append(Paragraph("Features and tech stack · v2, 17 October 2026", subtitle))
+    s.append(Paragraph("Product brief and preliminary requirements", subtitle))
     s.append(Paragraph(
-        "CivicTrust lets citizens report potholes and garbage with a photo. AI measures the problem and scores its "
+        "CivicTrust lets citizens report public infrastructure problems with a photo. AI measures the problem and scores its "
         "urgency, the city assigns it to a contractor or an NGO, and AI checks the repair photo before the job closes. "
-        "Entry for the International AI Builders Congress 2026, CivicSphere AI domain, Transparent Government challenge: no payment for a repair until AI verifies it, an audit trail nobody can edit, and public contractor scorecards.", lead))
+        "The preliminary prototype demonstrates an AI-native accountability workflow for the CivicSphere AI domain and Transparent Government challenge: no repair is eligible for payment until the evidence is verified, and every decision is auditable.", lead))
 
     changes = [
         "<b>One app on Supabase.</b> The prototype is a single Next.js app with Supabase (Postgres, PostGIS, pgvector, "
         "storage). FastAPI, Celery, Redis and MinIO are no longer needed.",
-        "<b>AI for the preliminary.</b> Gemini reads photos and Groq writes Bangla-English text. Custom YOLO and CLIP "
+        "<b>AI for the preliminary.</b> Gemini reads photos, GLM writes Bangla-English explanations, and Groq is the fallback. Custom YOLO and CLIP "
         "models move to the finals, self-hosted for data sovereignty.",
         "<b>No login in the prototype.</b> Judges switch roles in one click; the database is closed to the browser. "
         "Phone-OTP sign-up moves to the roadmap.",
-        "<b>New and moved up.</b> A policy knowledge base (RAG) cites the rule behind every deadline. The audit log, "
+        "<b>Scope is explicit.</b> The citizen reporting flow is implemented and tested. Officer, contractor, NGO, public, and governance screens remain planned work and must not be presented as completed functionality. A policy knowledge base (RAG) cites the rule behind deadlines. The audit log, "
         "citizen confirm/dispute and privacy steps are now P0.",
     ]
     change_rows = [[P("<b>What changed since v1</b>", note)]] + [[P("• " + c, note)] for c in changes]
@@ -249,6 +249,20 @@ def make_story():
     s.append(ct)
     s.append(Spacer(1, 6))
 
+    s.append(Paragraph("Preliminary compliance and implementation status", h2))
+    s.append(table([
+        ["Guide requirement", "Evidence in this repository", "Status"],
+        ["Structured 3-minute video", "Video outline and timing in PROTOTYPE_PLAN.md", "Ready to produce"],
+        ["Clear problem and users", "Problem definition, five roles, and user flow in the requirements document", "Documented"],
+        ["AI-native approach", "Gemini vision, deterministic severity, pgvector RAG, GLM text, and Groq fallback", "Implemented in core flow"],
+        ["Input → AI → output workflow", "Citizen photo → Gemini analysis → severity → explanation → Supabase record", "Implemented and tested"],
+        ["Initial working prototype", "Citizen reporting flow and /api/health run locally against Supabase", "Implemented"],
+        ["Bangla/localization", "Bangla-first interface and bilingual explanation schema", "Implemented in citizen flow"],
+        ["Defined impact and KPIs", "KPI definitions in the requirements and prototype plan", "Measurement required"],
+        ["Public evaluation access", "Deployment and demo access must be configured before submission", "Open delivery item"],
+    ], [142, 250, CONTENT_W - 392], bold_first=True))
+    s.append(Paragraph("The status column is intentionally conservative: planned screens and future roadmap items are not counted as working features until they are implemented and demonstrated.", small))
+
     s.append(Paragraph("Users", h2))
     s.append(table([
         ["Role", "Screen", "What they do"],
@@ -262,8 +276,8 @@ def make_story():
                        "one-click access.", small))
 
     s.append(Paragraph("Features", h1))
-    s.append(Paragraph("<b>P0</b> = must work in the preliminary demo (31 Oct) · <b>P1</b> = before the final (26 Dec) · "
-                       "<b>P2</b> = roadmap", legend))
+    s.append(Paragraph("<b>P0</b> = required preliminary scope · <b>P1</b> = final-stage scope · <b>P2</b> = roadmap. "
+                       "Priority describes intended scope; the compliance table above records current implementation status.", legend))
 
     s.append(Paragraph("Citizen", h3))
     s.append(feature_table([
@@ -341,7 +355,7 @@ def make_story():
          "CLIP same-scene + M1 finds no defect"],
         ["Explanation",
          'One-line reason in Bangla and English, e.g. "Deep pothole on a residential road, 61 m from a school"',
-         "Groq (openai/gpt-oss-120b), written only from computed facts",
+         "GLM primary with Groq fallback, written only from computed facts",
          "Same"],
         ["Policy knowledge (RAG)",
          "Finds the rule behind each deadline; answers officer questions",
@@ -352,7 +366,7 @@ def make_story():
 
     stack = []
     stack.append(Paragraph("Tech stack", h1))
-    stack.append(Paragraph("One web app, one database and two AI APIs", h2))
+    stack.append(Paragraph("One web app, one database and three configured AI services", h2))
     stack.append(Diagram(CONTENT_W))
     s.append(KeepTogether(stack))
     s.append(Spacer(1, 4))
@@ -366,12 +380,24 @@ def make_story():
         ["File storage", "Supabase Storage (private bucket, signed links)", "Report and repair photos"],
         ["Real-time", "Supabase Realtime", "Live dashboard updates"],
         ["Vision AI", "Gemini (gemini-3.8-flash), strict JSON", "M1 detection, M3 duplicate check, M4 repair verification"],
-        ["Text AI", "Groq (openai/gpt-oss-120b), strict JSON", "Bangla-English explanations, officer assistant"],
+        ["Text AI", "GLM primary + Groq fallback, strict JSON", "Bangla-English explanations"],
         ["Access", "Role switcher; row-level security; server-only database access", "One-click demo roles; database closed to the browser"],
         ["Audit", "Hash-chained, append-only Postgres table", "Tamper-evident record of every action and AI correction"],
         ["Hosting", "Vercel + Supabase cloud", "Public URL for judges"],
         ["Finals ML", "YOLO + CLIP on ONNX Runtime", "Self-hosted detection; photos stay on our servers"],
     ], [92, 190, CONTENT_W - 282], bold_first=True))
+    s.append(Spacer(1, 10))
+    s.append(Paragraph("Submission readiness checklist", h2))
+    s.append(Paragraph(
+        "Before submission, verify that the public application URL, demo access, architecture explanation, data and licence notes, security and privacy controls, audit report, KPI measurements, and three-minute video are reachable without a private login. Label planned features as roadmap items and show only live or clearly labelled recorded AI results.", note))
+    s.append(table([
+        ["Required evidence", "Owner"],
+        ["Problem, users, solution, and impact narrative", "Presentation lead"],
+        ["AI architecture, model selection, prompts, and data flow", "Backend / data lead"],
+        ["Privacy, bias mitigation, governance, and data sovereignty", "Business / data lead"],
+        ["Working demo, public URL, and recorded backup", "Frontend / presentation lead"],
+        ["Measured KPIs and known limitations", "Team lead"],
+    ], [CONTENT_W - 135, 135], bold_first=True))
     return s
 
 

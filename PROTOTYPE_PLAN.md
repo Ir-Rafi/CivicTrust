@@ -15,7 +15,7 @@ Every feature, page and minute of video below exists because it earns points som
 | Days 1–2 build | Done: app scaffold, schema + migration, AI helpers, severity score + tests, role switcher, Bangla/English, OSM data (226 schools/hospitals/clinics, 810 roads), pilot policy for RAG. Build, lint, typecheck and tests pass. |
 | Database | Hosted Supabase (Sydney region) live: schema applied, security advisor clean, RLS verified, audit chain + geo functions tested; 219 schools/hospitals/clinics + 810 roads loaded; app connected |
 | AI | Verified end to end on a real photo: Gemini analysis (~7 s), severity, Groq Bangla/English reason (~1.4 s), policy RAG returns the right rule. Primary + backup keys for both. |
-| Docs | `CivicTrust.pdf` updated to v2 |
+| Docs | `CivicTrust.pdf` updated with preliminary compliance status and current implementation scope |
 | Blockers | **Ward boundaries** (see §8 risks) |
 | Citizen flow | Built and tested end to end with real AI: photo → Gemini → duplicate merge → severity → Bangla/English reason → saved + audit-logged; non-civic photos rejected and not stored. Too slow (~20 s); speed-up next. |
 | Next | Speed up the report pipeline; then days 6–7: officer queue, map, assign with cost + cited deadline |

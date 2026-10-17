@@ -8,7 +8,7 @@ Entry for the **International AI Builders Congress 2026** — Competition 1 (Tea
 
 | Document | What's in it |
 |---|---|
-| [`CivicTrust.pdf`](CivicTrust.pdf) | Product spec v2: users, features by priority, AI models, architecture |
+| [`CivicTrust.pdf`](CivicTrust.pdf) | Product brief, preliminary compliance status, AI models, and architecture |
 | [`PROTOTYPE_PLAN.md`](PROTOTYPE_PLAN.md) | Plan mapped to the judging rubric: status, video script, timeline, risks, judge Q&A |
 | [`PRELIMINARY_PROTOTYPE_REQUIREMENTS.md`](PRELIMINARY_PROTOTYPE_REQUIREMENTS.md) | Requirements and acceptance criteria for the preliminary-round prototype |
 | [`web/README.md`](web/README.md) | Developer setup and code layout |
