@@ -1,3 +1,9 @@
+  NOTE (17 Oct 2026): This is the original proposal from 15 Oct, kept for reference.
+  The current scope, focused on AI triage and AI-verified repairs for the 31 Oct
+  preliminary, is in CivicTrust.pdf and PROTOTYPE_PLAN.md. The tech stack at the
+  end of this file is superseded by Docs/TechStack.txt. Ideas such as the
+  construction awareness feed, comments, gamification and the open data API are
+  on the roadmap, not in the prototype.
 
                         PROJECT PROPOSAL: CivicTrust
               "The Voice of the City" — A Civic Issue Reporting Platform

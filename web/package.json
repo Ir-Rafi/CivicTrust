@@ -13,7 +13,7 @@
     "seed:fetch": "tsx scripts/fetch-osm.ts",
     "seed:load": "tsx --env-file=.env.local scripts/load-seed.ts",
     "seed:policy": "tsx --env-file=.env.local scripts/embed-policy.ts",
-    "test": "tsx --test src/**/*.test.ts",
+    "test": "tsx --test \"src/**/*.test.ts\"",
     "smoke:ai": "tsx --conditions=react-server --env-file=.env.local scripts/smoke-ai.ts"
   },
   "dependencies": {

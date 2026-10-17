@@ -1,10 +1,24 @@
-TECH STACK (Tentative)
+TECH STACK (decided 17 Oct 2026, replaces the tentative list of 15 Oct)
 
+  App            :  Next.js 16 + TypeScript + Tailwind (one mobile-first web app for all 5 roles)
+  Backend        :  Next.js route handlers + server actions
+  Database       :  Supabase Postgres + PostGIS (geospatial) + pgvector (RAG)
+  File storage   :  Supabase Storage (private bucket, signed links)
+  Real-time      :  Supabase Realtime
+  Maps           :  Leaflet + OpenStreetMap
+  Vision AI      :  Google Gemini (gemini-3.8-flash) - issue detection, duplicate check, repair verification
+  Text AI        :  Groq (openai/gpt-oss-120b) - Bangla + English explanations, officer assistant
+  Embeddings     :  Gemini (gemini-embedding-001) - policy knowledge base
+  Access         :  No login in the prototype (role switcher); database closed to the browser
+  Hosting        :  Vercel (app) + Supabase cloud (database)
 
-  Frontend       :  React / React Native (cross-platform mobile + web)
-  Backend        :  Node.js / Django
-  Database       :  PostgreSQL with PostGIS (geospatial queries)
-  Maps           :  Leaflet.js / Google Maps API
-  AI/ML Model    :  Python (TensorFlow/PyTorch) — image classification
-  Cloud/Hosting  :  AWS / Firebase
-  Notifications  :  Firebase Cloud Messaging / OneSignal
+  Finals         :  Self-hosted YOLO + CLIP (ONNX) replace Gemini vision for data sovereignty
+  Roadmap        :  Phone OTP sign-up, push + SMS notifications
+
+Why it changed from the tentative list:
+  - One web app instead of React + React Native: one codebase, works on any phone browser.
+  - Supabase instead of AWS/Firebase: Postgres with PostGIS and pgvector built in.
+  - Hosted vision AI instead of training a TensorFlow/PyTorch model before 31 Oct:
+    accurate from day 1 with no training data; our own model comes in the finals.
+
+Details: CivicTrust.pdf (architecture diagram) and web/README.md (setup).
