@@ -51,14 +51,17 @@ export function ReportForm({ t, lang }: { t: Pick<Dict, "citizen" | "errors">; l
     () => true,
   );
 
-  useEffect(() => {
-    if (!geoSupported) return;
+  function requestGps() {
     navigator.geolocation.getCurrentPosition(
       (pos) =>
         setLocation({ state: "gps", lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }),
       () => setLocation({ state: "failed" }),
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
     );
+  }
+
+  useEffect(() => {
+    if (geoSupported) requestGps();
   }, [geoSupported]);
   const gps: Location = geoSupported ? location : { state: "failed" };
 
@@ -90,7 +93,7 @@ export function ReportForm({ t, lang }: { t: Pick<Dict, "citizen" | "errors">; l
           ? { lat: spot.lat, lng: spot.lng, accuracy: "", source: "demo" }
           : null
         : { lat: gps.lat, lng: gps.lng, accuracy: String(gps.accuracy), source: "gps" };
-    if (!coords) return setClientError(t.citizen.needLocation);
+    if (!coords) return setClientError(gps.state === "failed" ? t.citizen.gpsHelp : t.citizen.needLocation);
 
     const fd = new FormData();
     fd.set("photo", new File([photo.blob], "report.jpg", { type: "image/jpeg" }));
@@ -169,6 +172,18 @@ export function ReportForm({ t, lang }: { t: Pick<Dict, "citizen" | "errors">; l
             {gps.state === "gps" && fill(t.citizen.gpsOk, { m: String(Math.round(gps.accuracy)) })}
             {gps.state === "failed" && t.citizen.gpsFailed}
           </p>
+        )}
+        {!useDemo && gps.state === "failed" && geoSupported && (
+          <button
+            type="button"
+            onClick={() => {
+              setLocation({ state: "locating" });
+              requestGps();
+            }}
+            className="text-sm font-medium text-accent"
+          >
+            {t.citizen.retryGps}
+          </button>
         )}
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={useDemo} onChange={(e) => setUseDemo(e.target.checked)} />

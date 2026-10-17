@@ -6,3 +6,6 @@ __pycache__/
 web/supabase/.temp/
 web/supabase/.branches/
 AIBC_Participants_Guide_261015_143157.pdf
+
+# sample photos for local testing (third-party, not committed)
+test-photos/
