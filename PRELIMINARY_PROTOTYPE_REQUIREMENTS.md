@@ -1,217 +1,157 @@
-# CivicTrust Preliminary-Round Prototype Requirements
-
-**Version:** 1.0  
-**Target submission:** 31 October 2026  
-**Prototype area:** Dhanmondi, Dhaka  
-**Primary audience:** Preliminary-round judges and pilot stakeholders
+# CivicTrust Preliminary Prototype Requirements
 
 ## 1. Purpose
 
-CivicTrust is a civic issue reporting prototype for the International AI Builders Congress preliminary round. A citizen submits a photo of a public infrastructure problem, AI classifies and ranks it, and an officer can track the issue through assignment and repair verification.
+CivicTrust is a civic issue reporting and repair accountability prototype. It enables citizens to report public infrastructure problems, uses AI to classify and prioritize reports, and verifies repair evidence before an issue can be marked complete.
 
-The prototype must demonstrate one complete, believable accountability loop:
+The prototype must demonstrate this workflow:
 
-> **Report → understand → rank → assign → verify → publish the outcome**
-
-The preliminary prototype is judged on a clear problem, a working workflow, meaningful AI use, Bangla localization, measurable impact, and responsible handling of data. Features that do not support this loop are outside the required scope.
+**Report → Analyze → Prioritize → Assign → Verify → Publish outcome**
 
 ## 2. Scope
 
-### Included in the preliminary prototype
+### 2.1 Included
 
-- A mobile-first web application with Bangla as the default language and English available.
-- Five demo roles: Citizen, Ward Officer, Contractor, NGO/Volunteer, and Public.
-- A Dhanmondi pilot map with roads, schools, hospitals, and clinics from attributed OpenStreetMap data.
-- Camera-based citizen reporting with photo, location, capture time, issue details, and reporter name.
-- Gemini vision analysis for civic issue detection, issue type, visual severity, confidence, hazards, and privacy flags.
-- Explainable severity scoring from 1–10 using visual severity, road class, nearby sensitive places, report count, and days open.
-- Duplicate detection using a 25 metre geospatial search and an AI image comparison.
-- GLM as the primary provider for short Bangla and English explanations, with Groq as fallback.
-- Officer queue and map ordered by severity, with filters and human override.
-- Contractor work order with agreed cost, deadline, and policy citation where available.
-- Repair proof capture at the repair location and time.
-- AI repair verification using location, freshness, and before/after image comparison.
-- Payment status that remains withheld until a repair is verified.
-- Citizen confirmation or dispute of the repair result.
-- Public issue status and contractor scorecard views.
-- Hash-chained audit records for AI decisions, overrides, assignments, status changes, and payment state.
-- A model card, data-flow explanation, safeguards page, and preliminary demo video.
+- Mobile-first web application with Bangla as the default language and English support.
+- Dhanmondi, Dhaka pilot area with attributed OpenStreetMap roads and nearby facilities.
+- Demonstration roles: Citizen, Ward Officer, Contractor, NGO/Volunteer, and Public.
+- Camera-based reports containing a photo, location, capture time, issue details, and reporter name.
+- AI classification of potholes, road cracks, garbage, open drains, waterlogging, and other civic issues.
+- Explainable severity scoring from 1–10.
+- Nearby duplicate detection and duplicate report merging.
+- AI-generated Bangla and English explanations.
+- Officer queue and map with filters, prioritization, and human override.
+- Contractor work orders with cost, deadline, and policy reference.
+- Repair proof upload and AI-based before/after verification.
+- Payment status withheld until repair verification succeeds.
+- Citizen confirmation or dispute of a reported repair.
+- Public status dashboard and contractor performance summary.
+- Hash-chained audit records for important actions and AI decisions.
 
-### Excluded from the preliminary prototype
+### 2.2 Excluded
 
-- Production authentication, phone OTP, or fine-grained user permissions.
-- Full city coverage or multi-city tenancy.
-- Offline synchronization, SMS, push notifications, and Open311 integration.
-- Self-hosted vision models, agent orchestration, and a full knowledge-graph interface.
-- Automated payment transfer to a bank or government payment system.
-- Claims that the prototype represents official city policy or production accuracy.
+- Production authentication, phone verification, and granular permissions.
+- Full city coverage, multi-city tenancy, and offline synchronization.
+- SMS, push notifications, Open311 integration, and automated bank payments.
+- Self-hosted vision models, agent orchestration, and a full graph interface.
+- Claims of production-level accuracy or official government policy.
 
-## 3. Users and permissions
+## 3. User Requirements
 
 | User | Required capability |
 |---|---|
 | Citizen | Submit a report, view its status, and confirm or dispute a repair |
-| Ward officer | Review the ranked queue, inspect evidence, override AI results with a reason, assign work, and approve or reject repairs |
-| Contractor | View assigned work, upload a repair proof, and see the verification result |
-| NGO/volunteer | View open issues and indicate willingness to help |
-| Public | View area-level open and fixed issues, outcomes, and contractor performance |
+| Ward Officer | Review, prioritize, correct, assign, and verify issues |
+| Contractor | View assigned work and submit repair evidence |
+| NGO/Volunteer | View open issues and indicate willingness to assist |
+| Public | View area-level issue status and contractor outcomes |
 
-The prototype uses a role switcher for demonstrations. The interface must make clear that this is a controlled prototype and not an identity or access-control system.
+The prototype may use a role switcher for demonstration and shall identify it as a prototype access mechanism.
 
-## 4. Functional requirements
+## 4. Functional Requirements
 
-### FR-01 — Citizen report
+### FR-01: Report submission
 
-The system shall allow a citizen to capture a JPEG, PNG, or WebP photo from the browser camera. It shall record the capture time, GPS coordinates when available, location source, and reporter name. Files larger than 4 MB, unsupported types, stale GPS reports, and invalid timestamps shall be rejected with a clear message.
+The system shall allow a citizen to capture an image from the browser camera and submit it with location and capture time. It shall reject unsupported files, files larger than 4 MB, stale reports, and invalid timestamps with a clear message.
 
-### FR-02 — Civic issue analysis
+### FR-02: AI issue analysis
 
-The system shall send the image to the configured vision provider and return strict structured data containing:
+The system shall return structured results containing civic or non-civic classification, issue type, visual severity, confidence, factual observations, visible hazards, and face or number-plate visibility. Non-civic images shall be rejected and shall not be stored as reports.
 
-- civic issue or non-civic classification;
-- issue type: pothole, road crack, garbage, open drain, waterlogging, or other;
-- visual class: minor, moderate, or severe;
-- confidence;
-- factual observations;
-- visible hazards;
-- whether faces or number plates are visible.
+### FR-03: Explainable severity
 
-Non-civic images shall be rejected and shall not be stored as reports.
+The system shall calculate a deterministic score from 1–10 using visual severity, road class, distance to nearby sensitive locations, report count, and days open. The interface shall display the score components, and repeated reports shall have a capped contribution.
 
-### FR-03 — Severity score
+### FR-04: Duplicate detection
 
-The system shall calculate a deterministic score from 1–10 and show its components. The score shall include visual class, road class, distance to nearby schools or hospitals, report count, and days open. The report-count bonus must be capped so repeated submissions cannot overwhelm the other factors.
+The system shall search for open issues within 25 metres and compare images to determine whether a new report is a duplicate. Confirmed duplicates shall be linked to the existing issue.
 
-### FR-04 — Duplicate handling
+### FR-05: AI explanation
 
-The system shall search for nearby open issues within 25 metres and use image comparison to classify a possible duplicate as yes, no, or unclear. A confirmed duplicate shall be linked to the existing issue and counted without creating an unnecessary new issue.
+The system shall generate concise English and natural Bangla explanations based only on computed facts. GLM shall be the primary text provider, with Groq as an automatic fallback. If both providers fail, the report shall remain available with its factual observations.
 
-### FR-05 — Explanation
+### FR-06: Officer review and override
 
-The system shall generate one concise English explanation and one natural Bangla explanation from the computed facts only. GLM shall be attempted first. Groq shall be used automatically if GLM is unavailable or fails. If both providers fail, the report shall retain the measured observations and continue.
+The officer interface shall provide a severity-ranked queue, map, and filters by status, issue type, and area. Officers shall be able to correct AI results by providing a reason. The original result and correction shall both be auditable.
 
-### FR-06 — Officer queue and override
+### FR-07: Work order
 
-The officer view shall show open issues ordered by severity and support filtering by status, issue type, and area. An officer shall be able to correct an AI classification or severity and must provide a reason. The original AI result and the override shall both remain auditable.
+An officer shall be able to assign an issue with a responsible party, agreed cost, deadline, and policy reference where available.
 
-### FR-07 — Assignment and deadline
+### FR-08: Repair verification
 
-The officer shall create a work order containing an assignee, agreed cost, deadline, and issue reference. The deadline shall be derived from the severity and cite the applicable pilot policy rule when a matching policy chunk exists.
+The contractor shall submit an after-photo captured at the repair location. The system shall check photo freshness and location tolerance, compare before and after images, and return resolved, partially resolved, unresolved, or unclear.
 
-### FR-08 — Repair verification
+### FR-09: Payment status
 
-The contractor shall upload an after-photo captured at the work location. The system shall check photo freshness and location tolerance of approximately 15 metres, compare the before and after images, and return resolved, partially resolved, unresolved, or unclear with a reason.
+Payment shall remain withheld until the repair is verified. Rejected or unclear results shall require officer review. A verified repair shall be marked eligible for release in the prototype.
 
-### FR-09 — Payment gate
+### FR-10: Public outcome
 
-The work order shall show payment as withheld until the repair is verified. A rejected or unclear verification shall keep payment withheld and route the case to officer review. A verified repair shall mark payment as eligible for release in the prototype.
+The public interface shall show area-level open and fixed issues, available fix-time statistics, and contractor outcomes. It shall not expose personal information or exact private coordinates.
 
-### FR-10 — Citizen and public outcome
+### FR-11: Audit trail
 
-Citizens shall be able to confirm or dispute a repair. The public view shall show area-level locations, open versus fixed counts, average fix time where data exists, and contractor outcomes without exposing exact private coordinates or personal data.
+The system shall record report creation, AI decisions, duplicate decisions, overrides, assignments, repair evidence, verification results, citizen feedback, and payment status. Records shall be tamper-evident and append-only through the application workflow.
 
-### FR-11 — Audit trail
+## 5. Technical Requirements
 
-The system shall record report creation, AI results, duplicate decisions, overrides, assignments, repair proofs, verification decisions, citizen feedback, and payment state. Audit entries shall be hash-chained and append-only from the application workflow.
+- Next.js, TypeScript, and a responsive web interface.
+- Supabase Postgres with PostGIS, pgvector, Storage, and row-level security.
+- Gemini for image analysis, image comparison, and policy embeddings.
+- GLM for primary text explanations and Groq as fallback.
+- Zod validation for all model responses.
+- Server-only database access and environment-based secret management.
+- EXIF removal after reading required metadata.
+- Gemini image requests configured with `store: false`.
+- OpenStreetMap attribution and licence information in the product.
 
-## 5. AI and data requirements
+## 6. Required Screens
 
-- Gemini shall handle image analysis, duplicate comparison, repair comparison, and policy embeddings.
-- GLM shall be the primary text explanation provider through its OpenAI-compatible API.
-- Groq shall remain configured as the text fallback.
-- All model outputs used by the application shall be parsed against Zod schemas.
-- Prompts shall instruct models to report only visible or computed facts and to refuse unsupported claims.
-- Gemini image requests shall use `store: false`.
-- Stored photos shall have EXIF metadata removed after reading location and time.
-- Exact report coordinates shall be restricted to officer and contractor views; the public view shall use area-level locations.
-- OSM data shall include attribution and its ODbL licence notice.
-- The product shall label measured results, targets, roadmap items, and simulated demo data separately.
-
-## 6. Non-functional requirements
-
-### Reliability
-
-- A provider failure shall produce a useful fallback or an explicit review state.
-- Low-confidence analysis shall be reviewable by an officer and shall not silently delete a citizen report.
-- The system shall preserve the issue record when an optional explanation call fails.
-
-### Performance
-
-- The report flow shall display progress for long AI calls.
-- The team shall measure and record time from photo submission to ranked issue.
-- The preliminary demo should complete the core report flow within a practical live-demo window.
-
-### Security and privacy
-
-- Database access shall occur only through server-side code.
-- Row-level security shall be enabled on database tables.
-- Secrets shall remain in `web/.env.local` or deployment secret storage and shall never be committed.
-- Public pages shall not expose personal names, exact private coordinates, raw provider keys, or unredacted sensitive images.
-
-### Accessibility and localization
-
-- Bangla shall be the default interface language.
-- Important actions shall have clear labels and visible success or error states.
-- The demo shall work on a mobile viewport and a desktop judge laptop.
-
-## 7. Required screens
-
-1. Role and language switcher.
-2. Citizen report capture and submission progress.
-3. Citizen issue result with severity breakdown and bilingual explanation.
+1. Role and language selection.
+2. Citizen report capture and submission status.
+3. Issue result with severity breakdown and bilingual explanation.
 4. Officer queue and map.
-5. Issue detail with audit history and override control.
-6. Work order with deadline, cost, and policy citation.
-7. Contractor repair upload and verification result.
+5. Issue detail with audit history and override controls.
+6. Work order with cost, deadline, and policy reference.
+7. Contractor repair submission and verification result.
 8. Citizen confirmation or dispute.
-9. Public transparency dashboard and contractor scorecard.
-10. Architecture, data, security, and model-card pages for judges.
+9. Public transparency dashboard and contractor summary.
+10. Architecture, data, security, and model-card pages.
 
-## 8. Acceptance criteria for the preliminary demo
+## 7. Acceptance Criteria
 
-The prototype is ready when a reviewer can complete this script on a deployed or local instance:
+The prototype shall be accepted when a reviewer can:
 
-1. Select Bangla and the Citizen role.
-2. Capture a real civic issue photo in the Dhanmondi pilot area.
-3. See live AI classification, confidence, severity components, and Bangla/English explanation.
-4. Submit a second nearby photo and see duplicate handling.
-5. Switch to Officer and see the issue in the ranked queue and map.
-6. Override a field with a written reason and see the audit entry.
-7. Assign a contractor with a cost, deadline, and policy citation.
-8. Switch to Contractor and upload a deliberately bad after-photo.
-9. Show AI rejection, reason, and payment withheld.
-10. Upload a valid after-photo and show verification and payment eligibility.
-11. Switch to Citizen and submit confirmation or dispute.
-12. Switch to Public and show the area-level outcome and contractor scorecard.
+1. Select Bangla and submit a real civic issue photo.
+2. View live AI classification, confidence, severity components, and bilingual explanation.
+3. Submit a nearby duplicate and see it linked to the existing issue.
+4. Review the issue in the officer queue and map.
+5. Override an AI result with a reason and view the audit entry.
+6. Assign a contractor with a cost, deadline, and policy reference.
+7. Submit an invalid repair photo and show rejection with payment withheld.
+8. Submit a valid repair photo and show verification and payment eligibility.
+9. Confirm or dispute the repair as a citizen.
+10. View the resulting status and contractor outcome publicly.
 
-The video must show live or clearly labelled recorded results. It must not present hard-coded output as a live AI decision.
+All AI results shown must be live or explicitly labelled as recorded test results. Hard-coded output must not be presented as live AI output.
 
-## 9. Measures to collect before submission
+## 8. Required Measurements
 
-The team shall record measured values for:
+The team shall measure and document issue classification accuracy, repair verification accuracy, duplicate merge rate, median time from submission to ranked issue, false-closure rate, audit-record completion rate, and AI provider success and fallback rates.
 
-- issue-type accuracy on a labelled Dhaka photo set;
-- repair-verifier accuracy on valid and deliberately bad repair pairs;
-- duplicate merge rate;
-- median time from photo submission to ranked ticket;
-- false-closure rate;
-- percentage of reports with a complete audit trail;
-- provider success and fallback counts during testing.
+Measured results and future targets must be clearly separated.
 
-Targets must be labelled as targets. Only measured values may be presented as results in the preliminary video.
+## 9. Deliverables
 
-## 10. Deliverables
-
-- Working source code in the `web/` application.
-- `README.md` and `web/README.md` with setup, architecture, and environment variables.
-- Preliminary demo video of no more than three minutes.
-- Problem definition and user summary.
-- AI architecture and model-selection explanation.
-- Data, licence, sovereignty, retention, and privacy notes.
+- Working prototype source code.
+- Setup and deployment documentation.
+- Requirements, architecture, data, privacy, and security documentation.
 - Model card and responsible-AI safeguards.
-- Measured KPI sheet.
-- Participant guide and submission materials.
+- KPI measurement summary.
+- Preliminary demonstration video.
+- Participant guide and supporting submission materials.
 
-## 11. Completion rule
+## 10. Completion Definition
 
-The preliminary prototype is complete when the core accountability loop works end to end, the acceptance script can be demonstrated using live or clearly labelled recorded evidence, the documented safeguards are visible to judges, and the measured KPI and limitation statements are ready for the video.
+The preliminary prototype is complete when the end-to-end accountability workflow operates successfully, the acceptance demonstration is reproducible, safeguards are documented, and measured results and known limitations are ready for presentation.
