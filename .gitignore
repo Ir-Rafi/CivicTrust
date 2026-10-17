@@ -1,0 +1,8 @@
+# OS / editor
+.DS_Store
+__pycache__/
+
+# Supabase CLI local state
+web/supabase/.temp/
+web/supabase/.branches/
+AIBC_Participants_Guide_261015_143157.pdf
