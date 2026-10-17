@@ -54,6 +54,19 @@ pnpm dev            # http://localhost:3000
 curl localhost:3000/api/health   # shows which integrations are configured
 ```
 
+## Deploy (Vercel)
+
+1. Vercel → **Add New → Project** → import `Ir-Rafi/CivicTrust` (the repo owner may need to install the Vercel GitHub app for this private repo).
+2. **Root Directory: `web`**. Framework, pnpm and build command are detected automatically.
+3. **Environment Variables** (Production + Preview), copied from `.env.local`, marked *Sensitive*:
+   `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `GEMINI_API_KEY`, `GEMINI_VISION_MODEL`, `GEMINI_EMBEDDING_MODEL`, `GROQ_API_KEY`, `GROQ_TEXT_MODEL`.
+   Not needed on Vercel: `DATABASE_URL` and the `*_BACKUP` keys. Never add a `NEXT_PUBLIC_` prefix.
+4. **Settings → Functions → Region:** pick the one closest to the database (Sydney `syd1` for the current project).
+5. Deploy, then open `https://<your-app>.vercel.app/api/health`: all three integrations should be `true` and `database.ok` should be `true`.
+
+The database is already hosted on Supabase; schema changes are applied with
+`pnpm exec supabase db push --db-url "$DATABASE_URL"`, not by Vercel.
+
 ## Checks
 
 ```bash
