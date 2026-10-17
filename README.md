@@ -2,7 +2,7 @@
 
 **Report it. AI ranks it. The city fixes it. AI checks the fix.**
 
-Citizens photograph potholes, garbage piles, open drains and waterlogging. AI identifies the problem and scores its urgency, the ward officer assigns it to a contractor or an NGO with an automatic deadline, and AI compares the repair photo with the original before the job is allowed to close. A public portal shows open vs. fixed issues per ward.
+Citizens photograph potholes ,  garbage piles, open drains and waterlogging. AI identifies the problem and scores its urgency, the ward officer assigns it to a contractor or an NGO with an automatic deadline, and AI compares the repair photo with the original before the job is allowed to close. A public portal shows open vs. fixed issues per ward.
 
 Entry for the **International AI Builders Congress 2026** — Competition 1 (Team-Built Product), **CivicSphere AI** domain, *Transparent Government* challenge area.
 
