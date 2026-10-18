@@ -4,6 +4,8 @@ Citizens photograph potholes and garbage; AI classifies and scores urgency; offi
 contractors; AI verifies the repair photo before a job can close. Plan and judging alignment:
 [`../PROTOTYPE_PLAN.md`](../PROTOTYPE_PLAN.md).
 
+Backend service contracts for the officer, contractor, citizen, public, and audit flows are documented in [`BACKEND_CONTRACT.md`](BACKEND_CONTRACT.md).
+
 ## Stack
 
 Next.js 16 · Supabase (Postgres + PostGIS + pgvector, Storage) · Gemini (vision, embeddings) ·
