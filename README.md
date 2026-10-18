@@ -41,7 +41,7 @@ The prototype has **no login**: a role switcher gives one-click access so judges
 | M2 Severity score | Transparent formula | 1–10 from the photo + road class + distance to schools/hospitals + reports + days open; every factor is shown |
 | M3 Duplicate filter | PostGIS + Gemini | Reports within 25 m showing the same problem are merged |
 | M4 Repair verifier | GPS + time + Gemini | Same spot, fresh photo, before/after comparison |
-| Explanation | GLM primary, Groq fallback | One-line reason in Bangla and English, written only from computed facts |
+| Explanation | Groq primary, GLM fallback | One-line reason in Bangla and English, written only from computed facts |
 | Policy RAG | Gemini embeddings + pgvector | Cites the rule behind each repair deadline |
 
 Example from a real test photo: *"Pothole on a residential road, 61 m from a school"* · *"আবাসিক রাস্তায় গর্ত, স্কুল থেকে ৬১ মিটার দূরে"* · severity 6.
@@ -55,7 +55,7 @@ Web app (Next.js 16, mobile-first, Bangla + English)
         │ server actions
 Next.js server ── reports · severity · duplicates · work orders · deadlines · audit log
         │                         │
- Gemini + GLM + Groq APIs   Supabase: Postgres + PostGIS + pgvector, private photo storage
+ Gemini + Groq + GLM APIs   Supabase: Postgres + PostGIS + pgvector, private photo storage
                                   ▲
                     OpenStreetMap roads, schools, hospitals (seed scripts)
 ```
@@ -84,7 +84,7 @@ Requires Node 22+ and pnpm.
 ```bash
 cd web
 pnpm install
-cp .env.example .env.local    # add Supabase, Gemini, GLM and Groq keys (ask the team lead)
+cp .env.example .env.local    # add Supabase, Gemini, Groq and GLM keys (ask the team lead)
 pnpm dev                      # http://localhost:3000
 ```
 

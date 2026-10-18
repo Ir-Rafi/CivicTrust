@@ -1,9 +1,13 @@
 import "server-only";
 import { glmEnv } from "@/lib/env";
+import { EXPLANATION_SYSTEM_PROMPT, EXPLANATION_TIMEOUT_MS } from "@/lib/ai/explanation-prompt";
 import { explanationSchema, type Explanation } from "@/lib/ai/schemas";
 import type { SeverityResult } from "@/lib/severity";
 
-/** GLM handles text explanations through its OpenAI-compatible chat API. */
+/**
+ * Fallback text provider (Groq is primary), through GLM's OpenAI-compatible chat API.
+ * Thinking is disabled: with it on, glm-4.5-flash took over 60 s for a one-line answer.
+ */
 export async function explainSeverity(facts: {
   issueType: string;
   observations: string;
@@ -13,18 +17,14 @@ export async function explainSeverity(facts: {
   const response = await fetch(`${env.GLM_API_BASE}/chat/completions`, {
     method: "POST",
     headers: { Authorization: `Bearer ${env.GLM_API_KEY}`, "Content-Type": "application/json" },
+    signal: AbortSignal.timeout(EXPLANATION_TIMEOUT_MS),
     body: JSON.stringify({
       model: env.GLM_TEXT_MODEL,
       temperature: 0.2,
+      thinking: { type: "disabled" },
       response_format: { type: "json_object" },
       messages: [
-        {
-          role: "system",
-          content:
-            "Write one-line civic issue urgency explanations for Bangladesh. Use only the supplied facts. " +
-            "Return JSON with exactly reason_en and reason_bn. Each line must be under 140 characters. " +
-            "reason_bn must be natural Bangla script, not transliteration.",
-        },
+        { role: "system", content: EXPLANATION_SYSTEM_PROMPT },
         { role: "user", content: JSON.stringify(facts) },
       ],
     }),

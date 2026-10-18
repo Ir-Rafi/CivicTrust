@@ -244,7 +244,7 @@ Check: 3–5 members · ≥1 woman (bonus) · all AI tool usage documented · NR
 | Backend | Next.js route handlers / server actions; database reachable only from server code |
 | Data | Supabase: Postgres + PostGIS + pgvector, Storage (private photo bucket), Realtime |
 | AI — vision + embeddings | **Gemini** `gemini-3.8-flash`: issue detection M1, duplicate check M3, repair verification M4, strict JSON; `gemini-embedding-001` (768-d) for policy RAG |
-| AI — text | **Groq** `openai/gpt-oss-120b`, strict JSON: Bangla/English explanations, officer copilot |
+| AI — text | **Groq** `openai/gpt-oss-120b` (primary), strict JSON: Bangla/English explanations, officer copilot. **GLM** `glm-4.5-flash` is the automatic fallback |
 | Access | No login. Role + language cookies; database closed to the browser by row-level security |
 | Maps | Leaflet + OpenStreetMap, marker clustering |
 | Deploy | Vercel + Supabase (public URL) |
@@ -265,7 +265,7 @@ Pilot data: Dhanmondi area, Dhaka (bbox 23.735,90.365 → 23.760,90.390). OSM ro
 | Occasional wrong Bangla word in AI reasons (e.g. gravel) | Looks careless in a Bangla demo | Bangla glossary in the prompt; native speaker reviews 20 sample outputs | 25 Oct |
 | Database hosted in Sydney (ap-southeast-2) | Judges may ask why Bangladeshi citizens' photos sit in Australia | Either state it on `/data` with the self-hosting roadmap, or recreate the project in Singapore (ap-southeast-1) and replay the migration | 24 Oct |
 | OSM tagging noise (some "hospitals" are pharmacies or offices) | Wrong proximity bonus | Name filter in `seed:fetch` (7 removed); officer override covers the rest; noted on `/data` | done |
-| Gemini/Groq rate limits or outage during the demo | Live demo stalls | Recorded backup video; retry with clear error message in app | 27 Oct |
+| Gemini/Groq rate limits or outage during the demo | Live demo stalls | Recorded backup video; GLM takes over text if Groq fails (10 s timeout each); clear error message in app | 27 Oct |
 | Not enough real photos (incl. before/after pairs) | KPIs can't be measured | Team photographs 30–60 issues in the pilot area; for repair pairs, revisit fixed spots | 28 Oct |
 | Problem statistics unsourced | M2 weak; risk of "fabricated" claims | BA collects cited sources only | 26 Oct |
 | Team roles unfilled | Submission requirement (Sec. 13.2) | Fill §6 table | 24 Oct |

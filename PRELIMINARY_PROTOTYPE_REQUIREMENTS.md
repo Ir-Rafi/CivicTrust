@@ -68,7 +68,7 @@ The system shall search for open issues within 25 metres and compare images to d
 
 ### FR-05: AI explanation
 
-The system shall generate concise English and natural Bangla explanations based only on computed facts. GLM shall be the primary text provider, with Groq as an automatic fallback. If both providers fail, the report shall remain available with its factual observations.
+The system shall generate concise English and natural Bangla explanations based only on computed facts. Groq shall be the primary text provider, with GLM as an automatic fallback. Each provider has a timeout so a slow provider cannot block the report. If both providers fail, the report shall remain available with its factual observations.
 
 ### FR-06: Officer review and override
 
@@ -99,7 +99,7 @@ The system shall record report creation, AI decisions, duplicate decisions, over
 - Next.js, TypeScript, and a responsive web interface.
 - Supabase Postgres with PostGIS, pgvector, Storage, and row-level security.
 - Gemini for image analysis, image comparison, and policy embeddings.
-- GLM for primary text explanations and Groq as fallback.
+- Groq for primary text explanations and GLM as fallback.
 - Zod validation for all model responses.
 - Server-only database access and environment-based secret management.
 - EXIF removal after reading required metadata.

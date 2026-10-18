@@ -9,7 +9,7 @@ Backend service contracts for the officer, contractor, citizen, public, and audi
 ## Stack
 
 Next.js 16 · Supabase (Postgres + PostGIS + pgvector, Storage) · Gemini (vision, embeddings) ·
-GLM (primary bilingual text) + Groq (fallback) · Leaflet + OpenStreetMap.
+Groq (primary bilingual text) + GLM (fallback) · Leaflet + OpenStreetMap.
 
 ## Setup
 
@@ -80,8 +80,8 @@ pnpm test && pnpm typecheck && pnpm lint && pnpm build
 | Path | What |
 |---|---|
 | `src/lib/ai/gemini.ts` | M1 issue analysis, M3 duplicate compare, M4 repair verify, embeddings |
-| `src/lib/ai/glm.ts` | Primary Bangla + English severity explanation via GLM |
-| `src/lib/ai/groq.ts` | Fallback Bangla + English severity explanation |
+| `src/lib/ai/glm.ts` | Fallback Bangla + English severity explanation via GLM |
+| `src/lib/ai/groq.ts` | Primary Bangla + English severity explanation (Groq) |
 | `src/lib/severity.ts` | M2 explainable severity score + SLA deadline bands |
 | `src/lib/audit.ts` | Append to the hash-chained audit log |
 | `src/lib/session.ts`, `src/app/actions/session.ts` | Role switcher + language cookie (no login, by design) |

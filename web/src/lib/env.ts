@@ -23,7 +23,7 @@ const groqSchema = z.object({
 const glmSchema = z.object({
   GLM_API_KEY: z.string().min(10),
   GLM_API_BASE: z.url().default("https://open.bigmodel.cn/api/paas/v4"),
-  GLM_TEXT_MODEL: z.string().default("glm-4-flash"),
+  GLM_TEXT_MODEL: z.string().default("glm-4.5-flash"),
 });
 
 function lazyEnv<S extends z.ZodObject>(schema: S, name: string): () => z.infer<S> {

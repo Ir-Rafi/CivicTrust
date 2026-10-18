@@ -157,7 +157,7 @@ class Diagram(Flowable):
                   "SLA deadlines · Repair verification · Audit log"], highlight=True)
         self.box(c, x3, r2, col, bh, "Seed scripts", ["loaded once into", "PostGIS layers"])
         # Row 3
-        self.box(c, x1, r3, col, bh, "AI APIs", ["Gemini: vision + embeddings", "GLM text · Groq fallback"],
+        self.box(c, x1, r3, col, bh, "AI APIs", ["Gemini: vision + embeddings", "Groq text · GLM fallback"],
                  highlight=True)
         self.box(c, x2, r3, col, bh, "Supabase", ["Postgres + PostGIS + pgvector", "private photo storage · Realtime"])
         self.box(c, x3, r3, col, bh, "Finals: self-hosted ML (ONNX)",
@@ -230,7 +230,7 @@ def make_story():
     changes = [
         "<b>One app on Supabase.</b> The prototype is a single Next.js app with Supabase (Postgres, PostGIS, pgvector, "
         "storage). FastAPI, Celery, Redis and MinIO are no longer needed.",
-        "<b>AI for the preliminary.</b> Gemini reads photos, GLM writes Bangla-English explanations, and Groq is the fallback. Custom YOLO and CLIP "
+        "<b>AI for the preliminary.</b> Gemini reads photos, Groq writes Bangla-English explanations, and GLM is the fallback. Custom YOLO and CLIP "
         "models move to the finals, self-hosted for data sovereignty.",
         "<b>No login in the prototype.</b> Judges switch roles in one click; the database is closed to the browser. "
         "Phone-OTP sign-up moves to the roadmap.",
@@ -254,7 +254,7 @@ def make_story():
         ["Guide requirement", "Evidence in this repository", "Status"],
         ["Structured 3-minute video", "Video outline and timing in PROTOTYPE_PLAN.md", "Ready to produce"],
         ["Clear problem and users", "Problem definition, five roles, and user flow in the requirements document", "Documented"],
-        ["AI-native approach", "Gemini vision, deterministic severity, pgvector RAG, GLM text, and Groq fallback", "Implemented in core flow"],
+        ["AI-native approach", "Gemini vision, deterministic severity, pgvector RAG, Groq text, and GLM fallback", "Implemented in core flow"],
         ["Input → AI → output workflow", "Citizen photo → Gemini analysis → severity → explanation → Supabase record", "Implemented and tested"],
         ["Initial working prototype", "Citizen reporting flow and /api/health run locally against Supabase", "Implemented"],
         ["Bangla/localization", "Bangla-first interface and bilingual explanation schema", "Implemented in citizen flow"],
@@ -355,7 +355,7 @@ def make_story():
          "CLIP same-scene + M1 finds no defect"],
         ["Explanation",
          'One-line reason in Bangla and English, e.g. "Deep pothole on a residential road, 61 m from a school"',
-         "GLM primary with Groq fallback, written only from computed facts",
+         "Groq primary with GLM fallback, written only from computed facts",
          "Same"],
         ["Policy knowledge (RAG)",
          "Finds the rule behind each deadline; answers officer questions",
@@ -380,7 +380,7 @@ def make_story():
         ["File storage", "Supabase Storage (private bucket, signed links)", "Report and repair photos"],
         ["Real-time", "Supabase Realtime", "Live dashboard updates"],
         ["Vision AI", "Gemini (gemini-3.8-flash), strict JSON", "M1 detection, M3 duplicate check, M4 repair verification"],
-        ["Text AI", "GLM primary + Groq fallback, strict JSON", "Bangla-English explanations"],
+        ["Text AI", "Groq primary + GLM fallback, strict JSON", "Bangla-English explanations"],
         ["Access", "Role switcher; row-level security; server-only database access", "One-click demo roles; database closed to the browser"],
         ["Audit", "Hash-chained, append-only Postgres table", "Tamper-evident record of every action and AI correction"],
         ["Hosting", "Vercel + Supabase cloud", "Public URL for judges"],

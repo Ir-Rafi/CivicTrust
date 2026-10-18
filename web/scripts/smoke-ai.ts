@@ -1,13 +1,14 @@
 /**
  * End-to-end smoke test of the AI layer against the real database and APIs.
  *
- *   pnpm smoke:ai                       # explanation only (Groq)
+ *   pnpm smoke:ai                       # explanation (Groq primary + GLM fallback)
  *   pnpm smoke:ai path/to/photo.jpg     # + Gemini photo analysis
  *
  * Runs with --conditions=react-server so the app's server-only modules load as-is.
  */
 import { readFile } from "node:fs/promises";
-import { explainSeverity } from "@/lib/ai/groq";
+import { explainSeverity as explainWithGlm } from "@/lib/ai/glm";
+import { explainSeverity as explainWithGroq } from "@/lib/ai/groq";
 import { db } from "@/lib/supabase/server";
 import { computeSeverity, type LocationContext } from "@/lib/severity";
 import type { VisualClass } from "@/lib/ai/schemas";
@@ -41,9 +42,17 @@ async function main() {
   const severity = computeSeverity({ visualClass, context: context as LocationContext, reportCount: 1, daysOpen: 0 });
   console.log("severity:", severity.score, severity.components.map((c) => `${c.key}=${c.points}`).join(" "));
 
-  const t = Date.now();
-  const explanation = await explainSeverity({ issueType, observations, severity });
-  console.log(`groq (${Date.now() - t} ms):`, JSON.stringify(explanation, null, 2));
+  // Both providers, so a broken fallback shows up before the demo does.
+  const facts = { issueType, observations, severity };
+  for (const [name, explain] of [["groq", explainWithGroq], ["glm", explainWithGlm]] as const) {
+    const t = Date.now();
+    try {
+      const explanation = await explain(facts);
+      console.log(`${name} (${Date.now() - t} ms):`, JSON.stringify(explanation, null, 2));
+    } catch (e) {
+      console.log(`${name} FAILED (${Date.now() - t} ms):`, e instanceof Error ? e.message : e);
+    }
+  }
 
   // RAG: which policy rule governs this issue's deadline?
   const { embedText } = await import("@/lib/ai/gemini");

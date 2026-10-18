@@ -36,9 +36,10 @@ async function explainSeverity(facts: {
   severity: SeverityResult;
 }): Promise<Explanation> {
   try {
-    return await explainWithGlm(facts);
-  } catch {
-    return explainWithGroq(facts);
+    return await explainWithGroq(facts);
+  } catch (e) {
+    console.warn("Groq explanation failed, falling back to GLM", e);
+    return explainWithGlm(facts);
   }
 }
 
@@ -101,7 +102,11 @@ export async function submitCitizenReport(input: ReportInput): Promise<ReportOut
     issueType: analysis.issue_type,
     observations: analysis.observations,
     severity,
-  }).catch(() => null); // explanation is helpful, not essential; the breakdown still explains the score
+  }).catch((e) => {
+    // Explanation is helpful, not essential; the breakdown still explains the score.
+    console.error("Groq and GLM explanations both failed", e);
+    return null;
+  });
 
   const status = analysis.confidence >= AUTO_VERIFY_CONFIDENCE ? "verified" : "reported";
   const stored: StoredSeverity = { ...severity, context, analysis };
