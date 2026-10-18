@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
   experimental: {
     // citizen photos are resized in the browser to ~0.5 MB; leave headroom
     serverActions: { bodySizeLimit: "4mb" },
+    // A warm build cache once shipped the old stylesheet with new markup (unstyled pages).
+    // Builds take seconds, so always build CSS fresh, locally and on Vercel.
+    turbopackFileSystemCacheForBuild: false,
   },
   turbopack: {
     rules: {
