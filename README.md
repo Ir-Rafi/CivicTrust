@@ -4,7 +4,7 @@
 
 Citizens photograph potholes , garbage piles, open drains and waterlogging. AI identifies the problem and scores its urgency, the ward officer assigns it to a contractor or an NGO with an automatic deadline, and AI compares the repair photo with the original before the job is allowed to close. A public portal shows open vs. fixed issues per ward.
 
-Entry for the **International AI Builders Congress 2026** — Competition 1 (Team-Built Product), **CivicSphere AI** domain, **Transparent Government** challenge (*"Open, accountable public-spending and service insight"*). Our answer to its ask, *accountability and trust gains*: no payment for a repair until AI verifies it, an audit trail nobody can edit, and public contractor scorecards.
+Entry for the **International AI  Builders Congress 2026** — Competition 1 (Team-Built Product), **CivicSphere AI** domain, **Transparent Government** challenge (*"Open, accountable public-spending and service insight"*). Our answer to its ask, *accountability and trust gains*: no payment for a repair until AI verifies it, an audit trail nobody can edit, and public contractor scorecards.
 
 | Document | What's in it |
 |---|---|
