@@ -1,13 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Noto_Sans_Bengali } from "next/font/google";
-import Link from "next/link";
+import { Noto_Sans_Bengali } from "next/font/google";
 import { Suspense } from "react";
-import { AppHeader, AppHeaderFallback } from "@/components/app-header";
+import { AppFooter, AppHeader, AppHeaderFallback } from "@/components/app-header";
 import "./globals.css";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
-const bengali = Noto_Sans_Bengali({ variable: "--font-bengali", subsets: ["bengali"] });
+// Bengali subset only, no metric fallback: Latin text falls through to Segoe UI / system-ui,
+// matching the design's font stack.
+const bengali = Noto_Sans_Bengali({
+  variable: "--font-bengali",
+  subsets: ["bengali"],
+  weight: ["400", "500", "600", "700"],
+  adjustFontFallback: false,
+  fallback: [],
+});
 
 export const metadata: Metadata = {
   title: "CivicTrust",
@@ -17,29 +22,27 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0f6e4f",
+  themeColor: "#6750A4",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="bn"
-      className={`${geistSans.variable} ${geistMono.variable} ${bengali.variable} h-full antialiased`}
-    >
+    <html lang="bn" className={`${bengali.variable} h-full`}>
       <body className="flex min-h-full flex-col">
+        <div className="ambient-bg" aria-hidden>
+          <div className="ambient-blob blob-1" />
+          <div className="ambient-blob blob-2" />
+          <div className="ambient-blob blob-3" />
+        </div>
         <Suspense fallback={<AppHeaderFallback />}>
           <AppHeader />
         </Suspense>
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">{children}</main>
-        <footer className="border-t border-line">
-          <nav className="mx-auto flex max-w-6xl flex-wrap gap-4 px-4 py-4 text-sm text-muted">
-            <Link href="/architecture">Architecture</Link>
-            <Link href="/data">Data</Link>
-            <Link href="/security">Security</Link>
-            <Link href="/audit">Audit</Link>
-            <span className="ml-auto">Map data © OpenStreetMap contributors (ODbL)</span>
-          </nav>
-        </footer>
+        <main className="container flex-1" style={{ paddingTop: 32 }}>
+          {children}
+        </main>
+        <Suspense>
+          <AppFooter />
+        </Suspense>
       </body>
     </html>
   );

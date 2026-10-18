@@ -1,17 +1,27 @@
 import { num, type Dict, type Lang } from "@/lib/i18n";
+import { severityTone } from "@/lib/format";
 import type { SeverityResult } from "@/lib/severity";
 
-export function severityTone(score: number): string {
-  if (score >= 8) return "bg-danger text-white";
-  if (score >= 5) return "bg-warning text-white";
-  return "bg-accent text-accent-fg";
+/** "8 / 10" with a thin 10-step meter, coloured by severity band. */
+export function SeverityScore({ score, lang }: { score: number; lang: Lang }) {
+  return (
+    <span className={`score ${severityTone(score)}`}>
+      {num(score, lang)} / {num(10, lang)}
+      <span className="score-meter" aria-hidden>
+        <span style={{ width: `${score * 10}%` }} />
+      </span>
+    </span>
+  );
 }
 
-export function SeverityBadge({ score, lang, size = "md" }: { score: number; lang: Lang; size?: "md" | "lg" }) {
-  const dims = size === "lg" ? "h-16 w-16 text-3xl" : "h-9 w-9 text-base";
+/** Large score for the issue header. */
+export function SeverityBadge({ score, lang }: { score: number; lang: Lang }) {
+  const tone = severityTone(score);
+  const color = tone === "critical" ? "var(--md-error)" : tone === "moderate" ? "var(--md-tertiary)" : "var(--md-success)";
   return (
-    <span className={`inline-flex shrink-0 items-center justify-center rounded-full font-bold ${dims} ${severityTone(score)}`}>
-      {num(score, lang)}
+    <span className="inline-flex shrink-0 items-baseline gap-1" style={{ color, lineHeight: 1 }}>
+      <span style={{ fontSize: "2.2rem", fontWeight: 600 }}>{num(score, lang)}</span>
+      <span className="label-small">/ {num(10, lang)}</span>
     </span>
   );
 }
@@ -19,21 +29,25 @@ export function SeverityBadge({ score, lang, size = "md" }: { score: number; lan
 /** Every factor behind the score, so citizens and officers can check it. */
 export function SeverityBreakdown({ severity, lang, t }: { severity: SeverityResult; lang: Lang; t: Dict["issue"] }) {
   return (
-    <div>
-      <h2 className="mb-2 text-sm font-semibold">{t.why}</h2>
-      <ul className="divide-y divide-line rounded-md border border-line">
+    <div className="panel">
+      <div className="eyebrow" style={{ marginBottom: 6 }}>
+        {t.why}
+      </div>
+      <ul className="factor-list">
         {severity.components.map((c) => (
-          <li key={c.key} className="flex items-start justify-between gap-3 px-3 py-2 text-sm">
-            <div>
-              <p className="font-medium">{lang === "bn" ? c.labelBn : c.label}</p>
-              <p className="text-muted">{lang === "bn" ? c.detailBn : c.detail}</p>
-            </div>
-            <span className={`shrink-0 font-mono text-sm ${c.points > 0 ? "font-semibold" : "text-muted"}`}>
-              +{num(c.points, lang, 2)}
+          <li key={c.key}>
+            <span>
+              <span style={{ fontWeight: 500 }}>{lang === "bn" ? c.labelBn : c.label}</span>
+              <span className="label-small" style={{ display: "block" }}>
+                {lang === "bn" ? c.detailBn : c.detail}
+              </span>
             </span>
+            <strong style={{ opacity: c.points > 0 ? 1 : 0.5, fontVariantNumeric: "tabular-nums" }}>
+              +{num(c.points, lang, 2)}
+            </strong>
           </li>
         ))}
-        <li className="flex justify-between px-3 py-2 text-sm font-semibold">
+        <li className="total">
           <span>
             = {num(severity.raw, lang, 2)} → {num(severity.score, lang)} {t.outOf}
           </span>

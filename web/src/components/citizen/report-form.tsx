@@ -3,6 +3,7 @@
 import { Camera, Loader2, MapPin, RotateCcw } from "lucide-react";
 import { startTransition, useActionState, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { submitReport, type ReportFormState } from "@/app/citizen/actions";
+import { prepareImage } from "@/lib/image";
 import { fill, type Dict, type Lang } from "@/lib/i18n";
 
 // Real roads in the Dhanmondi pilot area, for testing from a laptop without GPS.
@@ -19,22 +20,7 @@ type Location =
   | { state: "gps"; lat: number; lng: number; accuracy: number }
   | { state: "failed" };
 
-const MAX_EDGE = 1600;
 const noopSubscribe = () => () => {};
-
-/** Downscale and re-encode in the browser: smaller upload, and the original EXIF (incl. GPS) is dropped. */
-async function prepareImage(file: File): Promise<Blob> {
-  const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
-  const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  bitmap.close();
-  return new Promise((resolve, reject) =>
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("encode failed"))), "image/jpeg", 0.85),
-  );
-}
 
 export function ReportForm({ t, lang }: { t: Pick<Dict, "citizen" | "errors">; lang: Lang }) {
   const [state, formAction, pending] = useActionState<ReportFormState, FormData>(submitReport, null);
@@ -119,14 +105,17 @@ export function ReportForm({ t, lang }: { t: Pick<Dict, "citizen" | "errors">; l
   const error = clientError ?? serverError;
 
   return (
-    <form onSubmit={onSubmit} className="space-y-5 rounded-lg border border-line bg-surface p-4 sm:p-5">
-      <div>
-        <h1 className="text-xl font-semibold">{t.citizen.title}</h1>
-        <p className="mt-1 text-sm text-muted">{t.citizen.intro}</p>
+    <form onSubmit={onSubmit} className="card">
+      <div className="card-head">
+        <h1 className="headline-small">{t.citizen.title}</h1>
+        <span className="tag moderate">{t.citizen.pilotTag}</span>
       </div>
+      <p className="body-medium" style={{ marginBottom: 20 }}>
+        {t.citizen.intro}
+      </p>
 
       {/* Photo */}
-      <div className="space-y-2">
+      <div style={{ marginBottom: 20 }}>
         <input
           ref={fileInput}
           type="file"
@@ -136,38 +125,37 @@ export function ReportForm({ t, lang }: { t: Pick<Dict, "citizen" | "errors">; l
           className="hidden"
         />
         {photo ? (
-          <div className="space-y-2">
+          <div className="stack" style={{ gap: 8 }}>
             {/* eslint-disable-next-line @next/next/no-img-element -- local blob preview */}
-            <img src={photo.preview} alt="" className="max-h-80 w-full rounded-md object-cover" />
+            <img src={photo.preview} alt="" className="photo" style={{ maxHeight: 320 }} />
             <button
               type="button"
               onClick={() => fileInput.current?.click()}
               disabled={pending}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-accent"
+              className="btn btn-tonal btn-sm"
+              style={{ alignSelf: "flex-start" }}
             >
-              <RotateCcw size={16} aria-hidden /> {t.citizen.retake}
+              <RotateCcw size={14} aria-hidden /> {t.citizen.retake}
             </button>
           </div>
         ) : (
-          <button
-            type="button"
-            onClick={() => fileInput.current?.click()}
-            className="flex w-full flex-col items-center gap-2 rounded-md border-2 border-dashed border-line px-4 py-10 text-accent hover:border-accent"
-          >
+          <button type="button" onClick={() => fileInput.current?.click()} className="capture-box">
             <Camera size={32} aria-hidden />
-            <span className="font-semibold">{t.citizen.takePhoto}</span>
+            <span className="title-medium" style={{ color: "var(--md-primary)" }}>
+              {t.citizen.takePhoto}
+            </span>
+            <span className="label-small">{t.citizen.photoHint}</span>
           </button>
         )}
-        <p className="text-xs text-muted">{t.citizen.photoHint}</p>
       </div>
 
       {/* Location */}
-      <fieldset className="space-y-2">
-        <legend className="flex items-center gap-1.5 text-sm font-medium">
-          <MapPin size={16} aria-hidden /> {t.citizen.location}
+      <fieldset style={{ marginBottom: 20 }}>
+        <legend className="input-field-label" style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+          <MapPin size={14} aria-hidden /> {t.citizen.location}
         </legend>
         {!useDemo && (
-          <p className="text-sm text-muted">
+          <p className="body-medium" style={{ fontSize: "0.85rem" }}>
             {gps.state === "locating" && t.citizen.locating}
             {gps.state === "gps" && fill(t.citizen.gpsOk, { m: String(Math.round(gps.accuracy)) })}
             {gps.state === "failed" && t.citizen.gpsFailed}
@@ -180,49 +168,49 @@ export function ReportForm({ t, lang }: { t: Pick<Dict, "citizen" | "errors">; l
               setLocation({ state: "locating" });
               requestGps();
             }}
-            className="text-sm font-medium text-accent"
+            className="text-link"
+            style={{ fontSize: "0.85rem", background: "none", border: "none", padding: 0, cursor: "pointer" }}
           >
             {t.citizen.retryGps}
           </button>
         )}
-        <label className="flex items-center gap-2 text-sm">
+        <label className="body-medium" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.85rem", marginTop: 8 }}>
           <input type="checkbox" checked={useDemo} onChange={(e) => setUseDemo(e.target.checked)} />
           {t.citizen.useDemo}
         </label>
         {useDemo && (
-          <div className="space-y-1">
-            <label className="block text-xs text-muted" htmlFor="demo-spot">
+          <div className="input-field-group" style={{ marginTop: 12, marginBottom: 0 }}>
+            <label className="input-field-label" htmlFor="demo-spot">
               {t.citizen.demoLabel}
             </label>
-            <select
-              id="demo-spot"
-              value={demoSpot}
-              onChange={(e) => setDemoSpot(e.target.value)}
-              className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm"
-            >
+            <select id="demo-spot" value={demoSpot} onChange={(e) => setDemoSpot(e.target.value)} className="input-filled">
               {DEMO_SPOTS.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s[lang]}
                 </option>
               ))}
             </select>
-            <p className="text-xs text-muted">{t.citizen.demoNote}</p>
+            <p className="label-small" style={{ paddingLeft: 4 }}>
+              {t.citizen.demoNote}
+            </p>
           </div>
         )}
       </fieldset>
 
       {error && (
-        <p role="alert" className="rounded-md bg-danger/10 px-3 py-2 text-sm text-danger">
-          {error}
-          {state?.error === "not_civic" && state.detail ? <span className="block text-xs opacity-80">{state.detail}</span> : null}
+        <p role="alert" className="notice error" style={{ marginBottom: 16 }}>
+          <span>
+            {error}
+            {state?.error === "not_civic" && state.detail ? (
+              <span className="label-small" style={{ display: "block" }}>
+                {state.detail}
+              </span>
+            ) : null}
+          </span>
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-3 font-semibold text-accent-fg disabled:opacity-70"
-      >
+      <button type="submit" disabled={pending} className="btn btn-filled btn-block">
         {pending ? (
           <>
             <Loader2 size={18} className="animate-spin" aria-hidden /> {t.citizen.analysing}
