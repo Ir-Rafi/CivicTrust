@@ -3,7 +3,9 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { submitCitizenReport } from "@/lib/reports";
+import { submitCitizenFeedback } from "@/lib/workflow";
 import { DEMO_PERSONA } from "@/lib/roles";
+import { getSession } from "@/lib/session";
 
 export type ReportFormState = { error: "too_old" | "bad_file" | "not_civic" | "generic"; detail?: string } | null;
 
@@ -38,4 +40,10 @@ export async function submitReport(_prev: ReportFormState, formData: FormData): 
 
   if (outcome.kind === "rejected") return { error: outcome.code, detail: outcome.detail };
   redirect(`/citizen/issues/${outcome.issueId}?${outcome.kind === "merged" ? "merged" : "new"}=1`);
+}
+
+export async function submitFeedback(input: Parameters<typeof submitCitizenFeedback>[0]) {
+  const { role } = await getSession();
+  if (role !== "citizen") throw new Error("Citizen role required");
+  return submitCitizenFeedback(input);
 }
