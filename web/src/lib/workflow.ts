@@ -46,7 +46,7 @@ export async function listOfficerQueue(filters: QueueFilters = {}): Promise<Offi
   let query = db()
     .from("issues")
     .select(
-      "id, issue_type, visual_class, severity, severity_components, ai_confidence, ai_reason_en, ai_reason_bn, status, report_count, ward_id, road_name, lat, lng, created_at",
+      "id, issue_type, visual_class, severity, severity_components, ai_confidence, ai_reason_en, ai_reason_bn, status, report_count, ward_id, road_name, lat:location_lat, lng:location_lng, created_at",
     )
     .order("severity", { ascending: false })
     .order("created_at", { ascending: true })
@@ -472,6 +472,7 @@ export async function submitCitizenFeedback(input: z.input<typeof feedbackSchema
 
   const { data: feedback, error } = await db().from("citizen_feedback").insert({
     issue_id: values.issueId,
+    work_order_id: order?.id ?? null,
     citizen_name: values.citizenName,
     verdict: values.verdict,
     rating: values.rating ?? null,

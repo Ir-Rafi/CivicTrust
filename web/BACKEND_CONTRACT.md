@@ -71,7 +71,11 @@ The chain status returns the total number of records and the first broken record
 - repair distance calculation
 - contractor scorecard aggregation
 
-`supabase/migrations/20261018120000_workflow_fixes.sql` adds officer review fields on `repair_proofs`, `issues.lat`/`lng`, the dispute-aware payment gate, the on-time rate fix, and closes the new functions to browser roles.
+`supabase/migrations/20261018120000_workflow_fixes.sql` adds officer review fields on `repair_proofs`, map coordinates on `issues`, the dispute-aware payment gate, the on-time rate fix, and closes the new functions to browser roles.
+
+`supabase/migrations/20261018130000_fix_lat_lng_shadowing.sql` renames those coordinates to `issues.location_lat`/`location_lng` (the queue still returns them as `lat`/`lng`). Columns named `lat`/`lng` had shadowed the parameters of `nearby_open_issues()` and `repair_distance_to_issue()`, so every distance came out as 0 m.
+
+`supabase/migrations/20261018140000_scorecard_keeps_failed_jobs.sql` links each citizen dispute to its work order and keeps reassigned (cancelled) jobs on the original contractor's scorecard: they count as assigned, and as rejected if their last repair was rejected.
 
 Apply them with the Supabase CLI after starting or linking the target database:
 
