@@ -42,8 +42,9 @@ export async function submitReport(_prev: ReportFormState, formData: FormData): 
   redirect(`/citizen/issues/${outcome.issueId}?${outcome.kind === "merged" ? "merged" : "new"}=1`);
 }
 
-export async function submitFeedback(input: Parameters<typeof submitCitizenFeedback>[0]) {
+export async function submitFeedback(input: Omit<Parameters<typeof submitCitizenFeedback>[0], "citizenName">) {
   const { role } = await getSession();
   if (role !== "citizen") throw new Error("Citizen role required");
-  return submitCitizenFeedback(input);
+  // Same persona that filed the report, so the "only a reporter can confirm" rule holds.
+  return submitCitizenFeedback({ ...input, citizenName: DEMO_PERSONA.citizen });
 }

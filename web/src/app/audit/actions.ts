@@ -1,11 +1,14 @@
 "use server";
 
+import { getSession } from "@/lib/session";
 import { listAuditEntries, verifyAuditChain } from "@/lib/workflow";
 
 export async function getAuditChainStatus() {
   return verifyAuditChain();
 }
 
-export async function getAuditEntries(input?: Parameters<typeof listAuditEntries>[0]) {
-  return listAuditEntries(input);
+/** Officers see full entries; every other role gets citizen names and comments hidden. */
+export async function getAuditEntries(input?: Omit<Parameters<typeof listAuditEntries>[0], "redact">) {
+  const { role } = await getSession();
+  return listAuditEntries({ ...input, redact: role !== "officer" });
 }

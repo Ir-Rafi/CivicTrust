@@ -27,6 +27,7 @@ export async function explainSeverity(facts: {
 }): Promise<Explanation> {
   const res = await groq().chat.completions.create({
     model: groqEnv().GROQ_TEXT_MODEL,
+    temperature: 0.3,
     messages: [
       { role: "system", content: EXPLANATION_SYSTEM_PROMPT },
       { role: "user", content: JSON.stringify(facts) },

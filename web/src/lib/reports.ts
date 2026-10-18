@@ -28,7 +28,12 @@ export type ReportOutcome =
   | { kind: "rejected"; code: "too_old" | "bad_file" | "not_civic"; detail?: string };
 
 /** Stored in issues.severity_components so the score can be recomputed and explained later. */
-export type StoredSeverity = SeverityResult & { context: LocationContext; analysis: IssueAnalysis };
+export type StoredSeverity = SeverityResult & {
+  context: LocationContext;
+  analysis: IssueAnalysis;
+  /** Severity set by an officer override; wins over the formula score until changed. */
+  officer_score?: number;
+};
 
 async function explainSeverity(facts: {
   issueType: string;
@@ -238,14 +243,17 @@ async function mergeIntoIssue(
     throw new Error(`insert report: ${reportError.message}`);
   }
 
-  await db()
+  // An officer's corrected severity must survive later duplicate reports.
+  const effectiveSeverity = prior.officer_score ?? severity.score;
+  const { error: updateError } = await db()
     .from("issues")
     .update({
       report_count: reportCount,
-      severity: severity.score,
+      severity: effectiveSeverity,
       severity_components: { ...prior, ...severity },
     })
     .eq("id", issueId);
+  if (updateError) throw new Error(`update merged issue ${issueId}: ${updateError.message}`);
 
   await audit({
     actorRole: "ai",
@@ -253,7 +261,7 @@ async function mergeIntoIssue(
     action: "report_merged",
     entity: "issue",
     entityId: issueId,
-    payload: { report_count: reportCount, severity: severity.score, location_source: input.locationSource },
+    payload: { report_count: reportCount, severity: effectiveSeverity, location_source: input.locationSource },
   });
   return { kind: "merged", issueId };
 }
