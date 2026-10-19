@@ -1,4 +1,4 @@
-import { switchRole } from "@/app/actions/session";
+import { RoleLink } from "@/components/role-link";
 import { dict, fill, type Lang } from "@/lib/i18n";
 import type { Role } from "@/lib/roles";
 
@@ -11,12 +11,9 @@ export function RoleGate({ role, lang }: { role: Role; lang: Lang }) {
       <p className="body-medium" style={{ margin: "6px 0 16px" }}>
         {t.roleBlurb[role]}
       </p>
-      <form action={switchRole}>
-        <input type="hidden" name="role" value={role} />
-        <button type="submit" className="btn btn-filled">
-          {fill(t.common.continueAs, { role: t.roles[role] })}
-        </button>
-      </form>
+      <RoleLink role={role} className="btn btn-filled">
+        {fill(t.common.continueAs, { role: t.roles[role] })}
+      </RoleLink>
     </div>
   );
 }

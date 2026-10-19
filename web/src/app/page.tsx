@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { Suspense } from "react";
-import { switchRole } from "@/app/actions/session";
+import { RoleLink } from "@/components/role-link";
 import { getPaymentSummary } from "@/lib/dashboard";
 import { taka } from "@/lib/format";
 import { dict, num, type Lang } from "@/lib/i18n";
@@ -33,18 +33,12 @@ async function HomeView() {
             {t.home.desc}
           </p>
           <div className="flex flex-wrap gap-4">
-            <form action={switchRole}>
-              <input type="hidden" name="role" value="citizen" />
-              <button type="submit" className="btn btn-filled">
-                {t.home.ctaReport} <ArrowRight size={18} aria-hidden />
-              </button>
-            </form>
-            <form action={switchRole}>
-              <input type="hidden" name="role" value="public" />
-              <button type="submit" className="btn btn-outlined">
-                {t.home.ctaPublic}
-              </button>
-            </form>
+            <RoleLink role="citizen" className="btn btn-filled">
+              {t.home.ctaReport} <ArrowRight size={18} aria-hidden />
+            </RoleLink>
+            <RoleLink role="public" className="btn btn-outlined">
+              {t.home.ctaPublic}
+            </RoleLink>
           </div>
         </div>
         <div className="hero-shapes" aria-hidden>
@@ -65,18 +59,15 @@ async function HomeView() {
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {ROLES.map((r) => (
             <li key={r}>
-              <form action={switchRole} className="h-full">
-                <input type="hidden" name="role" value={r} />
-                <button type="submit" className="card card-low card-link h-full w-full text-left" style={{ cursor: "pointer" }}>
-                  <span className="title-medium" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    {t.roles[r]}
-                    <ArrowRight size={16} aria-hidden style={{ color: "var(--md-primary)" }} />
-                  </span>
-                  <span className="body-medium" style={{ display: "block", marginTop: 6 }}>
-                    {t.roleBlurb[r]}
-                  </span>
-                </button>
-              </form>
+              <RoleLink role={r} className="card card-low card-link block h-full w-full text-left">
+                <span className="title-medium" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  {t.roles[r]}
+                  <ArrowRight size={16} aria-hidden style={{ color: "var(--md-primary)" }} />
+                </span>
+                <span className="body-medium" style={{ display: "block", marginTop: 6 }}>
+                  {t.roleBlurb[r]}
+                </span>
+              </RoleLink>
             </li>
           ))}
         </ul>

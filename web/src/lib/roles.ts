@@ -1,7 +1,10 @@
 // Prototype access model: no login. A role switcher sets a cookie and every
 // server action reads it. Real auth (phone OTP + DB roles) is a finals item.
 
-export const ROLES = ["citizen", "officer", "contractor", "ngo", "public"] as const;
+export const ROLE_COOKIE = "ct_role";
+export const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+
+export const ROLES =["citizen", "officer", "contractor", "ngo", "public"] as const;
 export type Role = (typeof ROLES)[number];
 
 export function isRole(value: unknown): value is Role {

@@ -1,4 +1,5 @@
 import "server-only";
+import { cacheLife } from "next/cache";
 import { analyzeIssuePhoto, compareForDuplicate, type ImageInput } from "@/lib/ai/gemini";
 import { explainSeverity as explainWithGlm } from "@/lib/ai/glm";
 import { explainSeverity as explainWithGroq } from "@/lib/ai/groq";
@@ -279,8 +280,23 @@ function describeDevice(input: ReportInput): string {
   return `${input.locationSource}${accuracy}`;
 }
 
+const SIGNED_URL_SECONDS = 3600;
+
 /** Short-lived link to a private photo. */
-export async function signedPhotoUrl(path: string, seconds = 3600): Promise<string | null> {
-  const { data } = await db().storage.from(PHOTO_BUCKET).createSignedUrl(path, seconds);
-  return data?.signedUrl ?? null;
+export async function signedPhotoUrl(path: string): Promise<string | null> {
+  try {
+    return await cachedSignedPhotoUrl(path);
+  } catch {
+    return null;
+  }
+}
+
+// A fresh signature is a new URL, which the browser can't serve from its cache, so every
+// navigation re-downloaded every photo. Reuse one URL per photo until it has ~10 min left.
+async function cachedSignedPhotoUrl(path: string): Promise<string> {
+  "use cache";
+  cacheLife({ stale: 1800, revalidate: 1800, expire: SIGNED_URL_SECONDS - 600 });
+  const { data, error } = await db().storage.from(PHOTO_BUCKET).createSignedUrl(path, SIGNED_URL_SECONDS);
+  if (!data?.signedUrl) throw new Error(`signed url: ${error?.message ?? "none"}`);
+  return data.signedUrl;
 }

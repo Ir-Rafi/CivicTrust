@@ -1,9 +1,9 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { isLang, type Lang } from "@/lib/i18n";
-import { isRole, type Role } from "@/lib/roles";
+import { isRole, ROLE_COOKIE, type Role } from "@/lib/roles";
 
-export const ROLE_COOKIE = "ct_role";
+export { ROLE_COOKIE };
 export const LANG_COOKIE = "ct_lang";
 
 export async function getSession(): Promise<{ role: Role | null; lang: Lang }> {

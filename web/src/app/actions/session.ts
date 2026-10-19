@@ -3,17 +3,12 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { isLang } from "@/lib/i18n";
-import { isRole, ROLE_HOME } from "@/lib/roles";
-import { LANG_COOKIE, ROLE_COOKIE } from "@/lib/session";
+import { COOKIE_MAX_AGE } from "@/lib/roles";
+import { LANG_COOKIE } from "@/lib/session";
 
-const COOKIE_OPTS = { path: "/", sameSite: "lax" as const, maxAge: 60 * 60 * 24 * 30 };
-
-export async function switchRole(formData: FormData) {
-  const role = formData.get("role");
-  if (!isRole(role)) throw new Error("Unknown role");
-  (await cookies()).set(ROLE_COOKIE, role, COOKIE_OPTS);
-  redirect(ROLE_HOME[role]);
-}
+// The role cookie is set in the browser (components/role-link.tsx) so switching roles keeps the
+// client router cache. A language change re-renders every page, so clearing that cache is intended.
+const COOKIE_OPTS = { path: "/", sameSite: "lax" as const, maxAge: COOKIE_MAX_AGE };
 
 export async function setLanguage(formData: FormData) {
   const lang = formData.get("lang");
