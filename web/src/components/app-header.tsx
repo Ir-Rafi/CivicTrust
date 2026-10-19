@@ -67,6 +67,9 @@ export async function AppFooter() {
               <Link href="/security">{t.nav.security}</Link>
             </li>
             <li>
+              <Link href="/model-card">{t.nav.modelCard}</Link>
+            </li>
+            <li>
               <Link href="/audit">{t.nav.audit}</Link>
             </li>
           </ul>

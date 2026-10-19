@@ -14,6 +14,7 @@ Entry for the **International AI Builders Congress 2026** — Competition 1 (Tea
 | [`PROTOTYPE_PLAN.md`](PROTOTYPE_PLAN.md) | Plan mapped to the judging rubric: status, video script, timeline, risks, judge Q&A |
 | [`PRELIMINARY_PROTOTYPE_REQUIREMENTS.md`](PRELIMINARY_PROTOTYPE_REQUIREMENTS.md) | Requirements and acceptance criteria for the preliminary-round prototype |
 | [`web/README.md`](web/README.md) | Developer setup and code layout |
+| [`Docs/PRELIMINARY_CHECKLIST.md`](Docs/PRELIMINARY_CHECKLIST.md) | Everything still to do for the preliminary submission, with owners |
 | [`TEST.md`](TEST.md) | How to test and debug the prototype: scenarios per role, common problems, known issues |
 | [`AIBC_Participants_Guide_261015_143157.pdf`](AIBC_Participants_Guide_261015_143157.pdf) | Participant guide for the AI Builders Congress |
 | [`Docs/Idea-Overview.txt`](Docs/Idea-Overview.txt) | Original proposal (15 Oct) |
@@ -138,11 +139,24 @@ Database setup, data seeding and all scripts: [`web/README.md`](web/README.md).
 
 | Role (required by the Congress) | Member |
 |---|---|
-| Team Leader / Coordinator | |
-| Business Analyst / Data Scientist | |
-| UI/UX / Frontend Developer | |
-| Backend / Data Engineer | |
-| Presentation / Communication Lead | |
+| Team Leader / Coordinator | *to confirm* |
+| Business Analyst / Data Scientist | *to confirm* |
+| UI/UX / Frontend Developer | Sajid (GitHub `Sajid-Z`) |
+| Backend / Data Engineer | Md. Jahidul Islam |
+| Presentation / Communication Lead | *to confirm* |
+
+Deployment (Vercel) is run by Md. Irfan Iqbal (repository owner). Each role must name one member before submission.
+
+## AI tools used
+
+Declared as the Congress rules require.
+
+| Tool | Used for |
+|---|---|
+| Google Gemini (`gemini-3.8-flash`, `gemini-embedding-001`) | In the product: photo analysis, duplicate check, repair verification, policy search |
+| Groq (`openai/gpt-oss-120b`), GLM (`glm-4.5-flash`, fallback) | In the product: one-line Bangla/English explanations from computed facts |
+| OpenStreetMap Nominatim | In the product: road and area names for a location (not AI) |
+| Claude Code (Anthropic) | In development: writing and reviewing code, tests, database migrations and documentation, with team review |
 
 ## Data and licences
 

@@ -7,18 +7,18 @@ Every feature, page and minute of video below exists because it earns points som
 
 ---
 
-## Status at a glance (17 Oct)
+## Status at a glance (19 Oct)
 
 | Area | State |
 |---|---|
-| Decisions | Next.js + Supabase · Gemini (vision, embeddings) + Groq (text) · **no login** (role switcher) · pilot area Dhanmondi, Dhaka |
-| Days 1–2 build | Done: app scaffold, schema + migration, AI helpers, severity score + tests, role switcher, Bangla/English, OSM data (226 schools/hospitals/clinics, 810 roads), pilot policy for RAG. Build, lint, typecheck and tests pass. |
-| Database | Hosted Supabase (Sydney region) live: schema applied, security advisor clean, RLS verified, audit chain + geo functions tested; 219 schools/hospitals/clinics + 810 roads loaded; app connected |
-| AI | Verified end to end on a real photo: Gemini analysis (~7 s), severity, Groq Bangla/English reason (~1.4 s), policy RAG returns the right rule. Primary + backup keys for both. |
-| Docs | `CivicTrust.pdf` updated with preliminary compliance status and current implementation scope |
-| Blockers | **Ward boundaries** (see §8 risks) |
-| Citizen flow | Built and tested end to end with real AI: photo → Gemini → duplicate merge → severity → Bangla/English reason → saved + audit-logged; non-civic photos rejected and not stored. Too slow (~20 s); speed-up next. |
-| Next | Speed up the report pipeline; then days 6–7: officer queue, map, assign with cost + cited deadline |
+| Decisions | Next.js + Supabase · Gemini (vision, embeddings) + Groq (text, GLM fallback) · **no login** (role switcher) · pilot area Dhanmondi, Dhaka |
+| Core loop | **Built and verified end to end** on the live database: citizen report (GPS, map, manual pin, place names) → AI analysis → duplicate merge → explainable severity → Bangla/English reason → officer queue, map, area filter, corrections with history → work order with cited deadline and cost → repair verification (location, freshness, AI) → payment withheld until verified → citizen confirm/dispute → public tracker, update log, scorecards, per-area figures |
+| Safeguards | Hash-chained audit log that can't be edited or emptied; payment gate in the database; unsure AI results go to an officer; unmeasured repair locations never auto-approve; RLS on every table; photos never public |
+| Screens | All §6 screens, including `/architecture`, `/data`, `/security`, `/model-card`, `/audit`; Bangla/English; dark mode |
+| Live | `civictrust-five.vercel.app`, functions in Sydney next to the database. Vercel only deploys the account owner's commits (Hobby plan) |
+| Measurements | Recorded on every report (time, AI provider, failures); `pnpm kpi` and `pnpm eval:photos` compute the §8 figures. **Not measured yet:** needs the field photo set |
+| Blockers | Paid Gemini key (free tier ≈ 20 photo checks/day); GLM key missing on Vercel; field shoot |
+| Next | Field shoot → measurements and KPI summary → 1-page problem summary → video → submit 30 Oct |
 
 ---
 
@@ -280,11 +280,11 @@ Pilot data: Dhanmondi area, Dhaka (bbox 23.735,90.365 → 23.760,90.390). OSM ro
 | Days | Dates | Build | Rubric target | Status |
 |---|---|---|---|---|
 | 1–2 | 17–18 Oct | Scaffold, schema, AI helpers, severity + tests, role switcher, Bangla/English, OSM data, pilot policy | M5, M6 | **Done** (database live and loaded) |
-| 3–5 | 19–21 Oct | Citizen report: camera + GPS, Gemini analysis, explainable severity, Groq reasons | A, B, M3 | **Built 17 Oct**; speed-up pending |
-| 6–7 | 22–23 Oct | Dedupe + report counting; officer queue, map, override, assign with RAG citation | B, E | |
-| 8–9 | 24–25 Oct | Contractor after-photo + AI verifier; citizen confirm/dispute | A (headline) | |
-| 10 | 26 Oct | Public portal (incl. money released vs withheld); contractor scorecards; audit page; EXIF strip; `/architecture` `/data` `/security` `/audit` | D, E | |
-| 11 | 27 Oct | Deploy public URL; blur (stretch); polish | M5 | |
+| 3–5 | 19–21 Oct | Citizen report: camera + GPS, Gemini analysis, explainable severity, Groq reasons | A, B, M3 | **Done**; plus map, manual pin, place names, AI time limits |
+| 6–7 | 22–23 Oct | Dedupe + report counting; officer queue, map, override, assign with RAG citation | B, E | **Done** (19 Oct); plus history, area filter, NGO offers |
+| 8–9 | 24–25 Oct | Contractor after-photo + AI verifier; citizen confirm/dispute | A (headline) | **Done** (19 Oct) |
+| 10 | 26 Oct | Public portal (incl. money released vs withheld); contractor scorecards; audit page; EXIF strip; `/architecture` `/data` `/security` `/audit` | D, E | **Done** (19 Oct); plus `/model-card` |
+| 11 | 27 Oct | Deploy public URL; blur (stretch); polish | M5 | Deployed; blur not built (photos never public) |
 | 12 | 28 Oct | Field test in pilot area; measure KPIs | M7, D | |
 | 13–14 | 29–30 Oct | Record video per §5; 1-page summary; submission package | M1, M2, M4 | |
 | buffer | 31 Oct | **Submit** | | |

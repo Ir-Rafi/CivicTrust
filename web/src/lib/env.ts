@@ -54,3 +54,13 @@ export function envStatus() {
     glm: glmSchema.safeParse(process.env).success,
   };
 }
+
+/** The model names in use (configured or the defaults above), readable without any API key. */
+export function modelNames() {
+  return {
+    vision: geminiSchema.shape.GEMINI_VISION_MODEL.parse(process.env.GEMINI_VISION_MODEL),
+    embedding: geminiSchema.shape.GEMINI_EMBEDDING_MODEL.parse(process.env.GEMINI_EMBEDDING_MODEL),
+    text: groqSchema.shape.GROQ_TEXT_MODEL.parse(process.env.GROQ_TEXT_MODEL),
+    textFallback: glmSchema.shape.GLM_TEXT_MODEL.parse(process.env.GLM_TEXT_MODEL),
+  };
+}

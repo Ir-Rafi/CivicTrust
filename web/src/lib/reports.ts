@@ -84,9 +84,9 @@ const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_BYTES = 4 * 1024 * 1024;
 const CLOCK_SKEW_MS = 2 * 60 * 1000;
 /** AI confidence at which an issue is auto-marked "verified" (a real civic problem). */
-const AUTO_VERIFY_CONFIDENCE = 0.7;
+export const AUTO_VERIFY_CONFIDENCE = 0.7;
 /** Minimum confidence for merging into an existing issue. */
-const MERGE_CONFIDENCE = 0.6;
+export const MERGE_CONFIDENCE = 0.6;
 
 export async function submitCitizenReport(input: ReportInput): Promise<ReportOutcome> {
   if (!ALLOWED_TYPES.has(input.photo.type) || input.photo.size === 0 || input.photo.size > MAX_BYTES) {

@@ -235,11 +235,6 @@ body {
   line-height: 1.5;
   color: var(--md-on-surface-variant);
 }
-.label-large {
-  font-size: 0.875rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-}
 .label-small {
   font-size: 0.75rem;
   font-weight: 500;
@@ -301,17 +296,6 @@ body {
   gap: 12px;
   text-decoration: none;
   flex-shrink: 0;
-}
-.brand-icon {
-  width: 42px;
-  height: 42px;
-  background: var(--md-primary);
-  color: var(--md-on-primary);
-  border-radius: var(--radius-s);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--elevation-1);
 }
 .brand-logo {
   width: 40px;

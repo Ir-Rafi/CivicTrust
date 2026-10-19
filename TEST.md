@@ -186,7 +186,9 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
 ### F. General
 
 - [ ] **F1** Every screen in Bangla and English: Bangla digits, natural Bangla AI reasons.
-- [ ] **F2** `/architecture`, `/data` and `/security` load.
+- [ ] **F2** `/architecture`, `/data`, `/security` and `/model-card` load (all linked in the footer).
+  The model card's thresholds and model names match the app (70% to auto-verify, 60% to merge or
+  approve, 15 m, 30 minutes).
 - [ ] **F3** Phone-width layout: nothing is cut off and there is no sideways scrolling.
 - [ ] **F4** Open `/officer` while in the citizen role → you are asked to switch role.
 - [ ] **F5** Maps survive navigation: open the officer queue (map) and the citizen report form
@@ -217,7 +219,7 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
 |---|---|---|
 | Page has no styling | Old stylesheet from a stale Next.js cache | Stop dev, `rm -rf web/.next`, start again, hard refresh (⌘⇧R) |
 | Your CSS change doesn't show | Edits to `globals.css` don't hot-reload ([known issue 3](#known-issues)) | Restart `pnpm dev` |
-| Page reloads endlessly during development | CSS scanning includes generated files or a stale watcher graph | Keep Tailwind's source restricted to `src` in `globals.css`, then restart `pnpm dev` |
+| Page reloads endlessly (terminal fills with `GET /citizen` and *Suspense boundary* errors) | Tailwind scanning generated files (kept off by `source("..")` in `globals.css`), or a stale dev cache from before that fix | Stop `pnpm dev`, run `rm -rf web/.next/dev`, start again; close stale tabs |
 | *Couldn't get GPS location* on a phone | `http://` LAN link | Use the ngrok `https://` link |
 | GPS shows ±100 m or more | Laptop Wi-Fi location | Use a phone outdoors, or a demo location |
 | Report says *The AI is busy right now* | Gemini's daily limit (`429` in the terminal) or a response over 30 s | Wait and retry, or use a key with billing |
@@ -298,17 +300,14 @@ delete from issues where id = <ID>;   -- also removes its reports, work orders, 
 5. **Thin line across the map** where two tiles meet, on some high-resolution screens. Cosmetic.
 6. **The GLM backup key is not set on Vercel** (`/api/health` shows `"glm": false`), so the live
    site has no fallback when Groq fails.
-7. **Face and number-plate blurring is not built.** The AI flags such photos, and the policy text
-   and an issue-page note say they "will be blurred". The public portal shows no photos.
-8. **The home page's Public portal card mentions before/after photos**, which the public portal
-   does not show.
-9. **Issues reported before 19 Oct have no measurements** (timing, AI provider); `pnpm kpi`
+7. **Issues reported before 19 Oct have no measurements** (timing, AI provider); `pnpm kpi`
    counts only what was recorded.
 
 ### Not built yet (please don't report these as bugs)
 
 - Official ward boundaries: OpenStreetMap areas stand in for wards.
-- Model card page; the KPI numbers themselves (the scripts exist; they need the field photos).
+- Face and number-plate blurring: the AI flags such photos, and photos are never shown publicly.
+- The KPI numbers themselves: the scripts exist and need the field photos (see `Docs/KPI_SUMMARY.md`).
 - Real contractor identity: **Viewing as** is a prototype shortcut, like the role switcher.
 
 ## 7. Reporting a bug
