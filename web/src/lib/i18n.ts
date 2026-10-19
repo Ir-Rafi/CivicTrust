@@ -15,6 +15,7 @@ const en = {
   tagline: "Report it. AI ranks it. The city fixes it. AI checks the fix.",
   chooseRole: "Try the prototype as",
   switchRole: "Role",
+  menu: "Menu",
   language: "বাংলা",
   roles: {
     citizen: "Citizen",
@@ -416,6 +417,7 @@ const bn: Dict = {
   tagline: "রিপোর্ট করুন। এআই অগ্রাধিকার দেয়। সিটি মেরামত করে। এআই মেরামত যাচাই করে।",
   chooseRole: "প্রোটোটাইপটি ব্যবহার করুন",
   switchRole: "ভূমিকা",
+  menu: "মেনু",
   language: "English",
   roles: {
     citizen: "নাগরিক",

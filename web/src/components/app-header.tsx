@@ -21,7 +21,7 @@ export async function AppHeader() {
     <header className="app-bar">
       <div className="container app-bar-content">
         <Brand name="CivicTrust" />
-        <RoleNav labels={t.roles} auditLabel={t.auditTab} navLabel={t.switchRole} />
+        <RoleNav labels={t.roles} auditLabel={t.auditTab} navLabel={t.switchRole} menuLabel={t.menu} />
         <LanguageToggle lang={lang} label={t.language} />
       </div>
     </header>
