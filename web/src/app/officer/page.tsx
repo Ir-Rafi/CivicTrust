@@ -1,41 +1,21 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { getOfficerQueue } from "@/app/officer/actions";
-import { SeverityBadge, SeverityBreakdown, SeverityScore } from "@/components/issues/severity-breakdown";
-import { IssueMapLazy } from "@/components/officer/issue-map-lazy";
+import { SeverityBadge, SeverityBreakdown } from "@/components/issues/severity-breakdown";
+import { OfficerQueue } from "@/components/officer/officer-queue";
 import { AssignForm, OverrideForm, ReleaseButton, ReviewForm } from "@/components/officer/officer-forms";
 import { RoleGate } from "@/components/role-gate";
 import { PaymentLine, WorkOrderStepper, WorkOrderSummary } from "@/components/work-orders/work-order-card";
-import { ISSUE_TYPES, type IssueType } from "@/lib/ai/schemas";
-import { listAssignees, listIssueWorkOrders, listOrderFlags, type OrderFlag } from "@/lib/dashboard";
-import { dateTime, statusTone } from "@/lib/format";
+import { listAssignees, listIssueWorkOrders, listOrderFlags } from "@/lib/dashboard";
+import { dateTime } from "@/lib/format";
 import { googleMapsUrl } from "@/lib/geo";
 import { dict, num, type Dict, type Lang } from "@/lib/i18n";
 import { getIssue } from "@/lib/issues";
+import { readQueueSelection } from "@/lib/officer-queue";
 import { getSession } from "@/lib/session";
 import { listIssueHistory, listOffers, type OfficerQueueItem } from "@/lib/workflow";
 
 // Assigning cites the policy via an embedding lookup; leave headroom.
 export const maxDuration = 60;
-
-const FILTERS = ["open", "new", "critical", "action", "all"] as const;
-type Filter = (typeof FILTERS)[number];
-const CLOSED = ["fixed", "confirmed", "rejected"];
-
-function applyFilter(items: OfficerQueueItem[], filter: Filter, flags: Map<number, OrderFlag>) {
-  switch (filter) {
-    case "open":
-      return items.filter((i) => !CLOSED.includes(i.status) || flags.has(i.id));
-    case "new":
-      return items.filter((i) => i.status === "reported" || i.status === "verified");
-    case "critical":
-      return items.filter((i) => i.severity >= 8 && !CLOSED.includes(i.status));
-    case "action":
-      return items.filter((i) => flags.has(i.id));
-    default:
-      return items;
-  }
-}
 
 export default function OfficerPage({ searchParams }: PageProps<"/officer">) {
   return (
@@ -50,167 +30,30 @@ async function OfficerView({ searchParams }: Pick<PageProps<"/officer">, "search
   if (role !== "officer") return <RoleGate role="officer" lang={lang} />;
   const t = dict(lang);
 
-  const filter: Filter = FILTERS.includes(query.f as Filter) ? (query.f as Filter) : "open";
-  const type = ISSUE_TYPES.includes(query.type as IssueType) ? (query.type as IssueType) : undefined;
-  const selectedId = Number(query.issue) || null;
-
-  const [all, flags] = await Promise.all([getOfficerQueue({ issueType: type, limit: 300 }), listOrderFlags()]);
-  // Areas come from the issues themselves (OpenStreetMap suburb names), so the filter only
-  // lists areas that have reports.
-  const areas = [...new Map(all.filter((i) => i.area_en).map((i) => [i.area_en!, i.area_bn ?? i.area_en!])).entries()].sort((a, b) =>
-    a[0].localeCompare(b[0]),
-  );
-  const area = typeof query.area === "string" && areas.some(([en]) => en === query.area) ? query.area : undefined;
-  const items = applyFilter(all, filter, flags).filter((i) => !area || i.area_en === area);
-
-  const href = (next: { f?: Filter; type?: string | null; area?: string | null; issue?: number | null }) => {
-    const p = new URLSearchParams();
-    const f = next.f ?? filter;
-    if (f !== "open") p.set("f", f);
-    const ty = next.type === null ? undefined : (next.type ?? type);
-    if (ty) p.set("type", ty);
-    const ar = next.area === null ? undefined : (next.area ?? area);
-    if (ar) p.set("area", ar);
-    const is = next.issue === null ? undefined : (next.issue ?? selectedId);
-    if (is) p.set("issue", String(is));
-    const qs = p.toString();
-    return qs ? `/officer?${qs}` : "/officer";
-  };
-  const filterLabel: Record<Filter, string> = {
-    open: t.officer.filterOpen,
-    new: t.officer.filterNew,
-    critical: t.officer.filterCritical,
-    action: t.officer.filterAction,
-    all: t.officer.filterAll,
-  };
+  const { selectedId } = readQueueSelection(new URLSearchParams(typeof query.issue === "string" ? { issue: query.issue } : {}));
+  const [all, flags] = await Promise.all([loadQueue(), listOrderFlags()]);
 
   return (
-    <div className="asymmetric-grid">
-      <div className="stack" style={{ gap: 24 }}>
-        <section className="card">
-          <div className="card-head" style={{ flexWrap: "wrap" }}>
-            <div>
-              <h1 className="headline-small">{t.officer.title}</h1>
-              <p className="label-small" style={{ maxWidth: 520 }}>
-                {t.officer.subtitle}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-3" style={{ marginBottom: 16 }}>
-            <nav className="filter-group" aria-label={t.officer.colStatus}>
-              {FILTERS.map((f) => (
-                <Link key={f} href={href({ f, issue: null })} className="filter-link" aria-current={f === filter ? "true" : undefined}>
-                  {filterLabel[f]}
-                </Link>
-              ))}
-            </nav>
-            <nav className="filter-group" aria-label={t.officer.filterType}>
-              <Link href={href({ type: null, issue: null })} className="filter-link" aria-current={!type ? "true" : undefined}>
-                {t.officer.anyType}
-              </Link>
-              {ISSUE_TYPES.filter((v) => v !== "other").map((v) => (
-                <Link key={v} href={href({ type: v, issue: null })} className="filter-link" aria-current={v === type ? "true" : undefined}>
-                  {t.issueType[v]}
-                </Link>
-              ))}
-            </nav>
-            {areas.length > 0 && (
-              <nav className="filter-group" aria-label={t.officer.areaFilter}>
-                <Link href={href({ area: null, issue: null })} className="filter-link" aria-current={!area ? "true" : undefined}>
-                  {t.officer.anyArea}
-                </Link>
-                {areas.map(([en, bn]) => (
-                  <Link key={en} href={href({ area: en, issue: null })} className="filter-link" aria-current={en === area ? "true" : undefined}>
-                    {lang === "bn" ? bn : en}
-                  </Link>
-                ))}
-              </nav>
-            )}
-          </div>
-
-          {items.length === 0 ? (
-            <p className="body-medium">{t.officer.empty}</p>
-          ) : (
-            <div className="table-wrap">
-              <table className="md-table">
-                <thead>
-                  <tr>
-                    <th>{t.officer.colTicket}</th>
-                    <th>{t.officer.colDefect}</th>
-                    <th>{t.officer.colSeverity}</th>
-                    <th>{t.officer.colStatus}</th>
-                    <th className="num">{t.officer.colReports}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((i) => {
-                    const flag = flags.get(i.id);
-                    return (
-                      <tr key={i.id} className={i.id === selectedId ? "is-selected" : undefined}>
-                        <td>
-                          <Link href={href({ issue: i.id })} scroll={false} className="row-link">
-                            <strong>#CT-{i.id}</strong>
-                          </Link>
-                        </td>
-                        <td>
-                          <Link href={href({ issue: i.id })} scroll={false} className="row-link">
-                            <strong style={{ fontWeight: 500 }}>
-                              {t.issueType[i.issue_type]} · {t.visualClass[i.visual_class]}
-                            </strong>
-                            <span className="label-small" style={{ display: "block" }}>
-                              {[i.road_name ?? t.common.noRoad, lang === "bn" ? (i.area_bn ?? i.area_en) : i.area_en].filter(Boolean).join(" · ")}
-                            </span>
-                          </Link>
-                        </td>
-                        <td>
-                          <SeverityScore score={i.severity} lang={lang} />
-                        </td>
-                        <td>
-                          <span className={`tag ${statusTone(i.status)}`}>{t.status[i.status as keyof typeof t.status] ?? i.status}</span>
-                          {flag && (
-                            <span className="tag warning" style={{ display: "flex", marginTop: 4 }}>
-                              {flag === "review" ? t.officer.flagReview : t.officer.flagPayable}
-                            </span>
-                          )}
-                        </td>
-                        <td className="num">{num(i.report_count, lang)}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-
-        <section className="card card-low">
-          <div className="card-head">
-            <h2 className="title-medium">{t.officer.mapTitle}</h2>
-          </div>
-          <div className="map-frame">
-            <IssueMapLazy
-              points={items.map((i) => ({ id: i.id, lat: i.lat, lng: i.lng, severity: i.severity, label: `#CT-${i.id} · ${t.issueType[i.issue_type]}` }))}
-              selectedId={selectedId}
-            />
-          </div>
-          <p className="label-small" style={{ marginTop: 10 }}>
-            {t.officer.mapNote}
-          </p>
-        </section>
-      </div>
-
-      <aside className="card card-high">
-        {selectedId ? (
-          <Suspense key={selectedId} fallback={<p className="label-small">{t.common.loading}</p>}>
-            <IssuePanel issueId={selectedId} lang={lang} />
-          </Suspense>
-        ) : (
-          <p className="body-medium">{t.officer.selectHint}</p>
-        )}
-      </aside>
-    </div>
+    <OfficerQueue all={all} flagEntries={[...flags]} panelIssueId={selectedId} lang={lang}
+      t={{ officer: t.officer, issueType: t.issueType, visualClass: t.visualClass, common: t.common, status: t.status }}>
+      {selectedId && (
+        <Suspense key={selectedId} fallback={<p className="label-small">{t.common.loading}</p>}>
+          <IssuePanel issueId={selectedId} lang={lang} />
+        </Suspense>
+      )}
+    </OfficerQueue>
   );
+}
+
+// Fetch all pages so a less common issue type is not lost behind the initial severity-ranked page.
+async function loadQueue(): Promise<OfficerQueueItem[]> {
+  const items: OfficerQueueItem[] = [];
+  const pageSize = 300;
+  for (let offset = 0; ; offset += pageSize) {
+    const page = await getOfficerQueue({ limit: pageSize, offset });
+    items.push(...page);
+    if (page.length < pageSize) return items;
+  }
 }
 
 async function IssuePanel({ issueId, lang }: { issueId: number; lang: Lang }) {

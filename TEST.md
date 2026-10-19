@@ -106,6 +106,11 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
 - [ ] **B1 Queue and map.** Issues are sorted by severity.
   - Filters: Open, Needs assignment, Critical (8+), Action needed, All, plus Type and Area. Areas
     are OpenStreetMap suburbs (e.g. Lalmatia) recorded when each issue is reported.
+  - Change status, type and area together: chips, table and map update immediately without a
+    server request. Area choices remain visible even when a type has no matching issues.
+  - Browser Back/Forward restores the filters. Reloading a filtered URL preserves the same result.
+  - Changing a filter clears the selected issue panel. Selecting a row opens it again;
+    saving an officer action refreshes the queue and flags from the server.
   - Map pins are coloured by severity. Clicking a row or pin opens the detail.
 - [ ] **B2 Correct the AI.** **Correct the AI** → change the visual severity, type or score, write a
   reason → **Save correction**.

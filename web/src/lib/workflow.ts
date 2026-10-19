@@ -23,6 +23,7 @@ export type QueueFilters = {
   /** OpenStreetMap area name in English (issues.area_en), e.g. "Lalmatia". */
   area?: string;
   limit?: number;
+  offset?: number;
 };
 
 export type OfficerQueueItem = {
@@ -47,6 +48,7 @@ export type OfficerQueueItem = {
 };
 
 export async function listOfficerQueue(filters: QueueFilters = {}): Promise<OfficerQueueItem[]> {
+  const offset = filters.offset ?? 0;
   let query = db()
     .from("issues")
     .select(
@@ -54,7 +56,8 @@ export async function listOfficerQueue(filters: QueueFilters = {}): Promise<Offi
     )
     .order("severity", { ascending: false })
     .order("created_at", { ascending: true })
-    .limit(filters.limit ?? 100);
+    .order("id", { ascending: true })
+    .range(offset, offset + (filters.limit ?? 100) - 1);
   if (filters.status) query = query.eq("status", filters.status);
   if (filters.issueType) query = query.eq("issue_type", filters.issueType);
   if (filters.wardId) query = query.eq("ward_id", filters.wardId);

@@ -4,9 +4,9 @@
 
 **Report it. AI ranks it. The city fixes it. AI checks the fix.**
 
-Citizens photograph potholes , garbage piles, open drains and waterlogging. AI identifies the problem and scores its urgency, the ward officer assigns it to a contractor or an NGO with an automatic deadline, and AI compares the repair photo with the original before the job is allowed to close. A public portal shows open vs. fixed issues per ward.
+Citizens photograph potholes, road cracks, garbage piles, open drains and waterlogging. AI identifies the problem and supports an explainable urgency score. A ward officer assigns a contractor or NGO with a deadline, and repair evidence is checked before the issue is marked fixed and payment becomes eligible. A public portal shows issue progress and contractor outcomes by area.
 
-Entry for the **International AI  Builders Congress 2026** — Competition 1 (Team-Built Product), **CivicSphere AI** domain, **Transparent Government** challenge (*"Open, accountable public-spending and service insight"*). Our answer to its ask, *accountability and trust gains*: no payment for a repair until AI verifies it, an audit trail nobody can edit, and public contractor scorecards.
+Entry for the **International AI Builders Congress 2026** — Competition 1 (Team-Built Product), **CivicSphere AI** domain, **Transparent Government** challenge (*"Open, accountable public-spending and service insight"*). The prototype demonstrates accountability through repair verification, a payment eligibility gate, tamper-evident audit records and public contractor scorecards.
 
 | Document | What's in it |
 |---|---|
@@ -22,17 +22,17 @@ Entry for the **International AI  Builders Congress 2026** — Competition 1 (Te
 
 ## Why it's different
 
-Most civic apps stop at "report a problem". CivicTrust **verifies the outcome**: a job closes only when the after-photo is taken on the spot (±15 m), is fresh, and the AI confirms the problem is gone. Unsure cases go to an officer, never auto-closed.
+CivicTrust **verifies the outcome**. Automatic approval requires a fresh after-photo captured after assignment, measured GPS within 15 m, and a confident AI comparison confirming the same place and a resolved problem. Partial, unclear or unavailable AI results go to an officer. Citizen disputes reopen review and withhold payment that has not already been released.
 
 ## Roles
 
 | Role | What they do |
 |---|---|
-| Citizen | Report with a photo, get an instant AI assessment, track the fix, confirm or dispute it |
-| Ward officer | Work the AI-ranked queue and map, correct the AI, assign contractors with deadlines |
+| Citizen | Report with a photo, view a live AI assessment, track the fix, confirm or dispute it |
+| Ward officer | Review the ranked queue and map, correct AI results, assign work, review repairs and release eligible payment status |
 | Contractor | Receive work orders, upload proof of repair |
-| NGO / volunteers | Claim open issues to fix for free |
-| Public | See open vs. fixed issues and fix times per ward |
+| NGO / volunteers | Offer to help with open issues; the officer decides by assigning the work |
+| Public | See issue progress, an activity log, area statistics and contractor scorecards |
 
 The prototype has **no login**: a role switcher gives one-click access so judges can try every role.
 
@@ -42,43 +42,78 @@ The prototype has **no login**: a role switcher gives one-click access so judges
 |---|---|---|
 | M1 Issue detector | Gemini vision | Issue type, visual severity, hazards, privacy flags; rejects non-civic photos |
 | M2 Severity score | Transparent formula | 1–10 from the photo + road class + distance to schools/hospitals + reports + days open; every factor is shown |
-| M3 Duplicate filter | PostGIS + Gemini | Reports within 25 m showing the same problem are merged |
-| M4 Repair verifier | GPS + time + Gemini | Same spot, fresh photo, before/after comparison |
+| M3 Duplicate filter | PostGIS + Gemini | Searches open issues within 25 m and merges confident visual matches |
+| M4 Repair verifier | GPS + time + Gemini | Checks freshness, location and before/after evidence; routes uncertain repairs to officer review |
 | Explanation | Groq primary, GLM fallback | One-line reason in Bangla and English, written only from computed facts |
-| Policy RAG | Gemini embeddings + pgvector | Cites the rule behind each repair deadline |
+| Policy RAG | Gemini embeddings + pgvector | Retrieves the pilot policy citation for repair deadlines |
 
-Example from a real test photo: *"Pothole on a residential road, 61 m from a school"* · *"আবাসিক রাস্তায় গর্ত, স্কুল থেকে ৬১ মিটার দূরে"* · severity 6.
-
-For the finals, M1/M3/M4 move to self-hosted YOLO + CLIP models so citizen photos stay on infrastructure the city controls.
+The score is computed in code; text models explain its inputs. AI calls have timeouts. If both explanation providers fail, factual observations remain available; an unavailable repair verifier requires officer review.
 
 ## Architecture
 
+```mermaid
+flowchart TB
+    subgraph Client["Browser · Bangla / English"]
+        UI["Citizen · Officer · Contractor · NGO · Public"]
+        Local["Camera, GPS or manual report pin<br/>Leaflet map and local officer filters"]
+        UI --- Local
+    end
+
+    subgraph Server["Next.js 16 server"]
+        Actions["Server actions<br/>Demo-role checks and input validation"]
+        Workflow["Report and duplicate processing · severity formula<br/>Assignment and policy deadlines · repair review<br/>Payment gate · citizen feedback · public views"]
+        Actions --> Workflow
+    end
+
+    subgraph AI["AI providers"]
+        Gemini["Gemini<br/>Issue, duplicate and repair vision<br/>Policy embeddings"]
+        Text["Groq primary → GLM fallback<br/>Bangla and English explanations"]
+    end
+
+    subgraph Data["Supabase · server-only access"]
+        DB[("Postgres + PostGIS + pgvector<br/>Issues, work orders, offers, policy chunks<br/>Hash-chained audit records")]
+        Photos["Private photo storage<br/>Temporary signed URLs"]
+    end
+
+    OSM["OpenStreetMap<br/>Roads, schools, hospitals and area names"]
+    Policy["Team-authored pilot service policy"]
+
+    UI <-->|"Server requests and results"| Actions
+    Workflow <--> Gemini
+    Workflow <--> Text
+    Workflow <--> DB
+    Workflow <--> Photos
+    OSM -->|"Reference-data seeding"| DB
+    OSM -->|"Cached area lookup"| Workflow
+    Policy -->|"Embedding and seed script"| DB
 ```
-Web app (Next.js 16, mobile-first, Bangla + English)
-        │ server actions
-Next.js server ── reports · severity · duplicates · work orders · deadlines · audit log
-        │                         │
- Gemini + Groq + GLM APIs   Supabase: Postgres + PostGIS + pgvector, private photo storage
-                                  ▲
-                    OpenStreetMap roads, schools, hospitals (seed scripts)
-```
+
+The server owns workflow decisions and database writes. The officer page loads the authorized pilot queue in pages, then filters the table and map in the browser; each filter selection avoids a new database request. Opening issue details uses server data, and successful workflow actions refresh the queue.
+
+Road and facility data come from OpenStreetMap. Public figures use official wards when boundaries are loaded, otherwise recorded OpenStreetMap areas; these areas are not official ward boundaries. Policy retrieval uses Gemini embeddings and pgvector, with severity-based deadline rules available if retrieval fails.
 
 ## Safeguards
 
-- Database closed to the browser: row-level security on every table, server-only access
-- Tamper-evident audit log: hash-chained and append-only, records every action and AI correction
-- Officers can override any AI decision, with a reason
-- Extra-report bonus capped, so busy or well-connected areas can't outrank quieter ones
-- Photo location metadata removed after reading; public sees area-level locations only
-- Photos sent to Gemini with `store: false`
+- Row-level security on application tables; the database secret key stays in server code
+- Tamper-evident audit log: hash-chained and append-only, records workflow events and AI corrections
+- Officers can correct issue assessments and review repairs, with reasons recorded
+- Extra-report bonus capped to limit the influence of report volume on urgency
+- Browser photo processing removes original EXIF metadata; public results exclude exact coordinates and citizen names
+- Private photo storage with temporary signed URLs; Gemini image requests specify `store: false`
 
-## Status (17 Oct 2026)
+## Prototype status
 
-| Done | Next |
+| Area | Implemented |
 |---|---|
-| Schema, security and geo functions on hosted Supabase · AI pipeline verified on a real photo · severity score with tests · Bangla/English shell with role switcher · OSM data for the Dhanmondi pilot area | Citizen report flow (camera, GPS, live AI) → officer queue and map → contractor repair verification → public portal |
+| Citizen reporting | Photo submission, GPS or manual pin, live AI assessment, duplicate merging, severity breakdown and repair feedback |
+| Officer workflow | Queue and map, local status/type/area filters, issue history, AI corrections, assignment, repair review and payment status |
+| Contractor and NGO | Assigned work, repair evidence, verification results and NGO offers to help |
+| Public transparency | Issue progress, activity log, area statistics, contractor scorecards and audit-chain verification |
+| Supporting pages and tools | Architecture, data and security pages; migrations, reference-data seeding, KPI and labelled-photo evaluation scripts |
 
-Full timeline and risks: [`PROTOTYPE_PLAN.md`](PROTOTYPE_PLAN.md). Preliminary submission: **31 Oct 2026**.
+This is a preliminary prototype. Role switching uses demonstration personas, payment release changes a recorded status, and no bank transfer is made. Official ward boundaries, production authentication and city-wide deployment are outside the current demonstration setup.
+
+Use [`TEST.md`](TEST.md) for acceptance scenarios and the measurement scripts in [`web/README.md`](web/README.md) to produce evidence. Classification accuracy, repair accuracy and other performance claims require measured results from representative test data. Scope and remaining submission work are tracked in [`PROTOTYPE_PLAN.md`](PROTOTYPE_PLAN.md).
 
 ## Run it locally
 

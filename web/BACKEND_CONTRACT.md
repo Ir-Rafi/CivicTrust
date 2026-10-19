@@ -6,7 +6,7 @@ The frontend can build against the server actions below. They are server-only an
 
 Import from `src/app/officer/actions.ts`:
 
-- `getOfficerQueue({ status?, issueType?, wardId?, area?, limit? })`: each item includes `lat` and `lng` for the map (officer screens only) and `area_en` / `area_bn`, the OpenStreetMap area (suburb level, e.g. Lalmatia) recorded when the issue was reported. `area` filters on `area_en`.
+- `getOfficerQueue({ status?, issueType?, wardId?, area?, limit?, offset? })`: each item includes `lat` and `lng` for the map (officer screens only) and `area_en` / `area_bn`, the OpenStreetMap area (suburb level, e.g. Lalmatia) recorded when the issue was reported. `area` filters on `area_en`. `offset` is a zero-based row offset; rows are ordered by severity descending, creation time, then ID. The officer screen loads the pilot queue in pages and applies its filters locally, avoiding a database round trip for each chip selection. Officer actions still refresh server data.
 - `getIssueHistory(issueId)`: every audit entry for the issue and its work orders, oldest first (report, AI assessment, corrections, assignment, repair evidence, reviews, citizen feedback, payment, NGO offers). Includes names and comments, so officers only.
 - `getIssueOffers(issueId)`: NGOs and volunteer groups that offered to fix the issue (`ngoName`, `note`, `createdAt`).
 - `correctIssue({ issueId, reason, issueType?, visualClass?, severity? })`
