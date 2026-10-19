@@ -12,5 +12,9 @@ export function distanceMeters(a: { lat: number; lng: number }, b: { lat: number
 export const REPAIR_MAX_DISTANCE_M = 15;
 /** New reports within this radius of an open issue are duplicate candidates (M3). */
 export const DUPLICATE_RADIUS_M = 25;
+/** Schools/hospitals within this distance raise severity (M2) and are named as public landmarks. */
+export const NEARBY_FACILITY_M = 500;
+/** Within this distance a school/hospital adds the higher proximity score (M2). */
+export const CLOSE_FACILITY_M = 200;
 /** Photos must be captured in-app within this window before upload. */
 export const MAX_PHOTO_AGE_MINUTES = 30;

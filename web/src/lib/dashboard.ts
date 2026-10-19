@@ -210,20 +210,6 @@ export async function listVolunteerCandidates(): Promise<VolunteerCandidate[]> {
   return (data ?? []) as VolunteerCandidate[];
 }
 
-export type RecentFix = { id: number; issue_type: IssueType; road_name: string | null; created_at: string; fixed_at: string; status: IssueStatus };
-
-export async function listRecentFixes(limit = 8): Promise<RecentFix[]> {
-  const { data, error } = await db()
-    .from("issues")
-    .select("id, issue_type, road_name, created_at, fixed_at, status")
-    .in("status", ["fixed", "confirmed"])
-    .not("fixed_at", "is", null)
-    .order("fixed_at", { ascending: false })
-    .limit(limit);
-  if (error) throw new Error(`recent fixes: ${error.message}`);
-  return (data ?? []) as RecentFix[];
-}
-
 export type OrderFlag = "review" | "payable";
 
 /** Issues whose work order needs an officer: a repair to review, or a verified repair to pay. */

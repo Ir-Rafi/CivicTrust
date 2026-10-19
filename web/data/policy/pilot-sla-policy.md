@@ -59,7 +59,7 @@ A job past its deadline is marked overdue on the officer dashboard and counted a
 
 ## Privacy
 
-Faces and vehicle number plates in photos are blurred before display. Photo location metadata is removed from stored files after the location is read. The public portal shows issues at ward level; exact locations are visible only to officers and assigned crews.
+Faces and vehicle number plates in photos are blurred before display. Photo location metadata is removed from stored files after the location is read. The public portal shows each issue by road name and nearest named school or hospital, with whether it is reported, assigned or fixed; exact locations are visible only to officers and assigned crews.
 
 ## Human oversight of AI
 

@@ -1,8 +1,9 @@
 import { Suspense } from "react";
-import { getPublicContractorScorecards, getPublicWardStats } from "@/app/public/actions";
-import { getIssueTotals, getPaymentSummary, listRecentFixes } from "@/lib/dashboard";
-import { dateOnly, statusTone, taka } from "@/lib/format";
-import { dict, fill, num, type Lang } from "@/lib/i18n";
+import { getPublicContractorScorecards, getPublicIssues, getPublicLog, getPublicWardStats } from "@/app/public/actions";
+import { getIssueTotals, getPaymentSummary } from "@/lib/dashboard";
+import { dateOnly, dateTime, statusTone, taka } from "@/lib/format";
+import { dict, fill, num, type Dict, type Lang } from "@/lib/i18n";
+import type { PublicEvent, PublicPlace } from "@/lib/public-log";
 import { getSession } from "@/lib/session";
 
 type WardRow = { ward_id: number; ward_name_en: string; ward_name_bn: string | null; open_count: number; fixed_count: number; avg_fix_hours: number | null };
@@ -36,20 +37,23 @@ async function PublicView() {
           {t.publicPortal.subtitle}
         </p>
       </section>
+      <div className="asymmetric-grid">
+        <Suspense fallback={<div style={{ height: 240 }} />}>
+          <Tracker lang={lang} />
+        </Suspense>
+        <Suspense fallback={<div style={{ height: 240 }} />}>
+          <UpdateLog lang={lang} />
+        </Suspense>
+      </div>
       <Suspense fallback={<div style={{ height: 140 }} />}>
         <Headline lang={lang} />
       </Suspense>
       <Suspense fallback={<div style={{ height: 200 }} />}>
         <Scorecards lang={lang} />
       </Suspense>
-      <div className="asymmetric-grid">
-        <Suspense fallback={<div style={{ height: 200 }} />}>
-          <ByArea lang={lang} />
-        </Suspense>
-        <Suspense fallback={<div style={{ height: 200 }} />}>
-          <RecentFixes lang={lang} />
-        </Suspense>
-      </div>
+      <Suspense fallback={<div style={{ height: 200 }} />}>
+        <ByArea lang={lang} />
+      </Suspense>
     </div>
   );
 }
@@ -205,27 +209,117 @@ async function ByArea({ lang }: { lang: Lang }) {
   );
 }
 
-async function RecentFixes({ lang }: { lang: Lang }) {
-  const t = dict(lang);
-  const fixes = await listRecentFixes();
+function placeText(place: PublicPlace, t: Dict): string {
+  const road = place.road ?? t.common.noRoad;
+  return place.landmark ? `${road} · ${fill(t.publicPortal.near, { name: place.landmark.name })}` : road;
+}
+
+function Step({ label, at, lang }: { label: string; at: string | null; lang: Lang }) {
   return (
-    <section className="card card-high">
-      <h2 className="headline-small" style={{ marginBottom: 12 }}>
-        {t.publicPortal.recent}
-      </h2>
-      {fixes.length === 0 ? (
-        <p className="body-medium">{t.publicPortal.recentEmpty}</p>
+    <span className={`tag ${at ? "verified" : ""}`} title={at ? dateTime(at, lang) : undefined}>
+      {label}
+      {at && <span className="label-small">{dateOnly(at, lang)}</span>}
+    </span>
+  );
+}
+
+/** Where each problem is and whether it is assigned or fixed. */
+async function Tracker({ lang }: { lang: Lang }) {
+  const t = dict(lang);
+  const issues = await getPublicIssues();
+  return (
+    <section className="card">
+      <div className="card-head">
+        <div>
+          <h2 className="headline-small">{t.publicPortal.tracker}</h2>
+          <p className="label-small">{t.publicPortal.trackerNote}</p>
+        </div>
+      </div>
+      {issues.length === 0 ? (
+        <p className="body-medium">{t.publicPortal.trackerEmpty}</p>
       ) : (
         <ul className="factor-list">
-          {fixes.map((f) => (
-            <li key={f.id}>
+          {issues.map((i) => (
+            <li key={i.id} style={{ flexDirection: "column", alignItems: "flex-start", gap: 8 }}>
               <span>
-                <span style={{ fontWeight: 500 }}>{t.issueType[f.issue_type]}</span>
+                <span style={{ fontWeight: 500 }}>{t.issueType[i.issue_type]}</span>
                 <span className="label-small" style={{ display: "block" }}>
-                  {f.road_name ?? t.common.noRoad} · {dateOnly(f.fixed_at, lang)}
+                  {placeText(i.place, t)}
+                  {i.report_count > 1 && ` · ${fill(t.publicPortal.reportsBy, { n: num(i.report_count, lang) })}`}
                 </span>
               </span>
-              <span className={`tag ${statusTone(f.status)}`}>{t.status[f.status]}</span>
+              <span className="flex flex-wrap items-center gap-3">
+                <Step label={t.publicPortal.stepReported} at={i.reported_at} lang={lang} />
+                <Step label={t.publicPortal.stepAssigned} at={i.assigned_at} lang={lang} />
+                <Step label={t.publicPortal.stepFixed} at={i.fixed_at} lang={lang} />
+                {(i.stage === "confirmed" || i.stage === "disputed") && (
+                  <span className={`tag ${statusTone(i.stage)}`}>{t.status[i.stage]}</span>
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function eventLabel(e: PublicEvent, t: Dict): string {
+  switch (e.kind) {
+    case "reported":
+      return t.publicPortal.evReported;
+    case "assigned":
+      return t.publicPortal.evAssigned;
+    case "fixed":
+      return e.verified_by === "officer" ? t.publicPortal.evFixedOfficer : t.publicPortal.evFixedAi;
+    case "not_accepted":
+      return t.publicPortal.evNotAccepted;
+    case "disputed":
+      return t.publicPortal.evDisputed;
+    case "confirmed":
+      return t.publicPortal.evConfirmed;
+  }
+}
+
+const EVENT_TONE: Record<PublicEvent["kind"], string> = {
+  reported: "moderate",
+  assigned: "primary",
+  fixed: "verified",
+  not_accepted: "critical",
+  disputed: "critical",
+  confirmed: "verified",
+};
+
+/** Plain-language log, newest first; each line links back to its hash-chained audit record. */
+async function UpdateLog({ lang }: { lang: Lang }) {
+  const t = dict(lang);
+  const events = await getPublicLog();
+  return (
+    <section className="card card-high">
+      <div className="card-head">
+        <div>
+          <h2 className="headline-small">{t.publicPortal.log}</h2>
+          <p className="label-small">{t.publicPortal.logNote}</p>
+        </div>
+      </div>
+      {events.length === 0 ? (
+        <p className="body-medium">{t.publicPortal.logEmpty}</p>
+      ) : (
+        <ul className="factor-list">
+          {events.map((e) => (
+            <li key={e.id} style={{ alignItems: "flex-start" }}>
+              <span>
+                <span className={`tag ${EVENT_TONE[e.kind]}`}>{eventLabel(e, t)}</span>
+                <span className="label-small" style={{ display: "block", marginTop: 4 }}>
+                  {t.issueType[e.issue.issue_type]} · {placeText(e.issue.place, t)}
+                </span>
+              </span>
+              <span className="label-small" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                {dateTime(e.at, lang)}
+                <span style={{ display: "block" }}>
+                  {t.publicPortal.auditRecord} #{num(e.id, lang)}
+                </span>
+              </span>
             </li>
           ))}
         </ul>

@@ -1,4 +1,5 @@
 import type { VisualClass } from "@/lib/ai/schemas";
+import { CLOSE_FACILITY_M, NEARBY_FACILITY_M } from "@/lib/geo";
 
 // M2 severity score. Deliberately a transparent formula, not a black box:
 // every component is stored with the issue and shown to officers and citizens.
@@ -76,7 +77,7 @@ export function computeSeverity(input: {
   const sensitive = [input.context.nearest_school, input.context.nearest_hospital]
     .filter((p): p is NonNullable<typeof p> => p !== null)
     .sort((a, b) => a.distance_m - b.distance_m)[0];
-  const proximityPoints = !sensitive ? 0 : sensitive.distance_m <= 200 ? 1.5 : sensitive.distance_m <= 500 ? 0.5 : 0;
+  const proximityPoints = !sensitive ? 0 : sensitive.distance_m <= CLOSE_FACILITY_M ? 1.5 : sensitive.distance_m <= NEARBY_FACILITY_M ? 0.5 : 0;
   const isSchool = sensitive !== undefined && sensitive === input.context.nearest_school;
   components.push({
     key: "proximity",

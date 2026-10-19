@@ -61,7 +61,7 @@ async function ChainStatus({ lang }: { lang: Lang }) {
             <div className="headline-small" style={{ color: intact ? "var(--md-on-primary-container)" : "var(--md-on-error-container)" }}>
               {intact ? t.auditPage.intact : fill(t.auditPage.broken, { id: String(status.first_broken_id) })}
             </div>
-            <div className="label-small">{fill(t.auditPage.records, { n: num(Number(status.total), lang) })}</div>
+            <div className="label-small">{fill(intact ? t.auditPage.intactNote : t.auditPage.records, { n: num(Number(status.total), lang) })}</div>
           </div>
         </div>
         <Link href="/audit" className="btn btn-filled btn-sm" prefetch={false}>
@@ -74,7 +74,9 @@ async function ChainStatus({ lang }: { lang: Lang }) {
 
 async function Entries({ lang }: { lang: Lang }) {
   const t = dict(lang);
-  const entries = await getAuditEntries({ limit: 100 });
+  const [{ role }, entries] = await Promise.all([getSession(), getAuditEntries({ limit: 100 })]);
+  // Hash values are for officers and technical checks; the public sees the verified status above.
+  const showHash = role === "officer";
   return (
     <section className="card">
       {entries.length === 0 ? (
@@ -89,7 +91,7 @@ async function Entries({ lang }: { lang: Lang }) {
                 <th>{t.auditPage.colActor}</th>
                 <th>{t.auditPage.colAction}</th>
                 <th>{t.auditPage.colTarget}</th>
-                <th>{t.auditPage.colHash}</th>
+                {showHash && <th>{t.auditPage.colHash}</th>}
               </tr>
             </thead>
             <tbody>
@@ -105,9 +107,11 @@ async function Entries({ lang }: { lang: Lang }) {
                     {e.entity}
                     {e.entity_id ? `-${e.entity_id}` : ""}
                   </td>
-                  <td className="mono" title={e.hash}>
-                    {e.hash.slice(0, 10)}…
-                  </td>
+                  {showHash && (
+                    <td className="mono" title={e.hash}>
+                      {e.hash.slice(0, 10)}…
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

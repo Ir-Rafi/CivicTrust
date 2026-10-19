@@ -49,7 +49,12 @@ Import from `src/app/public/actions.ts`:
 - `getPublicWardStats()`
 - `getPublicContractorScorecards()`
 
-These call the database functions `ward_stats()` and `contractor_scorecards()`. `on_time_rate` is the share of due jobs whose approved repair was submitted by the deadline; unfinished jobs past their deadline count as late. It is `null` when no job is due yet.
+- `getPublicIssues(limit?)`: every reported problem, newest first, with `issue_type`, `place` (`road` name and nearest named school/hospital within 500 m as `landmark`), `stage` (`reported`, `assigned`, `fixed`, `confirmed`, `disputed`), `report_count`, and the `reported_at`, `assigned_at` and `fixed_at` dates.
+- `getPublicLog(limit?)`: plain-language update log, newest first. Each entry has `kind` (`reported`, `assigned`, `fixed`, `not_accepted`, `disputed`, `confirmed`), `verified_by` (`ai` or `officer` for fixes), the time, the issue's type and place, and the audit record `id`.
+
+Both return no coordinates, reporter names, comments, costs or AI internals. The log is read from the hash-chained audit log, so it updates by itself with every workflow action; rejected or unsure repair attempts and internal actions (AI scores, overrides, payments) are not shown. The mapping rules are in `src/lib/public-log-rules.ts` with tests.
+
+The ward stats and scorecards call the database functions `ward_stats()` and `contractor_scorecards()`. `on_time_rate` is the share of due jobs whose approved repair was submitted by the deadline; unfinished jobs past their deadline count as late. It is `null` when no job is due yet.
 
 ## Audit actions
 

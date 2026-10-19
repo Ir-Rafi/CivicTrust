@@ -93,6 +93,7 @@ async function DataPage() {
           heading: en ? "What the public sees" : "জনসাধারণ যা দেখে",
           body: (
             <ul>
+              <li>{en ? "Each problem's type, road and nearest landmark, and whether it is reported, assigned or fixed, with a plain-language update log." : "প্রতিটি সমস্যার ধরন, রাস্তা ও কাছের পরিচিত জায়গা, আর সেটি রিপোর্ট, দায়িত্ব দেওয়া না মেরামত হয়েছে, সঙ্গে সহজ ভাষার আপডেট লগ।"}</li>
               <li>{en ? "Area-level counts, fix times and payment totals." : "এলাকাভিত্তিক সংখ্যা, মেরামতের সময় ও পরিশোধের মোট।"}</li>
               <li>{en ? "No reporter names, no exact pins." : "কোনো রিপোর্টকারীর নাম বা সঠিক অবস্থান নয়।"}</li>
               <li>
