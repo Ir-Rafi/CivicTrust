@@ -58,8 +58,8 @@ async function DataPage() {
             <ul>
               <li>
                 {en
-                  ? "Supabase Postgres with PostGIS and pgvector. The current project is hosted in the Sydney region; moving to Singapore or self-hosting is on the roadmap."
-                  : "PostGIS ও pgvector-সহ Supabase Postgres। বর্তমান প্রকল্পটি সিডনি অঞ্চলে; সিঙ্গাপুরে সরানো বা নিজস্ব সার্ভারে নেওয়া পরিকল্পনায় আছে।"}
+                  ? "Supabase Postgres with PostGIS and pgvector, hosted in Singapore, the closest Supabase region to Bangladesh. The Personal Data Protection Ordinance 2025 requires restricted data to stay in the country, so a real rollout moves to a Bangladesh-hosted Postgres."
+                  : "PostGIS ও pgvector-সহ Supabase Postgres, রাখা আছে সিঙ্গাপুরে, যা বাংলাদেশের সবচেয়ে কাছের Supabase অঞ্চল। ব্যক্তিগত উপাত্ত সুরক্ষা অধ্যাদেশ ২০২৫ অনুযায়ী সংবেদনশীল তথ্য দেশের ভেতরেই রাখতে হবে, তাই আসল চালুর আগে ডেটা বাংলাদেশের সার্ভারে নেওয়া হবে।"}
               </li>
               <li>
                 {en

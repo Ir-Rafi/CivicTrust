@@ -6,3 +6,6 @@ __pycache__/
 web/supabase/.temp/
 web/supabase/.branches/
 
+
+# Local database backups (citizen data and photos): never commit
+db-backup-*/

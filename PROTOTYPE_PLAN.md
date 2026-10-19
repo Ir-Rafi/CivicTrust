@@ -15,7 +15,7 @@ Every feature, page and minute of video below exists because it earns points som
 | Core loop | **Built and verified end to end** on the live database: citizen report (GPS, map, manual pin, place names) → AI analysis → duplicate merge → explainable severity → Bangla/English reason → officer queue, map, area filter, corrections with history → work order with cited deadline and cost → repair verification (location, freshness, AI) → payment withheld until verified → citizen confirm/dispute → public tracker, update log, scorecards, per-area figures |
 | Safeguards | Hash-chained audit log that can't be edited or emptied; payment gate in the database; unsure AI results go to an officer; unmeasured repair locations never auto-approve; RLS on every table; photos never public |
 | Screens | All §6 screens, including `/architecture`, `/data`, `/security`, `/model-card`, `/audit`; Bangla/English; dark mode |
-| Live | `civictrust-five.vercel.app`, functions in Sydney next to the database. Vercel only deploys the account owner's commits (Hobby plan) |
+| Live | `civictrust-five.vercel.app`, functions in Singapore (`sin1`) next to the database. Vercel only deploys the account owner's commits (Hobby plan) |
 | Measurements | Recorded on every report (time, AI provider, failures); `pnpm kpi` and `pnpm eval:photos` compute the §8 figures. **Not measured yet:** needs the field photo set |
 | Blockers | Paid Gemini key (free tier ≈ 20 photo checks/day); GLM key missing on Vercel; field shoot |
 | Next | Field shoot → measurements and KPI summary → 1-page problem summary → video → submit 30 Oct |
@@ -265,7 +265,7 @@ Pilot data: Dhanmondi area, Dhaka (bbox 23.735,90.365 → 23.760,90.390). OSM ro
 | **No ward boundaries.** OSM has none for Dhaka; HDX admin level 4 is thanas/unions, not wards | Public portal can't show per-ward numbers | BA/Data finds a licensed source (DNCC/DSCC maps, BBS). **Fallback:** group the portal by clearly labelled "pilot zones" (not official wards) and say so on `/data` | 22 Oct |
 | Gemini photo analysis takes ~7 s | Demo feels slow | Show a progress state; try lower thinking level; measure on 30+ photos | 21 Oct |
 | Occasional wrong Bangla word in AI reasons (e.g. gravel) | Looks careless in a Bangla demo | Bangla glossary in the prompt; native speaker reviews 20 sample outputs | 25 Oct |
-| Database hosted in Sydney (ap-southeast-2) | Judges may ask why Bangladeshi citizens' photos sit in Australia | Either state it on `/data` with the self-hosting roadmap, or recreate the project in Singapore (ap-southeast-1) and replay the migration | 24 Oct |
+| Database hosted outside Bangladesh | The Personal Data Protection Ordinance 2025 requires restricted data to stay in Bangladesh (18-month transition) | Moved to Singapore (ap-southeast-1), the closest Supabase region: migrations replayed, data copied, audit chain checked. Stated on `/data`; a Bangladesh-hosted Postgres is the plan before a real rollout | done |
 | OSM tagging noise (some "hospitals" are pharmacies or offices) | Wrong proximity bonus | Name filter in `seed:fetch` (7 removed); officer override covers the rest; noted on `/data` | done |
 | Gemini/Groq rate limits or outage during the demo | Live demo stalls | Recorded backup video; GLM takes over text if Groq fails (10 s timeout each); clear error message in app | 27 Oct |
 | Not enough real photos (incl. before/after pairs) | KPIs can't be measured | Team photographs 30–60 issues in the pilot area; for repair pairs, revisit fixed spots | 28 Oct |

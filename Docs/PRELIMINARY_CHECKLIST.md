@@ -22,6 +22,11 @@ Sources: [`PRELIMINARY_PROTOTYPE_REQUIREMENTS.md`](../PRELIMINARY_PROTOTYPE_REQU
 
 ## 2. Deploy and keys
 
+- [x] Copy the database to the new Singapore project: migrations, data, audit chain checked (Backend)
+- [x] Copy the photos to the new project's `photos` bucket; switch `.env.local` to it (Backend)
+- [ ] Give teammates who run the app locally the new `SUPABASE_URL`, `SUPABASE_SECRET_KEY` and `DATABASE_URL` privately (Team lead)
+- [ ] On Vercel, replace `SUPABASE_URL` and `SUPABASE_SECRET_KEY` with the Singapore project's values, then redeploy; the region becomes `sin1` from `vercel.json` (Irfan)
+- [ ] After a week on Singapore, pause the old Sydney project and reset the new database password (Team lead)
 - [ ] Push all local work to `main` (Backend)
 - [ ] Redeploy on Vercel after each push; Hobby only deploys the owner's commits (Irfan)
 - [ ] Live site shows `/model-card` and the latest changes (Irfan)

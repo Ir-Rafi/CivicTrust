@@ -88,7 +88,7 @@ the server data. Supabase access and workflow decisions remain in server code.
 3. **Environment Variables** (Production + Preview), copied from `.env.local`, marked *Sensitive*:
    `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `GEMINI_API_KEY`, `GEMINI_VISION_MODEL`, `GEMINI_EMBEDDING_MODEL`, `GLM_API_KEY`, `GLM_API_BASE`, `GLM_TEXT_MODEL`, `GROQ_API_KEY`, `GROQ_TEXT_MODEL`.
    Not needed on Vercel: `DATABASE_URL` and the `*_BACKUP` keys. Never add a `NEXT_PUBLIC_` prefix.
-4. **Settings → Functions → Region:** pick the one closest to the database (Sydney `syd1` for the current project).
+4. **Settings → Functions → Region:** pick the one closest to the database (Singapore `sin1` for the current project).
 5. Deploy, then open `https://<your-app>.vercel.app/api/health`: the `configured` flags for Supabase, Gemini, Groq and GLM should be `true`, and `database.ok` should be `true`. These flags confirm configuration; use the test guide to verify provider calls and workflows.
 
 The database is already hosted on Supabase; schema changes are applied with
