@@ -75,7 +75,7 @@ async function DataPage() {
           ),
         },
         {
-          heading: en ? "External AI services" : "বাইরের এআই সেবা",
+          heading: en ? "External services" : "বাইরের সেবা",
           body: (
             <ul>
               <li>
@@ -85,6 +85,12 @@ async function DataPage() {
               <li>
                 <strong>Groq</strong> ({en ? "GLM as fallback" : "বিকল্প GLM"}) —{" "}
                 {en ? "receives text facts only (score components, place names), never photos." : "শুধু টেক্সট তথ্য পায় (স্কোরের উপাদান, স্থানের নাম), কখনো ছবি নয়।"}
+              </li>
+              <li>
+                <strong>OpenStreetMap Nominatim</strong> —{" "}
+                {en
+                  ? "turns the report location into a road and area name on the report form. Our server sends it the coordinates rounded to about 10 m, nothing else; the citizen's browser never contacts it."
+                  : "রিপোর্ট ফর্মে অবস্থানকে রাস্তা ও এলাকার নামে রূপ দেয়। আমাদের সার্ভার শুধু প্রায় ১০ মিটারে গোল করা স্থানাঙ্ক পাঠায়, আর কিছু নয়; নাগরিকের ব্রাউজার সরাসরি যোগাযোগ করে না।"}
               </li>
             </ul>
           ),

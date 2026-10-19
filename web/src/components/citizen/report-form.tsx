@@ -8,6 +8,7 @@ import { DUPLICATE_RADIUS_M, GPS_REFINE_MS, GPS_TARGET_ACCURACY_M, gpsQuality } 
 import { prepareImage } from "@/lib/image";
 import { fill, num, type Dict, type Lang } from "@/lib/i18n";
 import type { PlaceDescription } from "@/lib/location";
+import { placeLines } from "@/lib/place-name";
 import { roadClassLabel } from "@/lib/severity";
 
 // Real roads in the Dhanmondi pilot area, for testing from a laptop without GPS.
@@ -99,12 +100,13 @@ export function ReportForm({ t, lang }: { t: Pick<Dict, "citizen" | "errors">; l
     : gps.state === "gps"
       ? { lat: gps.lat, lng: gps.lng, accuracy: gps.accuracy }
       : null;
-  // ~11 m grid: refining GPS fixes do not trigger a lookup for every small move.
-  const pointKey = point ? `${point.lat.toFixed(4)},${point.lng.toFixed(4)}` : null;
+  // ~11 m grid: refining GPS fixes do not trigger a lookup for every small move. Language is part
+  // of the key because place names come back in the UI language.
+  const pointKey = point ? `${point.lat.toFixed(4)},${point.lng.toFixed(4)},${lang}` : null;
   useEffect(() => {
     if (!point || !pointKey) return;
     let live = true;
-    describeLocation({ lat: point.lat, lng: point.lng }).then((value) => {
+    describeLocation({ lat: point.lat, lng: point.lng, lang }).then((value) => {
       if (live) setPlace({ key: pointKey, value });
     });
     return () => {
@@ -114,10 +116,20 @@ export function ReportForm({ t, lang }: { t: Pick<Dict, "citizen" | "errors">; l
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pointKey]);
   const placeHere = place && place.key === pointKey ? place : null;
-  const placeRoad = placeHere?.value?.road;
-  const placeMain = !placeHere ? t.citizen.placeLoading : placeRoad ? (placeRoad.name ?? roadClassLabel(placeRoad.highway, lang)) : t.citizen.outsidePilot;
-  const placeNear = placeRoad && placeHere?.value?.landmark ? fill(t.citizen.near, { name: placeHere.value.landmark.name }) : null;
   const quality = !useDemo && gps.state === "gps" ? gpsQuality(gps.accuracy) : null;
+  // Main line: the road name from OpenStreetMap (house number only for a precise GPS fix), else
+  // the pilot data's road; second line: area and city; then the nearest school or hospital.
+  const placeValue = placeHere?.value;
+  const pilotRoad = placeValue?.road ?? null;
+  const named = placeLines(placeValue?.name ?? null, { includeHouse: quality === "good" });
+  const pilotRoadLabel = pilotRoad ? (pilotRoad.name ?? roadClassLabel(pilotRoad.highway, lang)) : null;
+  const placeMain = !placeHere
+    ? t.citizen.placeLoading
+    : (named.primary ?? pilotRoadLabel ?? named.secondary ?? t.citizen.outsidePilot);
+  const placeArea = placeHere && (named.primary || pilotRoadLabel) ? named.secondary : null;
+  const placeNear = pilotRoad && placeValue?.landmark ? fill(t.citizen.near, { name: placeValue.landmark.name }) : null;
+  // Outside the pilot data the place still has a name, but the score can't use roads or schools.
+  const outsidePilot = !!placeValue && !pilotRoad && placeMain !== t.citizen.outsidePilot;
   const roughGps = gps.state === "gps" && !gps.refining && quality === "poor";
 
   useEffect(() => () => {
@@ -247,9 +259,19 @@ export function ReportForm({ t, lang }: { t: Pick<Dict, "citizen" | "errors">; l
               <MapPin size={18} aria-hidden style={{ flexShrink: 0, color: "var(--md-primary)", marginTop: 2 }} />
               <span>
                 <strong>{placeMain}</strong>
+                {placeArea && (
+                  <span className="body-medium" style={{ display: "block", fontSize: "0.85rem" }}>
+                    {placeArea}
+                  </span>
+                )}
                 {placeNear && (
                   <span className="label-small" style={{ display: "block" }}>
                     {placeNear}
+                  </span>
+                )}
+                {outsidePilot && (
+                  <span className="label-small" style={{ display: "block" }}>
+                    {t.citizen.outsidePilotNote}
                   </span>
                 )}
               </span>

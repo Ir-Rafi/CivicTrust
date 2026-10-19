@@ -69,14 +69,19 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
 
 - [ ] **A1 Report from a laptop.** Citizen → **Take photo** (pick a real pothole or garbage photo)
   → tick the demo location, choose *Road 16* → **Send report**.
-  - Before sending: map with a pin, and *Road 16 · near Oxford International School* below it.
+  - Before sending: map with a pin, and below it the place name: road, area and city, then the
+    nearest school or hospital, e.g. *Road 16 · Bashbari, Lalmatia, Dhaka Metropolitan · near
+    Oxford International School*.
   - After 10–30 s: the issue page shows the type, AI confidence, severity score with its factor
     breakdown, a one-line reason in Bangla and English, and the status.
 - [ ] **A2 Report with real GPS** (phone via ngrok). The status shows *Improving accuracy… now ±N m*,
   then *GPS location found (±N m)*.
   - Circle colour on the map: green ≤ 15 m, amber ≤ 25 m, red > 25 m.
   - When red, a warning appears with **Refresh location**.
-  - The report is filed at your position, with the nearest road and landmark.
+  - The place name shows your road, area and city (in Bangla or English). The house number
+    appears only when the fix is within 15 m.
+  - Outside the Dhanmondi pilot area you still get the name, plus a note that roads and schools
+    there are not counted in the severity score.
 - [ ] **A3 Not a civic problem.** Report a selfie or a room → *This doesn't look like a public road,
   drain or garbage problem.* Nothing appears under My reports.
 - [ ] **A4 Old photo.** With GPS (not demo), upload a photo whose file date is more than 30
@@ -189,6 +194,7 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
 | GPS shows ±100 m or more | Laptop Wi-Fi location | Use a phone outdoors, or a demo location |
 | Report fails with *Something went wrong* | Usually Gemini's daily limit (`429` in the terminal) | Wait for the reset, or use a key with billing |
 | Report takes over 30 s | Gemini response time (30–78 s seen) | Retry; on Vercel the limit is 60 s |
+| Map shows a pin but no place name, or only the road type | The place-name lookup (OpenStreetMap Nominatim) was slow or unreachable; the form falls back to the pilot road data | Retry; check the terminal for `reverse geocode failed` |
 | Repair always rejected from your desk | You are more than 15 m from the issue (correct) | Test approval on site (C2) |
 | No confirm/dispute buttons | Issue isn't Fixed, or you aren't the citizen role | — |
 | *issue already has an active work order* | One active work order per issue (by design) | Review or reject the current one first |
@@ -257,6 +263,8 @@ delete from issues where id = <ID>;   -- also removes its reports, work orders, 
 3. **CSS edits** to `globals.css` need a dev-server restart. The likely cause is the Tailwind
    Turbopack loader; Next.js recommends the PostCSS setup instead.
 4. **Gemini response time** sometimes exceeds the 60 s Vercel limit for a report.
+   **Place names** come from OpenStreetMap's free public Nominatim service (max 1 request per
+   second, light use only). Fine for the prototype; production needs its own geocoder.
 5. **Thin line across the map** where two tiles meet, on some high-resolution screens. Cosmetic.
 6. **No audit history in the officer's issue detail.** Overrides and decisions are visible on the
    Audit tab only.

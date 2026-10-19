@@ -43,14 +43,14 @@ export async function submitReport(_prev: ReportFormState, formData: FormData): 
   redirect(`/citizen/issues/${outcome.issueId}?${outcome.kind === "merged" ? "merged" : "new"}=1`);
 }
 
-const pointSchema = z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) });
+const pointSchema = z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180), lang: z.enum(["bn", "en"]) });
 
-/** Nearest road and landmark for the report form's location preview; null when the lookup fails. */
-export async function describeLocation(input: { lat: number; lng: number }): Promise<PlaceDescription | null> {
+/** Place name, nearest road and landmark for the report form's location preview; null when the lookup fails. */
+export async function describeLocation(input: { lat: number; lng: number; lang: "bn" | "en" }): Promise<PlaceDescription | null> {
   const point = pointSchema.safeParse(input);
   if (!point.success) return null;
   try {
-    return await describePlace(point.data.lat, point.data.lng);
+    return await describePlace(point.data.lat, point.data.lng, point.data.lang);
   } catch (e) {
     console.error("describeLocation failed", e);
     return null;
