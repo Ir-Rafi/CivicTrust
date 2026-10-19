@@ -29,6 +29,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="bn" className={`${bengali.variable} h-full`}>
       <body className="flex min-h-full flex-col">
+        {/* Apply the saved theme before paint so there's no light flash. An explicit ct_theme cookie
+            wins; otherwise the CSS prefers-color-scheme media query follows the OS. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var m=document.cookie.match(/(?:^|; )ct_theme=(light|dark)/);if(m)document.documentElement.setAttribute('data-theme',m[1]);}catch(e){}})();",
+          }}
+        />
         <div className="ambient-bg" aria-hidden>
           <div className="ambient-blob blob-1" />
           <div className="ambient-blob blob-2" />

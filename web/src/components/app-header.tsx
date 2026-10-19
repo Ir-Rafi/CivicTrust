@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { LanguageToggle } from "@/components/language-toggle";
 import { RoleNav } from "@/components/role-nav";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { dict } from "@/lib/i18n";
 import { getSession } from "@/lib/session";
 
@@ -22,7 +23,10 @@ export async function AppHeader() {
       <div className="container app-bar-content">
         <Brand name="CivicTrust" />
         <RoleNav labels={t.roles} auditLabel={t.auditTab} navLabel={t.switchRole} menuLabel={t.menu} />
-        <LanguageToggle lang={lang} label={t.language} />
+        <div className="header-actions">
+          <ThemeToggle label={t.theme} />
+          <LanguageToggle lang={lang} label={t.language} />
+        </div>
       </div>
     </header>
   );

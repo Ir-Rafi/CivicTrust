@@ -16,6 +16,7 @@ const en = {
   chooseRole: "Try the prototype as",
   switchRole: "Role",
   menu: "Menu",
+  theme: "Toggle dark mode",
   language: "বাংলা",
   roles: {
     citizen: "Citizen",
@@ -418,6 +419,7 @@ const bn: Dict = {
   chooseRole: "প্রোটোটাইপটি ব্যবহার করুন",
   switchRole: "ভূমিকা",
   menu: "মেনু",
+  theme: "ডার্ক মোড চালু/বন্ধ",
   language: "English",
   roles: {
     citizen: "নাগরিক",
