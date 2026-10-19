@@ -1,4 +1,4 @@
-import { Landmark } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { LanguageToggle } from "@/components/language-toggle";
 import { RoleNav } from "@/components/role-nav";
@@ -8,9 +8,7 @@ import { getSession } from "@/lib/session";
 function Brand({ name }: { name: string }) {
   return (
     <Link href="/" className="brand-group">
-      <span className="brand-icon" aria-hidden>
-        <Landmark size={22} strokeWidth={2} />
-      </span>
+      <Image src="/brand/civictrust-mark.png" alt="" width={40} height={40} priority className="brand-logo" />
       <span className="brand-name">{name}</span>
     </Link>
   );

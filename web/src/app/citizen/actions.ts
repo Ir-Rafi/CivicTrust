@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { describePlace, type PlaceDescription } from "@/lib/location";
 import { submitCitizenReport } from "@/lib/reports";
 import { submitCitizenFeedback } from "@/lib/workflow";
 import { DEMO_PERSONA } from "@/lib/roles";
@@ -40,6 +41,20 @@ export async function submitReport(_prev: ReportFormState, formData: FormData): 
 
   if (outcome.kind === "rejected") return { error: outcome.code, detail: outcome.detail };
   redirect(`/citizen/issues/${outcome.issueId}?${outcome.kind === "merged" ? "merged" : "new"}=1`);
+}
+
+const pointSchema = z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) });
+
+/** Nearest road and landmark for the report form's location preview; null when the lookup fails. */
+export async function describeLocation(input: { lat: number; lng: number }): Promise<PlaceDescription | null> {
+  const point = pointSchema.safeParse(input);
+  if (!point.success) return null;
+  try {
+    return await describePlace(point.data.lat, point.data.lng);
+  } catch (e) {
+    console.error("describeLocation failed", e);
+    return null;
+  }
 }
 
 export async function submitFeedback(input: Omit<Parameters<typeof submitCitizenFeedback>[0], "citizenName">) {

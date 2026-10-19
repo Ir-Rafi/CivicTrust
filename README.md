@@ -1,3 +1,5 @@
+<p align="center"><img src="web/public/brand/civictrust-logo.png" alt="CivicTrust logo" width="180"></p>
+
 # CivicTrust
 
 **Report it. AI ranks it. The city fixes it. AI checks the fix.**
@@ -12,6 +14,7 @@ Entry for the **International AI  Builders Congress 2026** — Competition 1 (Te
 | [`PROTOTYPE_PLAN.md`](PROTOTYPE_PLAN.md) | Plan mapped to the judging rubric: status, video script, timeline, risks, judge Q&A |
 | [`PRELIMINARY_PROTOTYPE_REQUIREMENTS.md`](PRELIMINARY_PROTOTYPE_REQUIREMENTS.md) | Requirements and acceptance criteria for the preliminary-round prototype |
 | [`web/README.md`](web/README.md) | Developer setup and code layout |
+| [`TEST.md`](TEST.md) | How to test and debug the prototype: scenarios per role, common problems, known issues |
 | [`AIBC_Participants_Guide_261015_143157.pdf`](AIBC_Participants_Guide_261015_143157.pdf) | Participant guide for the AI Builders Congress |
 | [`Docs/Idea-Overview.txt`](Docs/Idea-Overview.txt) | Original proposal (15 Oct) |
 

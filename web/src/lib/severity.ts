@@ -37,12 +37,26 @@ export const REPORT_BONUS_CAP = 1;
 
 const bnNum = (n: number) => n.toLocaleString("bn-BD", { maximumFractionDigits: 0 });
 
-function roadClassBn(highway: string): string {
-  if (MAJOR_ROADS.has(highway)) return "প্রধান সড়ক";
-  if (MID_ROADS.has(highway)) return "সংযোগ সড়ক";
-  if (highway === "residential" || highway === "living_street") return "আবাসিক রাস্তা";
-  return "অন্যান্য রাস্তা";
+const ROAD_CLASS_LABEL = {
+  major: { en: "Main road", bn: "প্রধান সড়ক" },
+  mid: { en: "Connecting road", bn: "সংযোগ সড়ক" },
+  residential: { en: "Residential road", bn: "আবাসিক রাস্তা" },
+  other: { en: "Other road", bn: "অন্যান্য রাস্তা" },
+} as const;
+
+/** Plain name for an OSM road class, e.g. "residential" → "Residential road" / "আবাসিক রাস্তা". */
+export function roadClassLabel(highway: string, lang: "en" | "bn"): string {
+  const cls = MAJOR_ROADS.has(highway)
+    ? "major"
+    : MID_ROADS.has(highway)
+      ? "mid"
+      : highway === "residential" || highway === "living_street"
+        ? "residential"
+        : "other";
+  return ROAD_CLASS_LABEL[cls][lang];
 }
+
+const roadClassBn = (highway: string) => roadClassLabel(highway, "bn");
 
 export function computeSeverity(input: {
   visualClass: VisualClass;

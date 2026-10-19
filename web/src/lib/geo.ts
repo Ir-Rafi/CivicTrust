@@ -18,3 +18,20 @@ export const NEARBY_FACILITY_M = 500;
 export const CLOSE_FACILITY_M = 200;
 /** Photos must be captured in-app within this window before upload. */
 export const MAX_PHOTO_AGE_MINUTES = 30;
+
+/** Stop refining a GPS fix once it is as tight as the repair check's tolerance. */
+export const GPS_TARGET_ACCURACY_M = REPAIR_MAX_DISTANCE_M;
+/** How long the report form keeps listening for a better GPS fix. */
+export const GPS_REFINE_MS = 20_000;
+
+export type GpsQuality = "good" | "fair" | "poor";
+
+/**
+ * good: within the repair tolerance; fair: within the duplicate radius (still matches the right
+ * issue); poor: wider than the duplicate radius, so the report may land on the wrong issue.
+ */
+export function gpsQuality(accuracyM: number): GpsQuality {
+  if (accuracyM <= REPAIR_MAX_DISTANCE_M) return "good";
+  if (accuracyM <= DUPLICATE_RADIUS_M) return "fair";
+  return "poor";
+}

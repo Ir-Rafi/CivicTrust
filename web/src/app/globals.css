@@ -16,6 +16,7 @@
   --md-surface-container-highest: #e6e0e9;
 
   --md-primary: #6750a4;
+  --brand-green: #008242;
   --md-on-primary: #ffffff;
   --md-primary-container: #eaddff;
   --md-on-primary-container: #21005d;
@@ -222,10 +223,16 @@ body {
   justify-content: center;
   box-shadow: var(--elevation-1);
 }
+.brand-logo {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
 .brand-name {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--md-primary);
+  /* the logo's own green, so the name and mark read as one brand */
+  color: var(--brand-green);
   letter-spacing: -0.01em;
 }
 
@@ -953,4 +960,107 @@ textarea.input-filled {
   .photo-pair {
     grid-template-columns: 1fr;
   }
+}
+
+/* ---------------- Report location map ---------------- */
+.location-map {
+  position: relative;
+  height: 260px;
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  border: 1px solid var(--md-outline-variant);
+  box-shadow: var(--elevation-1);
+  isolation: isolate; /* keeps Leaflet's z-indexes inside the card */
+}
+.map-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--elevation-1);
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.map-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.map-fab {
+  position: absolute;
+  right: 12px;
+  bottom: 28px;
+  z-index: 1000;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--md-surface-container-lowest);
+  color: var(--md-primary);
+  box-shadow: var(--elevation-2);
+  cursor: pointer;
+}
+.map-fab:hover {
+  background: var(--md-primary-container);
+}
+.location-map .leaflet-control-zoom {
+  border: none;
+  box-shadow: var(--elevation-1);
+  border-radius: var(--radius-s);
+  overflow: hidden;
+}
+.location-map .leaflet-top.leaflet-left {
+  top: auto;
+  bottom: 28px;
+  left: 0;
+}
+.loc-pin {
+  position: relative;
+  display: block;
+  width: 28px;
+  height: 28px;
+}
+.loc-pin-dot {
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: var(--pin);
+  border: 3px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+.loc-pin-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--pin);
+  opacity: 0.35;
+  animation: locPulse 1.8s ease-out infinite;
+}
+@keyframes locPulse {
+  0% { transform: scale(0.5); opacity: 0.45; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loc-pin-pulse { animation: none; }
+}
+.place-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+.place-line strong {
+  font-weight: 600;
 }
