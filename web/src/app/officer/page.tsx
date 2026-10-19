@@ -9,10 +9,11 @@ import { PaymentLine, WorkOrderStepper, WorkOrderSummary } from "@/components/wo
 import { ISSUE_TYPES, type IssueType } from "@/lib/ai/schemas";
 import { listAssignees, listIssueWorkOrders, listOrderFlags, type OrderFlag } from "@/lib/dashboard";
 import { dateTime, statusTone } from "@/lib/format";
-import { dict, num, type Lang } from "@/lib/i18n";
+import { googleMapsUrl } from "@/lib/geo";
+import { dict, num, type Dict, type Lang } from "@/lib/i18n";
 import { getIssue } from "@/lib/issues";
 import { getSession } from "@/lib/session";
-import type { OfficerQueueItem } from "@/lib/workflow";
+import { listIssueHistory, listOffers, type OfficerQueueItem } from "@/lib/workflow";
 
 // Assigning cites the policy via an embedding lookup; leave headroom.
 export const maxDuration = 60;
@@ -54,14 +55,22 @@ async function OfficerView({ searchParams }: Pick<PageProps<"/officer">, "search
   const selectedId = Number(query.issue) || null;
 
   const [all, flags] = await Promise.all([getOfficerQueue({ issueType: type, limit: 300 }), listOrderFlags()]);
-  const items = applyFilter(all, filter, flags);
+  // Areas come from the issues themselves (OpenStreetMap suburb names), so the filter only
+  // lists areas that have reports.
+  const areas = [...new Map(all.filter((i) => i.area_en).map((i) => [i.area_en!, i.area_bn ?? i.area_en!])).entries()].sort((a, b) =>
+    a[0].localeCompare(b[0]),
+  );
+  const area = typeof query.area === "string" && areas.some(([en]) => en === query.area) ? query.area : undefined;
+  const items = applyFilter(all, filter, flags).filter((i) => !area || i.area_en === area);
 
-  const href = (next: { f?: Filter; type?: string | null; issue?: number | null }) => {
+  const href = (next: { f?: Filter; type?: string | null; area?: string | null; issue?: number | null }) => {
     const p = new URLSearchParams();
     const f = next.f ?? filter;
     if (f !== "open") p.set("f", f);
     const ty = next.type === null ? undefined : (next.type ?? type);
     if (ty) p.set("type", ty);
+    const ar = next.area === null ? undefined : (next.area ?? area);
+    if (ar) p.set("area", ar);
     const is = next.issue === null ? undefined : (next.issue ?? selectedId);
     if (is) p.set("issue", String(is));
     const qs = p.toString();
@@ -106,6 +115,18 @@ async function OfficerView({ searchParams }: Pick<PageProps<"/officer">, "search
                 </Link>
               ))}
             </nav>
+            {areas.length > 0 && (
+              <nav className="filter-group" aria-label={t.officer.areaFilter}>
+                <Link href={href({ area: null, issue: null })} className="filter-link" aria-current={!area ? "true" : undefined}>
+                  {t.officer.anyArea}
+                </Link>
+                {areas.map(([en, bn]) => (
+                  <Link key={en} href={href({ area: en, issue: null })} className="filter-link" aria-current={en === area ? "true" : undefined}>
+                    {lang === "bn" ? bn : en}
+                  </Link>
+                ))}
+              </nav>
+            )}
           </div>
 
           {items.length === 0 ? (
@@ -138,7 +159,7 @@ async function OfficerView({ searchParams }: Pick<PageProps<"/officer">, "search
                               {t.issueType[i.issue_type]} · {t.visualClass[i.visual_class]}
                             </strong>
                             <span className="label-small" style={{ display: "block" }}>
-                              {i.road_name ?? t.common.noRoad}
+                              {[i.road_name ?? t.common.noRoad, lang === "bn" ? (i.area_bn ?? i.area_en) : i.area_en].filter(Boolean).join(" · ")}
                             </span>
                           </Link>
                         </td>
@@ -194,7 +215,13 @@ async function OfficerView({ searchParams }: Pick<PageProps<"/officer">, "search
 
 async function IssuePanel({ issueId, lang }: { issueId: number; lang: Lang }) {
   const t = dict(lang);
-  const [issue, orders, assignees] = await Promise.all([getIssue(issueId), listIssueWorkOrders(issueId), listAssignees()]);
+  const [issue, orders, assignees, history, offers] = await Promise.all([
+    getIssue(issueId),
+    listIssueWorkOrders(issueId),
+    listAssignees(),
+    listIssueHistory(issueId),
+    listOffers(issueId),
+  ]);
   if (!issue) return <p className="body-medium">{t.issue.notFound}</p>;
 
   const stored = issue.severity_components;
@@ -213,8 +240,13 @@ async function IssuePanel({ issueId, lang }: { issueId: number; lang: Lang }) {
             {t.issueType[issue.issue_type]} · {t.visualClass[issue.visual_class]}
           </h2>
           <p className="label-small">
-            {issue.road_name ?? t.common.noRoad} · {dateTime(issue.created_at, lang)}
+            {[issue.road_name ?? t.common.noRoad, lang === "bn" ? (issue.area_bn ?? issue.area_en) : issue.area_en, dateTime(issue.created_at, lang)]
+              .filter(Boolean)
+              .join(" · ")}
           </p>
+          <a href={googleMapsUrl(issue.lat, issue.lng)} target="_blank" rel="noopener noreferrer" className="text-link" style={{ fontSize: "0.85rem" }}>
+            {t.common.openInMaps} ↗
+          </a>
           {stored.officer_score !== undefined && (
             <span className="tag primary" style={{ marginTop: 4 }}>
               {t.officer.overridden}
@@ -291,6 +323,30 @@ async function IssuePanel({ issueId, lang }: { issueId: number; lang: Lang }) {
         {!active && orders[0] && <WorkOrderSummary order={orders[0]} lang={lang} />}
       </section>
 
+      {canAssign && offers.length > 0 && (
+        <section className="panel">
+          <div className="title-medium">{t.officer.offersTitle}</div>
+          <p className="body-medium" style={{ fontSize: "0.85rem", margin: "4px 0 8px" }}>
+            {t.officer.offersHelp}
+          </p>
+          <ul className="factor-list">
+            {offers.map((o) => (
+              <li key={o.id}>
+                <span>
+                  <span style={{ fontWeight: 500 }}>{o.ngoName}</span>
+                  {o.note && (
+                    <span className="label-small" style={{ display: "block" }}>
+                      {o.note}
+                    </span>
+                  )}
+                </span>
+                <span className="label-small">{dateTime(o.createdAt, lang)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {canAssign && (
         <section className="panel">
           <div className="title-medium">{t.officer.assignTitle}</div>
@@ -318,6 +374,66 @@ async function IssuePanel({ issueId, lang }: { issueId: number; lang: Lang }) {
       ) : (
         !active && <p className="label-small">{t.officer.closed}</p>
       )}
+
+      <IssueHistory entries={history} t={t} lang={lang} />
     </div>
+  );
+}
+
+type HistoryEntry = Awaited<ReturnType<typeof listIssueHistory>>[number];
+
+/** Short detail for the entries where the payload says something an officer needs. */
+function historyDetail(e: HistoryEntry, t: Dict): string | null {
+  const p = (e.payload ?? {}) as Record<string, unknown>;
+  switch (e.action) {
+    case "ai_override":
+      return typeof p.reason === "string" ? p.reason : null;
+    case "repair_proof_submitted":
+      return typeof p.verdict === "string" ? (t.verdict[p.verdict as keyof Dict["verdict"]] ?? p.verdict) : null;
+    case "repair_reviewed":
+      return [p.decision, p.reason].filter((v) => typeof v === "string").join(": ") || null;
+    case "repair_disputed":
+    case "ngo_offer":
+      return typeof p.comment === "string" ? p.comment : typeof p.note === "string" ? p.note : null;
+    default:
+      return null;
+  }
+}
+
+/** Every recorded step for this issue, oldest first (the original AI result and each correction). */
+function IssueHistory({ entries, t, lang }: { entries: HistoryEntry[]; t: Dict; lang: Lang }) {
+  return (
+    <details className="panel">
+      <summary className="title-medium" style={{ cursor: "pointer" }}>
+        {t.officer.historyTitle} ({num(entries.length, lang)})
+      </summary>
+      {entries.length === 0 ? (
+        <p className="body-medium" style={{ marginTop: 8 }}>
+          {t.officer.historyEmpty}
+        </p>
+      ) : (
+        <ul className="factor-list" style={{ marginTop: 8 }}>
+          {entries.map((e) => {
+            const detail = historyDetail(e, t);
+            return (
+              <li key={e.id} style={{ alignItems: "flex-start" }}>
+                <span>
+                  <span style={{ fontWeight: 500 }} title={e.action}>
+                    {t.auditActions[e.action] ?? e.action}
+                  </span>
+                  <span className="label-small" style={{ display: "block" }}>
+                    {e.actor_name}
+                    {detail ? ` · ${detail}` : ""}
+                  </span>
+                </span>
+                <span className="label-small" style={{ whiteSpace: "nowrap" }}>
+                  {dateTime(e.created_at, lang)}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </details>
   );
 }

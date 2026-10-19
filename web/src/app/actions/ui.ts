@@ -2,6 +2,7 @@
 
 import { submitFeedback } from "@/app/citizen/actions";
 import { submitRepair } from "@/app/contractor/actions";
+import { offerToHelp } from "@/app/ngo/actions";
 import { correctIssue, createWorkOrder, releaseWorkOrderPayment, reviewRepairProof } from "@/app/officer/actions";
 
 // Thin wrappers over the contract actions in BACKEND_CONTRACT.md for client forms.
@@ -64,5 +65,12 @@ export async function uiSubmitRepair(formData: FormData) {
       reason: proof.verdict_reason_en as string | null,
       paymentStatus: proof.paymentStatus as "eligible" | "withheld",
     };
+  });
+}
+
+export async function uiOfferHelp(input: Parameters<typeof offerToHelp>[0]) {
+  return attempt(async () => {
+    const result = await offerToHelp(input);
+    return { alreadyOffered: result.alreadyOffered };
   });
 }

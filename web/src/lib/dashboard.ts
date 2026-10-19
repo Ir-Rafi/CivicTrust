@@ -194,20 +194,33 @@ export type VolunteerCandidate = {
   severity: number;
   report_count: number;
   road_name: string | null;
+  area_en: string | null;
+  area_bn: string | null;
   created_at: string;
+  /** This group already offered to help with it. */
+  offered: boolean;
 };
 
 /** Open, unassigned problems community groups can clear without heavy equipment. */
-export async function listVolunteerCandidates(): Promise<VolunteerCandidate[]> {
+export async function listVolunteerCandidates(ngoId?: number): Promise<VolunteerCandidate[]> {
   const { data, error } = await db()
     .from("issues")
-    .select("id, issue_type, severity, report_count, road_name, created_at")
+    .select("id, issue_type, severity, report_count, road_name, area_en, area_bn, created_at")
     .in("issue_type", ["garbage", "open_drain", "waterlogging"])
     .in("status", ["reported", "verified"])
     .order("severity", { ascending: false })
     .limit(20);
   if (error) throw new Error(`volunteer candidates: ${error.message}`);
-  return (data ?? []) as VolunteerCandidate[];
+  const rows = (data ?? []) as Omit<VolunteerCandidate, "offered">[];
+  if (!ngoId || rows.length === 0) return rows.map((r) => ({ ...r, offered: false }));
+  const { data: offers, error: offerError } = await db()
+    .from("ngo_offers")
+    .select("issue_id")
+    .eq("ngo_id", ngoId)
+    .in("issue_id", rows.map((r) => r.id));
+  if (offerError) throw new Error(`volunteer offers: ${offerError.message}`);
+  const offered = new Set((offers ?? []).map((o) => o.issue_id));
+  return rows.map((r) => ({ ...r, offered: offered.has(r.id) }));
 }
 
 export type OrderFlag = "review" | "payable";

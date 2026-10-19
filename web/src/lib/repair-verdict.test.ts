@@ -32,6 +32,12 @@ test("partial, unclear or low-confidence results go to an officer", () => {
   assert.equal(decideRepairVerdict({ ...passed, ai: { ...passed.ai!, issue_resolved: "no", confidence: 0.4 } }), "needs_review");
 });
 
+test("an unmeasured location (work-site demo option) never auto-approves", () => {
+  assert.equal(decideRepairVerdict({ ...passed, locationMeasured: false }), "needs_review");
+  assert.equal(decideRepairVerdict({ ...passed, locationMeasured: false, ai: { ...passed.ai!, issue_resolved: "no" } }), "rejected");
+  assert.equal(decideRepairVerdict({ ...passed, locationMeasured: true }), "approved");
+});
+
 test("an AI outage after the hard checks pass goes to an officer, not a rejection", () => {
   assert.equal(decideRepairVerdict({ ...passed, ai: null, aiFailed: true }), "needs_review");
 });

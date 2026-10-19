@@ -35,3 +35,22 @@ export function gpsQuality(accuracyM: number): GpsQuality {
   if (accuracyM <= DUPLICATE_RADIUS_M) return "fair";
   return "poor";
 }
+
+/**
+ * Opens the exact point in Google Maps (the app on phones), to compare with the device's own
+ * blue dot or to navigate there. Only followed when the user taps it.
+ */
+export function googleMapsUrl(lat: number, lng: number): string {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${lat.toFixed(6)},${lng.toFixed(6)}`)}`;
+}
+
+/** The pilot area (Dhanmondi, Dhaka): where OSM roads/schools are loaded and pins may be placed. */
+export const PILOT_BOUNDS = { south: 23.735, west: 90.365, north: 23.76, east: 90.39 } as const;
+export const PILOT_CENTER: [number, number] = [
+  (PILOT_BOUNDS.south + PILOT_BOUNDS.north) / 2,
+  (PILOT_BOUNDS.west + PILOT_BOUNDS.east) / 2,
+];
+
+export function insidePilot(lat: number, lng: number): boolean {
+  return lat >= PILOT_BOUNDS.south && lat <= PILOT_BOUNDS.north && lng >= PILOT_BOUNDS.west && lng <= PILOT_BOUNDS.east;
+}

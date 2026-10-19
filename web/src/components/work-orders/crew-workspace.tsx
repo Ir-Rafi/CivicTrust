@@ -7,6 +7,7 @@ import { PaymentLine, ProofChecks, WorkOrderStepper, WorkOrderSummary } from "@/
 import type { IssueType } from "@/lib/ai/schemas";
 import { getWorkSite, listAssignees, type PaymentStatus, type WorkOrderStatus } from "@/lib/dashboard";
 import { dateTime, statusTone, taka } from "@/lib/format";
+import { googleMapsUrl } from "@/lib/geo";
 import { dict, type Lang } from "@/lib/i18n";
 
 type Kind = "contractor" | "ngo";
@@ -147,6 +148,9 @@ async function WorkSitePanel({ workOrderId, kind, assigneeId, lang }: { workOrde
         <h2 className="headline-small" style={{ marginTop: 4 }}>
           {t.issueType[issue.issue_type]} · {issue.road_name ?? t.common.noRoad}
         </h2>
+        <a href={googleMapsUrl(issue.lat, issue.lng)} target="_blank" rel="noopener noreferrer" className="text-link" style={{ fontSize: "0.85rem" }}>
+          {t.common.openInMaps} ↗
+        </a>
       </div>
       <WorkOrderStepper order={order} citizenConfirmed={issue.status === "confirmed"} lang={lang} />
 

@@ -49,7 +49,8 @@ pnpm smoke:ai photo.jpg       # also runs the Gemini photo analysis (uses 1 quot
   - Citizen: **Use a demo location in the pilot area instead** offers 4 real Dhanmondi spots.
     Demo reports skip the 30-minute photo-age check and are stored as location source `demo`.
   - Contractor: **Use the work site location (demo, for laptop testing)** sends the issue's own
-    coordinates. See [known issue 1](#known-issues).
+    coordinates. The repair is recorded as "location not measured" and is never approved
+    automatically: it is rejected or sent to the officer.
 
 ## 3. Testing on a phone
 
@@ -82,6 +83,12 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
     appears only when the fix is within 15 m.
   - Outside the Dhanmondi pilot area you still get the name, plus a note that roads and schools
     there are not counted in the severity score.
+- [ ] **A2b Alternative manual location.** Choose **Choose the spot on the map yourself**.
+  - With GPS unavailable or outside the pilot, the map opens on the dashed pilot area.
+  - Tap inside the boundary or drag the pin: the chosen badge and Google Maps link update.
+  - Tap outside the boundary: an error appears and the last valid pin is kept.
+  - **Use my GPS location instead** restores the device fix. Manual mode does not submit
+    the GPS location before a pin is selected. Pinned reports still require a fresh photo.
 - [ ] **A3 Not a civic problem.** Report a selfie or a room → *This doesn't look like a public road,
   drain or garbage problem.* Nothing appears under My reports.
 - [ ] **A4 Old photo.** With GPS (not demo), upload a photo whose file date is more than 30
@@ -97,7 +104,8 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
 ### B. Ward officer (AC4–AC6)
 
 - [ ] **B1 Queue and map.** Issues are sorted by severity.
-  - Filters: Open, Needs assignment, Critical (8+), Action needed, All, plus Type.
+  - Filters: Open, Needs assignment, Critical (8+), Action needed, All, plus Type and Area. Areas
+    are OpenStreetMap suburbs (e.g. Lalmatia) recorded when each issue is reported.
   - Map pins are coloured by severity. Clicking a row or pin opens the detail.
 - [ ] **B2 Correct the AI.** **Correct the AI** → change the visual severity, type or score, write a
   reason → **Save correction**.
@@ -109,6 +117,13 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
   - Payment shows *Withheld*, and a *Deadline rule* citation from `pilot-sla-policy.md` appears.
   - Deadline by severity: 8–10 → 48 h, 5–7 → 7 days, 3–4 → 14 days, 1–2 → 30 days.
   - Assigning again → *issue already has an active work order (#N)*.
+- [ ] **B4 History.** Open any issue → **History (N)** at the bottom lists every step, oldest first:
+  report, AI assessment, corrections with their reason, assignment, repair photos, reviews,
+  citizen answers, payment. Bangla labels in Bangla mode.
+- [ ] **B5 NGO offer.** NGO / volunteers → **Viewing as** *Demo Volunteer Group* → on an open
+  garbage, drain or waterlogging issue press **We can help** → *Offer sent. The ward officer
+  decides.* Then Ward officer → that issue → **Offers to help** lists the group; assign it to
+  them with **Assign to → NGO / volunteers**. Once assigned, no new offers are accepted.
 
 ### C. Contractor repair and payment (AC7, AC8)
 
@@ -118,6 +133,9 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
   - Expected: *Verification result: Rejected* with *The repair photo is N metres from the issue;
     the limit is 15 metres.*, and *Payment withheld*.
   - An old photo is rejected with *…older than the allowed verification window.*
+  - With the work-site box **ticked**, even a convincing after-photo gives *Sent to officer* (or
+    *Rejected*), never *Approved by AI*: *…The location was not measured (work-site demo option),
+    so an officer must confirm the repair.*
 - [ ] **C2 Approved repair (needs a real place).**
   1. On a phone (ngrok), report a small pile of rubbish on a road or footpath where you stand.
   2. As officer, assign it to Contractor A.
@@ -146,16 +164,17 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
 ### E. Public portal and audit (AC10, FR-11)
 
 - [ ] **E1 Public portal.**
-  - **Reported problems:** type, road, nearest landmark, and *Reported → Assigned → Fixed* with
-    dates.
+  - **Reported problems:** type, road, area (e.g. *Road 16 · Lalmatia*), nearest landmark, and
+    *Reported → Assigned → Fixed* with dates.
   - **Live updates:** each report, assignment, fix, dispute and confirmation appears. Rejected or
     unsure repair attempts do not.
-  - Below: totals, money paid and withheld, contractor scorecards, and per-area figures (one pilot
-    zone until ward boundaries exist).
+  - Below: totals, money paid and withheld, contractor scorecards, and per-area figures, labelled
+    *Areas come from OpenStreetMap until official ward boundaries are added.*
   - **Privacy:** no names, comments, coordinates or hash codes anywhere on the page.
 - [ ] **E2 Scorecards.** A disputed or rejected job stays on the original contractor's card even
   after the issue is reassigned.
 - [ ] **E3 Audit page.** *All records verified · N records checked. None has been altered or deleted.*
+  Actions read as plain words (*Report submitted*, *Officer corrected the AI*, …).
   - As officer: a Hash column and real names.
   - As public or citizen: names show as *Citizen*, comments are hidden, and there is no Hash column.
 
@@ -169,8 +188,9 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
   (location map), go to another tab and come back. Both maps must show again. Cache Components
   keeps visited pages alive but hidden, and maps that don't handle that come back blank.
 - [ ] **F6** Fallbacks:
-  - With the Gemini quota used up, a citizen report shows *Something went wrong* (the terminal shows
-    `429 RateLimitError`).
+  - With the Gemini quota used up or Gemini too slow (over 30 s), a citizen report shows *The AI
+    is busy right now. Your report was not saved; please try again in a minute.* The terminal
+    shows the reason (e.g. `429 RateLimitError`), and it is counted by `pnpm kpi`.
   - A repair whose location checks pass goes to the officer with *AI verification was unavailable*.
 
 ## 5. Debugging
@@ -180,6 +200,9 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
 - **Terminal running `pnpm dev`.** Server errors appear here, and browser console errors are
   forwarded as `[browser] …` lines. The same log is saved to `web/.next/dev/logs/next-development.log`.
 - **`/api/health`** shows which keys are configured and whether the database answers.
+- **`pnpm kpi`** prints the measurements from the live data, including AI success and fallback
+  rates and how complete the audit log is; `pnpm eval:photos <folder>` measures accuracy on a
+  labelled photo set (see the script header for the folder layout).
 - **`pnpm smoke:ai`** tests the AI services without the UI.
 - **A form says "Something went wrong"?** The real error is in the terminal.
 
@@ -189,10 +212,11 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
 |---|---|---|
 | Page has no styling | Old stylesheet from a stale Next.js cache | Stop dev, `rm -rf web/.next`, start again, hard refresh (⌘⇧R) |
 | Your CSS change doesn't show | Edits to `globals.css` don't hot-reload ([known issue 3](#known-issues)) | Restart `pnpm dev` |
-| Page reloads endlessly (VS Code's built-in browser) | Stale tab left over from earlier dev-server runs | Close the tab and use Chrome |
+| Page reloads endlessly during development | CSS scanning includes generated files or a stale watcher graph | Keep Tailwind's source restricted to `src` in `globals.css`, then restart `pnpm dev` |
 | *Couldn't get GPS location* on a phone | `http://` LAN link | Use the ngrok `https://` link |
 | GPS shows ±100 m or more | Laptop Wi-Fi location | Use a phone outdoors, or a demo location |
-| Report fails with *Something went wrong* | Usually Gemini's daily limit (`429` in the terminal) | Wait for the reset, or use a key with billing |
+| Report says *The AI is busy right now* | Gemini's daily limit (`429` in the terminal) or a response over 30 s | Wait and retry, or use a key with billing |
+| Your push isn't on the live site (Vercel says *Deployment was blocked*) | Vercel's free plan only deploys commits by the account owner | The owner redeploys (see [known issue 1](#known-issues)) |
 | Report takes over 30 s | Gemini response time (30–78 s seen) | Retry; on Vercel the limit is 60 s |
 | Map shows a pin but no place name, or only the road type | The place-name lookup (OpenStreetMap Nominatim) was slow or unreachable; the form falls back to the pilot road data | Retry; check the terminal for `reverse geocode failed` |
 | Repair always rejected from your desk | You are more than 15 m from the issue (correct) | Test approval on site (C2) |
@@ -255,32 +279,31 @@ delete from issues where id = <ID>;   -- also removes its reports, work orders, 
 
 ### Known issues
 
-1. **Work-site checkbox defeats the location check.** The contractor's *Use the work site
-   location* option sends the issue's coordinates as if they were GPS, and nothing records it. A
-   repair can pass the 15 m check from anywhere. A fix is proposed: record it, and send such
-   repairs to the officer instead of auto-approving.
+1. **Vercel only deploys the account owner's commits** (free Hobby plan with a private repo):
+   everyone else's pushes show *Deployment was blocked*, and the live site stays on the last
+   owner commit until he redeploys. There are also two Vercel projects (`civictrust`,
+   `civic-trust`) building the same repo.
 2. **Gemini free tier:** about 20 photo checks per day for the whole team.
 3. **CSS edits** to `globals.css` need a dev-server restart. The likely cause is the Tailwind
    Turbopack loader; Next.js recommends the PostCSS setup instead.
-4. **Gemini response time** sometimes exceeds the 60 s Vercel limit for a report.
+4. **Gemini response time** varies (30–78 s seen). Reports now stop at 50 s with *The AI is busy*
+   instead of being cut off by Vercel's 60 s limit.
    **Place names** come from OpenStreetMap's free public Nominatim service (max 1 request per
    second, light use only). Fine for the prototype; production needs its own geocoder.
 5. **Thin line across the map** where two tiles meet, on some high-resolution screens. Cosmetic.
-6. **No audit history in the officer's issue detail.** Overrides and decisions are visible on the
-   Audit tab only.
+6. **The GLM backup key is not set on Vercel** (`/api/health` shows `"glm": false`), so the live
+   site has no fallback when Groq fails.
 7. **Face and number-plate blurring is not built.** The AI flags such photos, and the policy text
    and an issue-page note say they "will be blurred". The public portal shows no photos.
 8. **The home page's Public portal card mentions before/after photos**, which the public portal
    does not show.
-9. **The AI's policy search is out of date** after the privacy-rule wording change. Run
-   `pnpm seed:policy` once (team lead).
+9. **Issues reported before 19 Oct have no measurements** (timing, AI provider); `pnpm kpi`
+   counts only what was recorded.
 
 ### Not built yet (please don't report these as bugs)
 
-- NGO "willing to help" action (NGOs can only see suitable issues and their assigned jobs).
-- Ward boundaries: the officer's area filter and per-ward figures.
-- Model card page; KPI measurements (requirements §8).
-- Tap-to-adjust pin on the report map.
+- Official ward boundaries: OpenStreetMap areas stand in for wards.
+- Model card page; the KPI numbers themselves (the scripts exist; they need the field photos).
 - Real contractor identity: **Viewing as** is a prototype shortcut, like the role switcher.
 
 ## 7. Reporting a bug

@@ -15,7 +15,12 @@ import { db } from "@/lib/supabase/server";
 // Public view of the workflow. Returns only: issue type, road name, nearest named landmark,
 // stage and dates. Never coordinates, reporter names, comments, costs or AI internals.
 
-export type PublicPlace = { road: string | null; landmark: Landmark | null };
+export type PublicPlace = {
+  road: string | null;
+  /** OpenStreetMap area (suburb level) in both languages; null for issues reported before areas were recorded. */
+  area: { en: string | null; bn: string | null } | null;
+  landmark: Landmark | null;
+};
 
 export type PublicIssue = {
   id: number;
@@ -42,6 +47,8 @@ type IssueRow = {
   issue_type: IssueType;
   status: string;
   road_name: string | null;
+  area_en: string | null;
+  area_bn: string | null;
   report_count: number;
   created_at: string;
   fixed_at: string | null;
@@ -49,10 +56,15 @@ type IssueRow = {
   work_orders: { created_at: string; status: string }[];
 };
 
-const ISSUE_COLUMNS = "id, issue_type, status, road_name, report_count, created_at, fixed_at, severity_components, work_orders(created_at, status)";
+const ISSUE_COLUMNS =
+  "id, issue_type, status, road_name, area_en, area_bn, report_count, created_at, fixed_at, severity_components, work_orders(created_at, status)";
 
-function placeOf(row: Pick<IssueRow, "road_name" | "severity_components">): PublicPlace {
-  return { road: row.road_name, landmark: pickLandmark(row.severity_components?.context) };
+function placeOf(row: Pick<IssueRow, "road_name" | "area_en" | "area_bn" | "severity_components">): PublicPlace {
+  return {
+    road: row.road_name,
+    area: row.area_en || row.area_bn ? { en: row.area_en, bn: row.area_bn } : null,
+    landmark: pickLandmark(row.severity_components?.context),
+  };
 }
 
 /** Every public issue, newest first, with how far it has got. */

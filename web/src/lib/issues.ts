@@ -26,6 +26,12 @@ export type IssueDetail = {
   status: IssueStatus;
   report_count: number;
   road_name: string | null;
+  /** OpenStreetMap area (suburb level), when it was recorded. */
+  area_en: string | null;
+  area_bn: string | null;
+  /** Exact location: officer and crew screens only. */
+  lat: number;
+  lng: number;
   created_at: string;
   photoUrl: string | null;
 };
@@ -34,7 +40,7 @@ export async function getIssue(id: number): Promise<IssueDetail | null> {
   const { data, error } = await db()
     .from("issues")
     .select(
-      "id, issue_type, visual_class, severity, severity_components, ai_confidence, ai_reason_en, ai_reason_bn, status, report_count, road_name, created_at, reports(photo_path, created_at)",
+      "id, issue_type, visual_class, severity, severity_components, ai_confidence, ai_reason_en, ai_reason_bn, status, report_count, road_name, area_en, area_bn, lat:location_lat, lng:location_lng, created_at, reports(photo_path, created_at)",
     )
     .eq("id", id)
     .order("created_at", { referencedTable: "reports", ascending: true })

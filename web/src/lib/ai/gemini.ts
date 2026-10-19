@@ -24,23 +24,33 @@ function gemini(): GoogleGenAI {
   return client;
 }
 
+/**
+ * Every call has a time limit and no automatic retries: the SDK default retries up to 5 times
+ * with waits of up to 60 s, which made a slow response take over a minute and spent quota.
+ * Callers have fallbacks (officer review, skip the duplicate check) for a timed-out call.
+ */
 async function visionJson<S extends z.ZodType>(opts: {
   schema: S;
   system: string;
   prompt: string;
   images: ImageInput[];
+  timeoutMs: number;
 }): Promise<z.infer<S>> {
-  const interaction = await gemini().interactions.create({
-    model: geminiEnv().GEMINI_VISION_MODEL,
-    system_instruction: opts.system,
-    input: [
-      { type: "text", text: opts.prompt },
-      ...opts.images.map((img) => ({ type: "image" as const, data: img.base64, mime_type: img.mimeType })),
-    ],
-    response_format: { type: "text", mime_type: "application/json", schema: toStrictJsonSchema(opts.schema) },
-    generation_config: { thinking_level: "low" },
-    store: false,
-  });
+  if (opts.timeoutMs <= 0) throw new Error("Gemini skipped: no time left in the request budget");
+  const interaction = await gemini().interactions.create(
+    {
+      model: geminiEnv().GEMINI_VISION_MODEL,
+      system_instruction: opts.system,
+      input: [
+        { type: "text", text: opts.prompt },
+        ...opts.images.map((img) => ({ type: "image" as const, data: img.base64, mime_type: img.mimeType })),
+      ],
+      response_format: { type: "text", mime_type: "application/json", schema: toStrictJsonSchema(opts.schema) },
+      generation_config: { thinking_level: "low" },
+      store: false,
+    },
+    { timeout_ms: opts.timeoutMs, retries: { strategy: "none" } },
+  );
   if (!interaction.output_text) throw new Error("Gemini returned no output");
   return opts.schema.parse(JSON.parse(interaction.output_text));
 }
@@ -53,17 +63,18 @@ Severity guide: minor = cosmetic, no hazard; moderate = degrades use or will wor
 severe = immediate hazard to pedestrians, rickshaws or vehicles, or blocks drainage.`;
 
 /** M1: classify issue type and visual severity from a citizen photo. */
-export function analyzeIssuePhoto(photo: ImageInput): Promise<IssueAnalysis> {
+export function analyzeIssuePhoto(photo: ImageInput, timeoutMs: number): Promise<IssueAnalysis> {
   return visionJson({
     schema: issueAnalysisSchema,
     system: INSPECTOR_SYSTEM,
     prompt: "Assess this citizen report photo.",
     images: [photo],
+    timeoutMs,
   });
 }
 
 /** M3 (visual half): compare a new report with an existing nearby issue. */
-export function compareForDuplicate(existing: ImageInput, incoming: ImageInput): Promise<DuplicateCheck> {
+export function compareForDuplicate(existing: ImageInput, incoming: ImageInput, timeoutMs: number): Promise<DuplicateCheck> {
   return visionJson({
     schema: duplicateCheckSchema,
     system: INSPECTOR_SYSTEM,
@@ -71,11 +82,12 @@ export function compareForDuplicate(existing: ImageInput, incoming: ImageInput):
       "Image 1 is an existing report. Image 2 is a new report taken within 25 metres. " +
       "Do they show the same physical problem (same pothole, same garbage pile), allowing for different angles and lighting?",
     images: [existing, incoming],
+    timeoutMs,
   });
 }
 
 /** M4 (visual half): judge a contractor's after-photo against the original report. */
-export function verifyRepairPhotos(before: ImageInput, after: ImageInput): Promise<RepairCheck> {
+export function verifyRepairPhotos(before: ImageInput, after: ImageInput, timeoutMs: number): Promise<RepairCheck> {
   return visionJson({
     schema: repairCheckSchema,
     system:
@@ -86,10 +98,12 @@ export function verifyRepairPhotos(before: ImageInput, after: ImageInput): Promi
       "Image 1 is the original problem. Image 2 is the contractor's after-repair photo. " +
       "Is it the same location, and is the problem fixed?",
     images: [before, after],
+    timeoutMs,
   });
 }
 
 const EMBEDDING_DIMS = 768;
+const EMBEDDING_TIMEOUT_MS = 10_000;
 
 /** Text embedding for the policy RAG, normalized (required for reduced dimensions). */
 export async function embedText(text: string, kind: "document" | "query"): Promise<number[]> {
@@ -99,6 +113,7 @@ export async function embedText(text: string, kind: "document" | "query"): Promi
     config: {
       outputDimensionality: EMBEDDING_DIMS,
       taskType: kind === "document" ? "RETRIEVAL_DOCUMENT" : "RETRIEVAL_QUERY",
+      abortSignal: AbortSignal.timeout(EMBEDDING_TIMEOUT_MS),
     },
   });
   const values = res.embeddings?.[0]?.values;

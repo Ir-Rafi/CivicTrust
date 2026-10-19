@@ -9,9 +9,10 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import osmtogeojson from "osmtogeojson";
 import type { Feature, FeatureCollection, Geometry, Position } from "geojson";
+import { PILOT_BOUNDS } from "@/lib/geo";
 
 // Default pilot area: Dhanmondi / Kalabagan / Jigatola, Dhaka. Override via CLI arg.
-const DEFAULT_BBOX = "23.735,90.365,23.760,90.390";
+const DEFAULT_BBOX = `${PILOT_BOUNDS.south},${PILOT_BOUNDS.west},${PILOT_BOUNDS.north},${PILOT_BOUNDS.east}`;
 const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
 
 // Some OSM features tagged amenity=hospital are pharmacies, offices or info desks.

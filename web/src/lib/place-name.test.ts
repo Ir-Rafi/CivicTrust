@@ -35,7 +35,7 @@ const gulshanEn = {
 
 test("road, area and city in Bangla; shop names in other scripts are left out", () => {
   const name = toPlaceName(road16Bn);
-  assert.deepEqual(name, { road: "রোড ১৬", houseNumber: "38/2", area: ["বাঁশবাড়ি", "লালমাটিয়া"], city: "ঢাকা মহানগর" });
+  assert.deepEqual(name, { road: "রোড ১৬", houseNumber: "38/2", area: ["বাঁশবাড়ি", "লালমাটিয়া"], city: "ঢাকা মহানগর", zone: "লালমাটিয়া" });
   assert.deepEqual(placeLines(name, { includeHouse: false }), { primary: "রোড ১৬", secondary: "বাঁশবাড়ি, লালমাটিয়া, ঢাকা মহানগর" });
   assert.ok(!JSON.stringify(placeLines(name, { includeHouse: true })).includes("هرفي"));
 });
@@ -53,6 +53,12 @@ test("no road: area and city still name the place", () => {
     primary: null,
     secondary: "Lalmatia, Dhanmondi Residential Area, Dhaka Metropolitan",
   });
+});
+
+test("zone is the suburb, or the finest area when there is no suburb", () => {
+  assert.equal(toPlaceName(gulshanEn)?.zone, "Gulshan");
+  assert.equal(toPlaceName(laneNoRoadEn)?.zone, "Lalmatia");
+  assert.equal(toPlaceName({ road: "Lane 3", quarter: "Bashbari", city: "Dhaka" })?.zone, "Bashbari");
 });
 
 test("nothing usable gives null", () => {

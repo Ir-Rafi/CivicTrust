@@ -10,6 +10,7 @@ const repairFieldsSchema = z.object({
   lat: z.coerce.number().min(-90).max(90),
   lng: z.coerce.number().min(-180).max(180),
   capturedAt: z.iso.datetime(),
+  locationSource: z.enum(["gps", "site"]).default("gps"),
 });
 
 export async function submitRepair(formData: FormData) {

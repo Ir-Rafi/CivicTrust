@@ -32,7 +32,7 @@ async function main() {
     const base64 = (await readFile(photoPath)).toString("base64");
     const mimeType = photoPath.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg";
     const t = Date.now();
-    const analysis = await analyzeIssuePhoto({ base64, mimeType });
+    const analysis = await analyzeIssuePhoto({ base64, mimeType }, 60_000);
     console.log(`gemini (${Date.now() - t} ms):`, JSON.stringify(analysis, null, 2));
     visualClass = analysis.visual_class;
     issueType = analysis.issue_type;

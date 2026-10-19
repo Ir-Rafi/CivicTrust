@@ -6,7 +6,9 @@ The frontend can build against the server actions below. They are server-only an
 
 Import from `src/app/officer/actions.ts`:
 
-- `getOfficerQueue({ status?, issueType?, wardId?, limit? })`: each item includes `lat` and `lng` for the map (officer screens only).
+- `getOfficerQueue({ status?, issueType?, wardId?, area?, limit? })`: each item includes `lat` and `lng` for the map (officer screens only) and `area_en` / `area_bn`, the OpenStreetMap area (suburb level, e.g. Lalmatia) recorded when the issue was reported. `area` filters on `area_en`.
+- `getIssueHistory(issueId)`: every audit entry for the issue and its work orders, oldest first (report, AI assessment, corrections, assignment, repair evidence, reviews, citizen feedback, payment, NGO offers). Includes names and comments, so officers only.
+- `getIssueOffers(issueId)`: NGOs and volunteer groups that offered to fix the issue (`ngoName`, `note`, `createdAt`).
 - `correctIssue({ issueId, reason, issueType?, visualClass?, severity? })`
 - `createWorkOrder({ issueId, assigneeType, contractorId?, ngoId?, agreedCost?, deadline? })`
 - `reviewRepairProof({ workOrderId, decision: "approved" | "rejected", reason })`
@@ -30,7 +32,9 @@ Import from `src/app/contractor/actions.ts`:
 - `getNgoWorkOrders(ngoId, status?)`
 - `submitRepair(formData)`
 
-The repair form must contain `photo`, `workOrderId`, `lat`, `lng`, and `capturedAt` (ISO 8601). The service checks file type and size, photo freshness, capture time after work-order creation, distance within 15 metres, and Gemini before/after verification against the issue's first citizen photo. Results:
+NGO only, from `src/app/ngo/actions.ts`: `offerToHelp({ issueId, ngoId, note? })` records that the group can fix an open, unassigned issue. Repeating it is a no-op (`alreadyOffered: true`). The officer sees the offers in the issue detail and decides by assigning.
+
+The repair form must contain `photo`, `workOrderId`, `lat`, `lng`, `capturedAt` (ISO 8601) and `locationSource`: `gps` for a measured fix, `site` when the "work site" demo option sent the issue's own coordinates. A `site` repair is recorded as such and can be rejected or sent to an officer, but is never approved automatically, so payment can't unlock on an unmeasured location. The service checks file type and size, photo freshness, capture time after work-order creation, distance within 15 metres, and Gemini before/after verification against the issue's first citizen photo. Results:
 
 - `rejected`: a hard check failed, or the AI is confident the location differs or the problem is not fixed. Payment stays `withheld`; the crew can submit again on the same work order.
 - `approved`: the AI is confident it is the same place and the problem is resolved. Payment becomes `eligible` and the issue is `fixed`.
@@ -46,10 +50,10 @@ Import `submitReport` and `submitFeedback` from `src/app/citizen/actions.ts`.
 
 Import from `src/app/public/actions.ts`:
 
-- `getPublicWardStats()`
+- `getPublicWardStats()`: per official ward; while no ward boundaries are loaded, per OpenStreetMap area instead (rows with a negative `ward_id`, name `null` for issues without a recorded area).
 - `getPublicContractorScorecards()`
 
-- `getPublicIssues(limit?)`: every reported problem, newest first, with `issue_type`, `place` (`road` name and nearest named school/hospital within 500 m as `landmark`), `stage` (`reported`, `assigned`, `fixed`, `confirmed`, `disputed`), `report_count`, and the `reported_at`, `assigned_at` and `fixed_at` dates.
+- `getPublicIssues(limit?)`: every reported problem, newest first, with `issue_type`, `place` (`road` name, `area` `{ en, bn }` from OpenStreetMap, and nearest named school/hospital within 500 m as `landmark`), `stage` (`reported`, `assigned`, `fixed`, `confirmed`, `disputed`), `report_count`, and the `reported_at`, `assigned_at` and `fixed_at` dates.
 - `getPublicLog(limit?)`: plain-language update log, newest first. Each entry has `kind` (`reported`, `assigned`, `fixed`, `not_accepted`, `disputed`, `confirmed`), `verified_by` (`ai` or `officer` for fixes), the time, the issue's type and place, and the audit record `id`.
 
 Both return no coordinates, reporter names, comments, costs or AI internals. The log is read from the hash-chained audit log, so it updates by itself with every workflow action; rejected or unsure repair attempts and internal actions (AI scores, overrides, payments) are not shown. The mapping rules are in `src/lib/public-log-rules.ts` with tests.
@@ -89,3 +93,11 @@ pnpm exec supabase db push
 ```
 
 The local migration has not been applied automatically by the application. Run the command above before using the new workflow against the database.
+
+## Report pipeline timing and measurements
+
+`submitReport` runs the AI steps inside a 50 s budget (the page allows 60 s): photo analysis up to 30 s, each duplicate comparison up to 12 s, explanation up to 10 s per provider. Gemini calls have no automatic retries. A failed or timed-out analysis returns `{ error: "ai_busy" }` (shown as "The AI is busy right now…") and is recorded as `report_failed`; a failed duplicate comparison files the report as a new issue; a failed explanation leaves the breakdown to explain the score.
+
+The `issue_assessed` and `report_merged` audit entries carry `timing` (total and per step, in ms), `explanation_provider` (`groq`, `glm` or `null`) and duplicate-check counts. `pnpm kpi` turns these into the §8 measurements; `pnpm eval:photos <folder>` measures accuracy on a labelled photo set.
+
+`supabase/migrations/20261019120000_areas_and_ngo_offers.sql` adds `issues.area_en` / `area_bn`, the `area_stats()` function and the `ngo_offers` table (RLS on, server role only). `pnpm backfill:areas` fills the area for issues reported before it existed.

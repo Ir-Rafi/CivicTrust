@@ -8,6 +8,8 @@ export type PlaceName = {
   /** Neighbourhood/area names, most specific first, without repeats. */
   area: string[];
   city: string | null;
+  /** One stable area per place for grouping statistics (suburb level), e.g. "Lalmatia". */
+  zone: string | null;
 };
 
 export type OsmAddress = Partial<Record<string, string>>;
@@ -15,6 +17,8 @@ export type OsmAddress = Partial<Record<string, string>>;
 const ROAD_KEYS = ["road", "pedestrian", "footway", "path"] as const;
 const AREA_KEYS = ["neighbourhood", "quarter", "suburb", "residential", "city_district"] as const;
 const CITY_KEYS = ["city", "town", "village", "county"] as const;
+// Suburb is the level people name ("Lalmatia", "Gulshan"); finer levels only when it is missing.
+const ZONE_KEYS = ["suburb", "city_district", "quarter", "neighbourhood", "residential"] as const;
 const MAX_AREA_PARTS = 2;
 
 const first = (address: OsmAddress, keys: readonly string[]) => keys.map((k) => address[k]).find((v): v is string => !!v) ?? null;
@@ -34,7 +38,7 @@ export function toPlaceName(address: OsmAddress | null | undefined): PlaceName |
   const cityName = first(address, CITY_KEYS);
   const city = cityName && !area.includes(cityName) ? cityName : null;
   if (!road && area.length === 0 && !city) return null;
-  return { road, houseNumber: address.house_number ?? null, area, city };
+  return { road, houseNumber: address.house_number ?? null, area, city, zone: first(address, ZONE_KEYS) };
 }
 
 /**

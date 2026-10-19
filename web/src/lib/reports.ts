@@ -3,12 +3,15 @@ import { cacheLife } from "next/cache";
 import { analyzeIssuePhoto, compareForDuplicate, type ImageInput } from "@/lib/ai/gemini";
 import { explainSeverity as explainWithGlm } from "@/lib/ai/glm";
 import { explainSeverity as explainWithGroq } from "@/lib/ai/groq";
+import { EXPLANATION_TIMEOUT_MS } from "@/lib/ai/explanation-prompt";
 import type { Explanation } from "@/lib/ai/schemas";
 import type { IssueAnalysis } from "@/lib/ai/schemas";
 import { audit } from "@/lib/audit";
-import { DUPLICATE_RADIUS_M, MAX_PHOTO_AGE_MINUTES } from "@/lib/geo";
+import { distanceMeters, DUPLICATE_RADIUS_M, insidePilot, MAX_PHOTO_AGE_MINUTES } from "@/lib/geo";
+import { reverseGeocode } from "@/lib/reverse-geocode";
 import { computeSeverity, type LocationContext, type SeverityResult } from "@/lib/severity";
 import { db, PHOTO_BUCKET, pointWkt } from "@/lib/supabase/server";
+import { createBudget, type TimeBudget } from "@/lib/time-budget";
 
 // Citizen report pipeline: photo -> M1 analysis -> M3 duplicate check -> M2 severity
 // -> bilingual explanation -> store + audit. Every AI step is computed live.
@@ -19,14 +22,17 @@ export type ReportInput = {
   lng: number;
   accuracyM: number | null;
   capturedAt: Date;
-  locationSource: "gps" | "demo";
+  /** gps: device fix; pin: the citizen placed the pin on the map (inside the pilot area); demo: a fixed demo spot. */
+  locationSource: "gps" | "demo" | "pin";
+  /** The device fix when the citizen moved the pin, so the move is on record. */
+  gpsFix?: { lat: number; lng: number; accuracyM: number | null } | null;
   reporterName: string;
 };
 
 export type ReportOutcome =
   | { kind: "created"; issueId: number }
   | { kind: "merged"; issueId: number }
-  | { kind: "rejected"; code: "too_old" | "bad_file" | "not_civic"; detail?: string };
+  | { kind: "rejected"; code: "too_old" | "bad_file" | "not_civic" | "outside_area"; detail?: string };
 
 /** Stored in issues.severity_components so the score can be recomputed and explained later. */
 export type StoredSeverity = SeverityResult & {
@@ -36,16 +42,41 @@ export type StoredSeverity = SeverityResult & {
   officer_score?: number;
 };
 
-async function explainSeverity(facts: {
-  issueType: string;
-  observations: string;
-  severity: SeverityResult;
-}): Promise<Explanation> {
+/** The photo analysis failed or timed out: the citizen can retry; nothing was stored. */
+export class AiBusyError extends Error {}
+
+// Time budget. The report page allows 60 s (maxDuration); 50 s for AI calls leaves room for the
+// upload, the database writes and the redirect. Each step gets its cap or what is left.
+const REPORT_BUDGET_MS = 50_000;
+const ANALYSIS_TIMEOUT_MS = 30_000;
+const DUPLICATE_TIMEOUT_MS = 12_000;
+/** Kept back from duplicate checks so the explanation still has time. */
+const EXPLANATION_RESERVE_MS = 8_000;
+
+type ExplanationResult = { explanation: Explanation | null; provider: "groq" | "glm" | null; ms: number; fallbackReason: string | null };
+
+const shortError = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0, 160);
+
+/** Groq first, GLM if Groq fails and time is left; neither is essential (the breakdown explains the score). */
+async function explainSeverity(
+  facts: { issueType: string; observations: string; severity: SeverityResult },
+  budget: TimeBudget,
+): Promise<ExplanationResult> {
+  const started = Date.now();
+  let fallbackReason: string | null = null;
   try {
-    return await explainWithGroq(facts);
+    const explanation = await explainWithGroq(facts, budget.timeoutFor(EXPLANATION_TIMEOUT_MS));
+    return { explanation, provider: "groq", ms: Date.now() - started, fallbackReason };
   } catch (e) {
-    console.warn("Groq explanation failed, falling back to GLM", e);
-    return explainWithGlm(facts);
+    fallbackReason = shortError(e);
+    console.warn("Groq explanation failed, falling back to GLM", fallbackReason);
+  }
+  try {
+    const explanation = await explainWithGlm(facts, budget.timeoutFor(EXPLANATION_TIMEOUT_MS));
+    return { explanation, provider: "glm", ms: Date.now() - started, fallbackReason };
+  } catch (e) {
+    console.error("Groq and GLM explanations both failed", shortError(e));
+    return { explanation: null, provider: null, ms: Date.now() - started, fallbackReason };
   }
 }
 
@@ -65,15 +96,37 @@ export async function submitCitizenReport(input: ReportInput): Promise<ReportOut
   // (laptop testing with sample photos) skip it; they are recorded as "demo" in the report and audit log.
   const ageMs = Date.now() - input.capturedAt.getTime();
   const stale = ageMs > MAX_PHOTO_AGE_MINUTES * 60 * 1000 || ageMs < -CLOCK_SKEW_MS;
-  if (stale && input.locationSource === "gps") {
+  // A placed pin is still a field report: the photo must be fresh too.
+  if (stale && input.locationSource !== "demo") {
     return { kind: "rejected", code: "too_old" };
   }
+  // Pins can only be placed where the pilot has map data (roads, schools, hospitals).
+  if (input.locationSource === "pin" && !insidePilot(input.lat, input.lng)) {
+    return { kind: "rejected", code: "outside_area" };
+  }
 
+  const budget = createBudget(REPORT_BUDGET_MS);
   const bytes = Buffer.from(await input.photo.arrayBuffer());
   const image: ImageInput = { base64: bytes.toString("base64"), mimeType: input.photo.type };
+  // Area names (for per-area figures) are looked up while the AI looks at the photo. Never rejects.
+  const areaNames = Promise.all([reverseGeocode(input.lat, input.lng, "en"), reverseGeocode(input.lat, input.lng, "bn")]);
 
   // M1: what is in the photo?
-  const analysis = await analyzeIssuePhoto(image);
+  let analysis: IssueAnalysis;
+  try {
+    analysis = await analyzeIssuePhoto(image, budget.timeoutFor(ANALYSIS_TIMEOUT_MS));
+  } catch (e) {
+    // Recorded so the AI success rate can be measured (requirements §8); no photo is kept.
+    await audit({
+      actorRole: "ai",
+      actorName: "Gemini issue detector",
+      action: "report_failed",
+      entity: "report",
+      payload: { stage: "analysis", error: shortError(e), total_ms: budget.elapsed(), location_source: input.locationSource },
+    });
+    throw new AiBusyError(shortError(e));
+  }
+  const analysisMs = budget.elapsed();
   if (!analysis.is_civic_issue) {
     // Not stored: we keep no photo of things that aren't civic problems.
     await audit({
@@ -81,7 +134,12 @@ export async function submitCitizenReport(input: ReportInput): Promise<ReportOut
       actorName: "Gemini issue detector",
       action: "report_rejected",
       entity: "report",
-      payload: { reason: analysis.rejection_reason, confidence: analysis.confidence, location_source: input.locationSource },
+      payload: {
+        reason: analysis.rejection_reason,
+        confidence: analysis.confidence,
+        location_source: input.locationSource,
+        timing: { total_ms: budget.elapsed(), analysis_ms: analysisMs },
+      },
     });
     return { kind: "rejected", code: "not_civic", detail: analysis.rejection_reason ?? undefined };
   }
@@ -94,25 +152,28 @@ export async function submitCitizenReport(input: ReportInput): Promise<ReportOut
   const context = contextData as LocationContext;
 
   // M3: is this already reported nearby?
-  const duplicateOf = await findDuplicate(input, analysis, image);
+  const duplicateStarted = budget.elapsed();
+  const duplicate = await findDuplicate(input, analysis, image, budget);
+  const duplicateMs = budget.elapsed() - duplicateStarted;
   const photoPath = await uploadPhoto(bytes, input.photo.type);
   const device = describeDevice(input);
 
-  if (duplicateOf) {
-    return mergeIntoIssue(duplicateOf, input, analysis, photoPath, device);
+  if (duplicate.issueId) {
+    return mergeIntoIssue(duplicate.issueId, input, analysis, photoPath, device, {
+      total_ms: budget.elapsed(),
+      analysis_ms: analysisMs,
+      duplicate_ms: duplicateMs,
+    });
   }
 
   // M2 + explanation
   const severity = computeSeverity({ visualClass: analysis.visual_class, context, reportCount: 1, daysOpen: 0 });
-  const explanation = await explainSeverity({
-    issueType: analysis.issue_type,
-    observations: analysis.observations,
-    severity,
-  }).catch((e) => {
-    // Explanation is helpful, not essential; the breakdown still explains the score.
-    console.error("Groq and GLM explanations both failed", e);
-    return null;
-  });
+  const explained = await explainSeverity(
+    { issueType: analysis.issue_type, observations: analysis.observations, severity },
+    budget,
+  );
+  const explanation = explained.explanation;
+  const [areaEn, areaBn] = await areaNames;
 
   const status = analysis.confidence >= AUTO_VERIFY_CONFIDENCE ? "verified" : "reported";
   const stored: StoredSeverity = { ...severity, context, analysis };
@@ -131,6 +192,8 @@ export async function submitCitizenReport(input: ReportInput): Promise<ReportOut
       ward_id: context.ward?.id ?? null,
       road_highway: context.road?.highway ?? null,
       road_name: context.road?.name ?? null,
+      area_en: areaEn?.zone ?? null,
+      area_bn: areaBn?.zone ?? null,
     })
     .select("id")
     .single();
@@ -160,7 +223,7 @@ export async function submitCitizenReport(input: ReportInput): Promise<ReportOut
     action: "report_submitted",
     entity: "issue",
     entityId: issue.id,
-    payload: { location_source: input.locationSource, accuracy_m: input.accuracyM },
+    payload: { location_source: input.locationSource, accuracy_m: input.accuracyM, pin_moved_m: pinMovedM(input) },
   });
   await audit({
     actorRole: "ai",
@@ -174,13 +237,22 @@ export async function submitCitizenReport(input: ReportInput): Promise<ReportOut
       confidence: analysis.confidence,
       severity: severity.score,
       status,
+      area: areaEn?.zone ?? null,
+      // For the required measurements (§8): time to a ranked issue, and AI provider success/fallback.
+      timing: { total_ms: budget.elapsed(), analysis_ms: analysisMs, duplicate_ms: duplicateMs, explanation_ms: explained.ms },
+      explanation_provider: explained.provider,
+      explanation_fallback_reason: explained.fallbackReason,
+      duplicate_checks: duplicate.checks,
+      duplicate_check_failures: duplicate.failures,
     },
   });
 
   return { kind: "created", issueId: issue.id };
 }
 
-async function findDuplicate(input: ReportInput, analysis: IssueAnalysis, image: ImageInput): Promise<number | null> {
+type DuplicateResult = { issueId: number | null; checks: number; failures: number };
+
+async function findDuplicate(input: ReportInput, analysis: IssueAnalysis, image: ImageInput, budget: TimeBudget): Promise<DuplicateResult> {
   const { data: nearby, error } = await db().rpc("nearby_open_issues", {
     lat: input.lat,
     lng: input.lng,
@@ -189,11 +261,14 @@ async function findDuplicate(input: ReportInput, analysis: IssueAnalysis, image:
   if (error) throw new Error(`nearby_open_issues: ${error.message}`);
   const candidates = (nearby as { id: number; issue_type: string }[]).filter((c) => c.issue_type === analysis.issue_type);
 
+  let checks = 0;
+  let failures = 0;
   for (const candidate of candidates.slice(0, 2)) {
     const { data: first } = await db()
       .from("reports")
       .select("photo_path")
       .eq("issue_id", candidate.id)
+      .order("merged_as_duplicate", { ascending: true })
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();
@@ -204,10 +279,17 @@ async function findDuplicate(input: ReportInput, analysis: IssueAnalysis, image:
       base64: Buffer.from(await blob.arrayBuffer()).toString("base64"),
       mimeType: blob.type || "image/jpeg",
     };
-    const check = await compareForDuplicate(existing, image);
-    if (check.same_issue === "yes" && check.confidence >= MERGE_CONFIDENCE) return candidate.id;
+    checks++;
+    try {
+      const check = await compareForDuplicate(existing, image, budget.timeoutFor(DUPLICATE_TIMEOUT_MS, EXPLANATION_RESERVE_MS));
+      if (check.same_issue === "yes" && check.confidence >= MERGE_CONFIDENCE) return { issueId: candidate.id, checks, failures };
+    } catch (e) {
+      // A failed comparison never blocks the report: it is filed as a new issue (an officer can still spot it).
+      failures++;
+      console.warn("duplicate comparison failed", shortError(e));
+    }
   }
-  return null;
+  return { issueId: null, checks, failures };
 }
 
 async function mergeIntoIssue(
@@ -216,6 +298,7 @@ async function mergeIntoIssue(
   analysis: IssueAnalysis,
   photoPath: string,
   device: string,
+  timing: { total_ms: number; analysis_ms: number; duplicate_ms: number },
 ): Promise<ReportOutcome> {
   const { data: issue, error } = await db()
     .from("issues")
@@ -262,7 +345,7 @@ async function mergeIntoIssue(
     action: "report_merged",
     entity: "issue",
     entityId: issueId,
-    payload: { report_count: reportCount, severity: effectiveSeverity, location_source: input.locationSource },
+    payload: { report_count: reportCount, severity: effectiveSeverity, location_source: input.locationSource, timing },
   });
   return { kind: "merged", issueId };
 }
@@ -275,7 +358,18 @@ async function uploadPhoto(bytes: Buffer, contentType: string): Promise<string> 
   return path;
 }
 
+/** How far the citizen moved the pin from the device's GPS fix (null when there was no fix or no pin). */
+function pinMovedM(input: ReportInput): number | null {
+  if (input.locationSource !== "pin" || !input.gpsFix) return null;
+  return Math.round(distanceMeters(input, input.gpsFix));
+}
+
 function describeDevice(input: ReportInput): string {
+  if (input.locationSource === "pin") {
+    const moved = pinMovedM(input);
+    const gps = input.gpsFix?.accuracyM != null ? ` ±${Math.round(input.gpsFix.accuracyM)}m` : "";
+    return moved === null ? "pin (no GPS fix)" : `pin, ${moved}m from gps${gps}`;
+  }
   const accuracy = input.accuracyM !== null ? ` ±${Math.round(input.accuracyM)}m` : "";
   return `${input.locationSource}${accuracy}`;
 }

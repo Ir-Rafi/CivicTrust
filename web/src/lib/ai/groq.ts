@@ -20,11 +20,15 @@ function groq(): Groq {
  * One-line Bangla + English reason for an issue's severity, written only from
  * computed facts so it cannot claim anything the pipeline didn't measure.
  */
-export async function explainSeverity(facts: {
-  issueType: string;
-  observations: string;
-  severity: SeverityResult;
-}): Promise<Explanation> {
+export async function explainSeverity(
+  facts: {
+    issueType: string;
+    observations: string;
+    severity: SeverityResult;
+  },
+  timeoutMs: number = EXPLANATION_TIMEOUT_MS,
+): Promise<Explanation> {
+  if (timeoutMs <= 0) throw new Error("Groq skipped: no time left in the request budget");
   const res = await groq().chat.completions.create({
     model: groqEnv().GROQ_TEXT_MODEL,
     temperature: 0.3,
@@ -36,7 +40,7 @@ export async function explainSeverity(facts: {
       type: "json_schema",
       json_schema: { name: "explanation", strict: true, schema: toStrictJsonSchema(explanationSchema) },
     },
-  });
+  }, { timeout: timeoutMs, maxRetries: 0 });
   const content = res.choices[0]?.message?.content;
   if (!content) throw new Error("Groq returned no output");
   return explanationSchema.parse(JSON.parse(content));

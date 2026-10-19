@@ -3,19 +3,23 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { describePlace, type PlaceDescription } from "@/lib/location";
-import { submitCitizenReport } from "@/lib/reports";
+import { AiBusyError, submitCitizenReport } from "@/lib/reports";
 import { submitCitizenFeedback } from "@/lib/workflow";
 import { DEMO_PERSONA } from "@/lib/roles";
 import { getSession } from "@/lib/session";
 
-export type ReportFormState = { error: "too_old" | "bad_file" | "not_civic" | "generic"; detail?: string } | null;
+export type ReportFormState = { error: "too_old" | "bad_file" | "not_civic" | "outside_area" | "ai_busy" | "generic"; detail?: string } | null;
 
 const fieldsSchema = z.object({
   lat: z.coerce.number().min(-90).max(90),
   lng: z.coerce.number().min(-180).max(180),
   accuracy: z.union([z.literal(""), z.coerce.number().nonnegative()]).optional(),
   capturedAt: z.iso.datetime(),
-  locationSource: z.enum(["gps", "demo"]),
+  locationSource: z.enum(["gps", "demo", "pin"]),
+  // The device fix, sent along when the citizen moved the pin.
+  gpsLat: z.coerce.number().min(-90).max(90).optional(),
+  gpsLng: z.coerce.number().min(-180).max(180).optional(),
+  gpsAccuracy: z.coerce.number().nonnegative().optional(),
 });
 
 export async function submitReport(_prev: ReportFormState, formData: FormData): Promise<ReportFormState> {
@@ -32,11 +36,16 @@ export async function submitReport(_prev: ReportFormState, formData: FormData): 
       accuracyM: typeof fields.data.accuracy === "number" ? fields.data.accuracy : null,
       capturedAt: new Date(fields.data.capturedAt),
       locationSource: fields.data.locationSource,
+      gpsFix:
+        fields.data.gpsLat !== undefined && fields.data.gpsLng !== undefined
+          ? { lat: fields.data.gpsLat, lng: fields.data.gpsLng, accuracyM: fields.data.gpsAccuracy ?? null }
+          : null,
       reporterName: DEMO_PERSONA.citizen,
     });
   } catch (e) {
     console.error("submitReport failed", e);
-    return { error: "generic" };
+    // The photo analysis timed out or the AI is over its quota: worth retrying in a minute.
+    return { error: e instanceof AiBusyError ? "ai_busy" : "generic" };
   }
 
   if (outcome.kind === "rejected") return { error: outcome.code, detail: outcome.detail };

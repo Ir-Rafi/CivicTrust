@@ -6,7 +6,7 @@ import { dict, fill, num, type Dict, type Lang } from "@/lib/i18n";
 import type { PublicEvent, PublicPlace } from "@/lib/public-log";
 import { getSession } from "@/lib/session";
 
-type WardRow = { ward_id: number; ward_name_en: string; ward_name_bn: string | null; open_count: number; fixed_count: number; avg_fix_hours: number | null };
+type WardRow = { ward_id: number; ward_name_en: string | null; ward_name_bn: string | null; open_count: number; fixed_count: number; avg_fix_hours: number | null };
 type Scorecard = {
   contractor_id: number;
   contractor_name: string;
@@ -164,11 +164,13 @@ async function ByArea({ lang }: { lang: Lang }) {
   const t = dict(lang);
   const wards = (await getPublicWardStats()) as WardRow[];
   const totals = wards.length === 0 ? await getIssueTotals() : null;
+  // Negative ids: OpenStreetMap areas, used until official ward boundaries are loaded.
+  const osmAreas = wards.some((w) => w.ward_id < 0);
   const rows = totals
     ? [{ key: "pilot", name: t.publicPortal.pilotZone, open: totals.open, fixed: totals.fixed, avg: totals.avgFixHours }]
     : wards.map((w) => ({
         key: String(w.ward_id),
-        name: (lang === "bn" ? w.ward_name_bn : null) ?? w.ward_name_en,
+        name: (lang === "bn" ? w.ward_name_bn : null) ?? w.ward_name_en ?? t.publicPortal.otherAreas,
         open: Number(w.open_count),
         fixed: Number(w.fixed_count),
         avg: w.avg_fix_hours,
@@ -200,18 +202,19 @@ async function ByArea({ lang }: { lang: Lang }) {
           </tbody>
         </table>
       </div>
-      {totals && (
+      {(totals || osmAreas) && (
         <p className="label-small" style={{ marginTop: 10 }}>
-          {t.publicPortal.noWards}
+          {totals ? t.publicPortal.noWards : t.publicPortal.areasFromOsm}
         </p>
       )}
     </section>
   );
 }
 
-function placeText(place: PublicPlace, t: Dict): string {
-  const road = place.road ?? t.common.noRoad;
-  return place.landmark ? `${road} · ${fill(t.publicPortal.near, { name: place.landmark.name })}` : road;
+function placeText(place: PublicPlace, t: Dict, lang: Lang): string {
+  const area = place.area ? (lang === "bn" ? (place.area.bn ?? place.area.en) : (place.area.en ?? place.area.bn)) : null;
+  const near = place.landmark ? fill(t.publicPortal.near, { name: place.landmark.name }) : null;
+  return [place.road ?? t.common.noRoad, area, near].filter(Boolean).join(" · ");
 }
 
 function Step({ label, at, lang }: { label: string; at: string | null; lang: Lang }) {
@@ -244,7 +247,7 @@ async function Tracker({ lang }: { lang: Lang }) {
               <span>
                 <span style={{ fontWeight: 500 }}>{t.issueType[i.issue_type]}</span>
                 <span className="label-small" style={{ display: "block" }}>
-                  {placeText(i.place, t)}
+                  {placeText(i.place, t, lang)}
                   {i.report_count > 1 && ` · ${fill(t.publicPortal.reportsBy, { n: num(i.report_count, lang) })}`}
                 </span>
               </span>
@@ -311,7 +314,7 @@ async function UpdateLog({ lang }: { lang: Lang }) {
               <span>
                 <span className={`tag ${EVENT_TONE[e.kind]}`}>{eventLabel(e, t)}</span>
                 <span className="label-small" style={{ display: "block", marginTop: 4 }}>
-                  {t.issueType[e.issue.issue_type]} · {placeText(e.issue.place, t)}
+                  {t.issueType[e.issue.issue_type]} · {placeText(e.issue.place, t, lang)}
                 </span>
               </span>
               <span className="label-small" style={{ textAlign: "right", whiteSpace: "nowrap" }}>

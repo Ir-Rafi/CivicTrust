@@ -12,6 +12,11 @@ export type RepairChecks = {
   /** null when the hard checks failed (AI not called) or the AI call failed. */
   ai: Pick<RepairCheck, "same_location" | "issue_resolved" | "confidence"> | null;
   aiFailed?: boolean;
+  /**
+   * false when the location was not measured by the device (the contractor's "work site"
+   * demo option sends the issue's own coordinates). Default true.
+   */
+  locationMeasured?: boolean;
 };
 
 /**
@@ -24,6 +29,10 @@ export function decideRepairVerdict(c: RepairChecks): RepairVerdict {
   if (!c.ai) return c.aiFailed ? "needs_review" : "rejected";
   const confident = c.ai.confidence >= REPAIR_CONFIDENCE;
   if (confident && (c.ai.same_location === "no" || c.ai.issue_resolved === "no")) return "rejected";
-  if (confident && c.ai.same_location === "yes" && c.ai.issue_resolved === "yes") return "approved";
+  if (confident && c.ai.same_location === "yes" && c.ai.issue_resolved === "yes") {
+    // The 15 m check only means something when the device measured the location. Without that,
+    // a passing repair still needs an officer, so payment can never unlock on an unmeasured location.
+    return c.locationMeasured === false ? "needs_review" : "approved";
+  }
   return "needs_review";
 }

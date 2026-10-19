@@ -4,10 +4,10 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useEffectEvent, useRef } from "react";
+import { PILOT_CENTER } from "@/lib/geo";
 
 export type MapPoint = { id: number; lat: number; lng: number; severity: number; label: string };
 
-const PILOT_CENTER: [number, number] = [23.7475, 90.3775];
 
 function color(severity: number) {
   if (severity >= 8) return "#B3261E";

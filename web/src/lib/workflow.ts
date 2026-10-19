@@ -20,6 +20,8 @@ export type QueueFilters = {
   status?: string;
   issueType?: IssueType;
   wardId?: number;
+  /** OpenStreetMap area name in English (issues.area_en), e.g. "Lalmatia". */
+  area?: string;
   limit?: number;
 };
 
@@ -36,6 +38,8 @@ export type OfficerQueueItem = {
   report_count: number;
   ward_id: number | null;
   road_name: string | null;
+  area_en: string | null;
+  area_bn: string | null;
   /** Exact location for the officer map; never return these from public actions. */
   lat: number;
   lng: number;
@@ -46,7 +50,7 @@ export async function listOfficerQueue(filters: QueueFilters = {}): Promise<Offi
   let query = db()
     .from("issues")
     .select(
-      "id, issue_type, visual_class, severity, severity_components, ai_confidence, ai_reason_en, ai_reason_bn, status, report_count, ward_id, road_name, lat:location_lat, lng:location_lng, created_at",
+      "id, issue_type, visual_class, severity, severity_components, ai_confidence, ai_reason_en, ai_reason_bn, status, report_count, ward_id, road_name, area_en, area_bn, lat:location_lat, lng:location_lng, created_at",
     )
     .order("severity", { ascending: false })
     .order("created_at", { ascending: true })
@@ -54,6 +58,7 @@ export async function listOfficerQueue(filters: QueueFilters = {}): Promise<Offi
   if (filters.status) query = query.eq("status", filters.status);
   if (filters.issueType) query = query.eq("issue_type", filters.issueType);
   if (filters.wardId) query = query.eq("ward_id", filters.wardId);
+  if (filters.area) query = query.eq("area_en", filters.area);
   const { data, error } = await query;
   if (error) throw new Error(`listOfficerQueue: ${error.message}`);
   return (data ?? []) as OfficerQueueItem[];
@@ -228,7 +233,12 @@ const repairSchema = z.object({
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
   capturedAt: z.date(),
+  /** "site": the "work site" demo option sent the issue's own coordinates instead of a GPS fix. */
+  locationSource: z.enum(["gps", "site"]).default("gps"),
 });
+
+/** Gemini's limit for comparing before/after photos; a timeout sends the repair to an officer. */
+const REPAIR_AI_TIMEOUT_MS = 40_000;
 
 function photoExtension(contentType: string) {
   if (contentType === "image/png") return "png";
@@ -300,7 +310,7 @@ export async function submitRepairProof(input: z.input<typeof repairSchema>) {
       if (downloadError || !blob) throw new Error(`download original photo: ${downloadError?.message ?? "not found"}`);
       const before: ImageInput = { base64: Buffer.from(await blob.arrayBuffer()).toString("base64"), mimeType: blob.type || "image/jpeg" };
       const after: ImageInput = { base64: bytes.toString("base64"), mimeType: values.photo.type };
-      const result = await verifyRepairPhotos(before, after);
+      const result = await verifyRepairPhotos(before, after, REPAIR_AI_TIMEOUT_MS);
       ai = { same_location: result.same_location, issue_resolved: result.issue_resolved, confidence: result.confidence, reason: result.reason };
     } catch (e) {
       // The hard checks passed; an AI outage must not reject the crew's work. An officer decides.
@@ -309,7 +319,8 @@ export async function submitRepairProof(input: z.input<typeof repairSchema>) {
     }
   }
 
-  const verdict = decideRepairVerdict({ fresh, afterWorkOrder, samePlace, ai, aiFailed });
+  const locationMeasured = values.locationSource === "gps";
+  const verdict = decideRepairVerdict({ fresh, afterWorkOrder, samePlace, ai, aiFailed, locationMeasured });
   const approved = verdict === "approved";
   const needsReview = verdict === "needs_review";
   const verdictReason = !fresh
@@ -320,11 +331,21 @@ export async function submitRepairProof(input: z.input<typeof repairSchema>) {
         ? `The repair photo is ${Math.round(distanceM)} metres from the issue; the limit is ${REPAIR_MAX_DISTANCE_M} metres.`
         : aiFailed
           ? "AI verification was unavailable. An officer will review the repair."
-          : needsReview
-            ? `${ai?.reason ?? "The AI was not sure."} An officer will review the repair.`
+          : needsReview && !locationMeasured
+            ? `${ai?.reason ?? "The AI could not confirm the repair."} The location was not measured (work-site demo option), so an officer must confirm the repair.`
+            : needsReview
+              ? `${ai?.reason ?? "The AI was not sure."} An officer will review the repair.`
             : ai?.reason ?? (approved ? "The repair passed location, freshness, and visual checks." : "The repair could not be confirmed.");
 
-  const checks = { distance_m: distanceM, distance_passed: samePlace, fresh, after_work_order: afterWorkOrder, ai, ai_failed: aiFailed };
+  const checks = {
+    distance_m: distanceM,
+    distance_passed: samePlace,
+    location_source: values.locationSource,
+    fresh,
+    after_work_order: afterWorkOrder,
+    ai,
+    ai_failed: aiFailed,
+  };
   const { data: proof, error: proofError } = await db()
     .from("repair_proofs")
     .insert({
@@ -361,7 +382,15 @@ export async function submitRepairProof(input: z.input<typeof repairSchema>) {
     action: "repair_proof_submitted",
     entity: "work_order",
     entityId: values.workOrderId,
-    payload: { verdict, distance_m: distanceM, fresh, after_work_order: afterWorkOrder, ai_confidence: ai?.confidence ?? null, ai_failed: aiFailed },
+    payload: {
+      verdict,
+      distance_m: distanceM,
+      location_source: values.locationSource,
+      fresh,
+      after_work_order: afterWorkOrder,
+      ai_confidence: ai?.confidence ?? null,
+      ai_failed: aiFailed,
+    },
   });
   return { ...proof, photoUrl: await signedPhotoUrl(photoPath), paymentStatus: approved ? "eligible" : "withheld" };
 }
@@ -601,8 +630,102 @@ export async function verifyAuditChain() {
   return (data?.[0] ?? { total: 0, first_broken_id: null }) as { total: number; first_broken_id: number | null };
 }
 
-export async function listWardStats() {
+export type AreaStatRow = {
+  /** Negative for OpenStreetMap areas (no official ward id). */
+  ward_id: number;
+  ward_name_en: string | null;
+  ward_name_bn: string | null;
+  open_count: number;
+  fixed_count: number;
+  avg_fix_hours: number | null;
+};
+
+/**
+ * Per-ward figures; until official ward boundaries are loaded, per OpenStreetMap area instead
+ * (negative ids mark those rows, so the UI can say where the areas come from).
+ */
+export async function listWardStats(): Promise<AreaStatRow[]> {
   const { data, error } = await db().rpc("ward_stats");
   if (error) throw new Error(`ward stats: ${error.message}`);
-  return data ?? [];
+  if (data?.length) return data as AreaStatRow[];
+  const { data: areas, error: areaError } = await db().rpc("area_stats");
+  if (areaError) throw new Error(`area stats: ${areaError.message}`);
+  return ((areas ?? []) as { area_en: string | null; area_bn: string | null; open_count: number; fixed_count: number; avg_fix_hours: number | null }[]).map((a, i) => ({
+    ward_id: -(i + 1),
+    ward_name_en: a.area_en,
+    ward_name_bn: a.area_bn,
+    open_count: Number(a.open_count),
+    fixed_count: Number(a.fixed_count),
+    avg_fix_hours: a.avg_fix_hours,
+  }));
+}
+
+/**
+ * Everything recorded about one issue, oldest first: its reports, AI decisions, corrections,
+ * work orders, repair evidence, reviews, citizen feedback and payment (FR-06: the original AI
+ * result and every correction stay visible). Officers only: entries include names and comments.
+ */
+export async function listIssueHistory(issueId: number) {
+  const { data: orders, error: orderError } = await db().from("work_orders").select("id").eq("issue_id", issueId);
+  if (orderError) throw new Error(`history work orders: ${orderError.message}`);
+  const orderIds = (orders ?? []).map((o) => o.id);
+  const columns = "id, created_at, actor_role, actor_name, action, entity, entity_id, payload";
+  const [issueRows, orderRows] = await Promise.all([
+    db().from("audit_log").select(columns).eq("entity", "issue").eq("entity_id", issueId),
+    orderIds.length
+      ? db().from("audit_log").select(columns).eq("entity", "work_order").in("entity_id", orderIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (issueRows.error) throw new Error(`history: ${issueRows.error.message}`);
+  if (orderRows.error) throw new Error(`history: ${orderRows.error.message}`);
+  return [...(issueRows.data ?? []), ...(orderRows.data ?? [])].sort((a, b) => a.id - b.id) as Omit<AuditEntry, "prev_hash" | "hash">[];
+}
+
+const offerSchema = z.object({
+  issueId: z.number().int().positive(),
+  ngoId: z.number().int().positive(),
+  actorName: z.string().trim().min(1).max(120),
+  note: z.string().trim().max(500).optional(),
+});
+
+/** An NGO or volunteer group offers to fix an open, unassigned issue; the officer decides by assigning. */
+export async function offerHelp(input: z.input<typeof offerSchema>) {
+  const values = offerSchema.parse(input);
+  const { data: issue, error: issueError } = await db().from("issues").select("id, status").eq("id", values.issueId).single();
+  if (issueError || !issue) throw new Error(`load issue: ${issueError?.message ?? "not found"}`);
+  if (!["reported", "verified"].includes(issue.status)) throw new Error("only open, unassigned issues can be offered for");
+  const { data: offer, error } = await db()
+    .from("ngo_offers")
+    .upsert({ issue_id: values.issueId, ngo_id: values.ngoId, note: values.note ?? null }, { onConflict: "issue_id,ngo_id", ignoreDuplicates: true })
+    .select("id")
+    .maybeSingle();
+  if (error) throw new Error(`save offer: ${error.message}`);
+  if (offer) {
+    await audit({
+      actorRole: "ngo",
+      actorName: values.actorName,
+      action: "ngo_offer",
+      entity: "issue",
+      entityId: values.issueId,
+      payload: { ngo_id: values.ngoId, note: values.note ?? null },
+    });
+  }
+  return { issueId: values.issueId, ngoId: values.ngoId, alreadyOffered: !offer };
+}
+
+/** Which groups offered to help with an issue (officer issue detail). */
+export async function listOffers(issueId: number) {
+  const { data, error } = await db()
+    .from("ngo_offers")
+    .select("id, ngo_id, note, created_at, ngos(name)")
+    .eq("issue_id", issueId)
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(`list offers: ${error.message}`);
+  return ((data ?? []) as unknown as { id: number; ngo_id: number; note: string | null; created_at: string; ngos: { name: string } | null }[]).map((o) => ({
+    id: o.id,
+    ngoId: o.ngo_id,
+    ngoName: o.ngos?.name ?? null,
+    note: o.note,
+    createdAt: o.created_at,
+  }));
 }

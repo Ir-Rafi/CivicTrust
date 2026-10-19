@@ -42,7 +42,8 @@ export function RepairUpload({
     navigator.geolocation.getCurrentPosition(
       (pos) => setLocation({ state: "gps", lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }),
       () => setLocation({ state: "failed" }),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
+      // Fresh fix only: a cached position would make the 15 m check meaningless.
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
     );
   }, [geoSupported]);
   const gps: Location = geoSupported ? location : { state: "failed" };
@@ -75,6 +76,8 @@ export function RepairUpload({
     fd.set("lat", String(coords.lat));
     fd.set("lng", String(coords.lng));
     fd.set("capturedAt", new Date(photo.capturedAt).toISOString());
+    // Recorded with the repair: an unmeasured location can't auto-approve (an officer decides).
+    fd.set("locationSource", useSite ? "site" : "gps");
     setError(null);
     setPending(true);
     let res: Awaited<ReturnType<typeof uiSubmitRepair>>;

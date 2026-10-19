@@ -4,6 +4,8 @@ import { DEMO_PERSONA } from "@/lib/roles";
 import { getSession } from "@/lib/session";
 import {
   assignWorkOrder,
+  listIssueHistory,
+  listOffers,
   listOfficerQueue,
   overrideIssue,
   releasePayment,
@@ -36,6 +38,18 @@ export async function createWorkOrder(input: Omit<Parameters<typeof assignWorkOr
 export async function reviewRepairProof(input: Omit<Parameters<typeof reviewRepair>[0], "actorName">) {
   await requireOfficer();
   return reviewRepair({ ...input, actorName: OFFICER });
+}
+
+/** Full audit history of one issue and its work orders (screen 5). */
+export async function getIssueHistory(issueId: number) {
+  await requireOfficer();
+  return listIssueHistory(issueId);
+}
+
+/** NGOs and volunteer groups that offered to fix this issue. */
+export async function getIssueOffers(issueId: number) {
+  await requireOfficer();
+  return listOffers(issueId);
 }
 
 export async function releaseWorkOrderPayment(input: { workOrderId: number }) {

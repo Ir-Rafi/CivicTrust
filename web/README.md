@@ -47,6 +47,14 @@ Then run `supabase/seed.sql` in the SQL editor, and put the project URL and secr
 pnpm seed:fetch     # OSM schools/hospitals/roads for the pilot bbox -> data/osm (already fetched)
 pnpm seed:load      # load data/osm (+ data/wards if present) into the database
 pnpm seed:policy    # embed data/policy/*.md into policy_chunks (needs GEMINI_API_KEY)
+pnpm backfill:areas # fill the OpenStreetMap area of issues reported before areas were recorded
+```
+
+### Measurements (requirements §8)
+
+```bash
+pnpm kpi [--since 2026-10-24] [--json kpi.json]   # from the live database and audit log
+pnpm eval:photos <folder> [--json eval.json]       # accuracy on a labelled photo set; see the script header for the folder layout
 ```
 
 ### Run
@@ -55,6 +63,11 @@ pnpm seed:policy    # embed data/policy/*.md into policy_chunks (needs GEMINI_AP
 pnpm dev            # http://localhost:3000
 curl localhost:3000/api/health   # shows which integrations are configured
 ```
+
+Citizen reports use GPS by default. **Choose the spot on the map yourself** enables manual
+selection by tapping or dragging a pin inside the Dhanmondi pilot boundary. Users can return
+to GPS at any time. Pinned reports retain the fresh-photo check and record their location
+source and distance from the device fix when available. Pilot bounds are shared in `src/lib/geo.ts`.
 
 ## Deploy (Vercel)
 

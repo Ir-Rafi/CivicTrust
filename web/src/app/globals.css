@@ -1,4 +1,5 @@
-@import "tailwindcss";
+/* Scan application sources only; generated dev output must not trigger CSS rebuilds. */
+@import "tailwindcss" source("..");
 
 /* ==============================================================
    Material You (Material Design 3) tokens, from civictrust-material-you.html.

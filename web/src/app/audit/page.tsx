@@ -102,7 +102,7 @@ async function Entries({ lang }: { lang: Lang }) {
                   <td>
                     <span className={`tag ${ROLE_TONE[e.actor_role] ?? ""}`}>{e.actor_name}</span>
                   </td>
-                  <td className="mono">{e.action}</td>
+                  <td title={e.action}>{t.auditActions[e.action] ?? e.action}</td>
                   <td className="mono">
                     {e.entity}
                     {e.entity_id ? `-${e.entity_id}` : ""}

@@ -195,6 +195,8 @@ Pages in app: `/security`, `/audit` (one-click report from the audit log + safeg
 
 Only measured numbers go in the video. Targets are labelled as targets.
 
+How to measure: `pnpm kpi` (live data: merge rate, photo-to-ranked time, false closures, audit completeness, AI success and fallback) and `pnpm eval:photos <folder>` (accuracy on the labelled field photos). See `web/README.md`.
+
 ---
 
 ## 5. The 180-second video (preliminary) — script outline
