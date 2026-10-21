@@ -4,7 +4,7 @@
  * Uses the same Gemini calls and approval rule as the app. One Gemini request per photo or pair,
  * so run it with a key that has enough quota.
  *
- *   pnpm eval:photos <folder> [--json out.json]
+ *   pnpm eval:photos <folder> [--json out.json] [--interval-ms 15000]
  *
  * Folder layout (keep the photos out of git):
  *   <folder>/issues/<label>/*.jpg
@@ -13,9 +13,12 @@
  *       expected = fixed | not_fixed | different_place
  */
 import { readdir, readFile, writeFile } from "node:fs/promises";
-import { extname, join } from "node:path";
+import { extname, join, relative } from "node:path";
 import { analyzeIssuePhoto, verifyRepairPhotos, type ImageInput } from "@/lib/ai/gemini";
 import { decideRepairVerdict } from "@/lib/repair-verdict";
+import { modelNames } from "@/lib/env";
+import type { IssueAnalysis, RepairCheck } from "@/lib/ai/schemas";
+import { setTimeout as delay } from "node:timers/promises";
 
 const AI_TIMEOUT_MS = 60_000;
 const ISSUE_LABELS = ["pothole", "road_crack", "garbage", "open_drain", "waterlogging", "other", "not_civic"];
@@ -25,10 +28,12 @@ const MIME: Record<string, string> = { ".jpg": "image/jpeg", ".jpeg": "image/jpe
 const folder = process.argv[2];
 const jsonIdx = process.argv.indexOf("--json");
 const jsonOut = jsonIdx > 0 ? process.argv[jsonIdx + 1] : undefined;
+const intervalIdx = process.argv.indexOf("--interval-ms");
+const intervalMs = intervalIdx > 0 ? Number(process.argv[intervalIdx + 1]) : 0;
 
 async function listDir(path: string): Promise<string[]> {
   try {
-    return (await readdir(path)).filter((n) => !n.startsWith("."));
+    return (await readdir(path)).filter((n) => !n.startsWith(".")).sort();
   } catch {
     return [];
   }
@@ -43,10 +48,19 @@ async function image(path: string): Promise<ImageInput> {
 const pct = (n: number, d: number) => (d === 0 ? "—" : `${Math.round((n / d) * 1000) / 10}%`);
 
 async function main() {
-  if (!folder) throw new Error("usage: pnpm eval:photos <folder> [--json out.json]");
+  if (!folder) throw new Error("usage: pnpm eval:photos <folder> [--json out.json] [--interval-ms 15000]");
+  if (!Number.isInteger(intervalMs) || intervalMs < 0 || intervalMs > 60_000) {
+    throw new Error("--interval-ms must be an integer from 0 to 60000");
+  }
+  const startedAt = new Date().toISOString();
+  let attempted = false;
+  async function pace() {
+    if (attempted && intervalMs > 0) await delay(intervalMs);
+    attempted = true;
+  }
 
   // Issue photos: does the AI name the right problem (or reject a non-civic photo)?
-  const issueResults: { file: string; label: string; predicted: string | null; error?: string }[] = [];
+  const issueResults: { file: string; label: string; predicted: string | null; durationMs: number; analysis?: IssueAnalysis; error?: string }[] = [];
   for (const label of await listDir(join(folder, "issues"))) {
     if (!ISSUE_LABELS.includes(label)) {
       console.warn(`skipping issues/${label}: not one of ${ISSUE_LABELS.join(", ")}`);
@@ -54,20 +68,22 @@ async function main() {
     }
     for (const file of await listDir(join(folder, "issues", label))) {
       const path = join(folder, "issues", label, file);
+      await pace();
+      const started = performance.now();
       try {
         const a = await analyzeIssuePhoto(await image(path), AI_TIMEOUT_MS);
         const predicted = a.is_civic_issue ? a.issue_type : "not_civic";
-        issueResults.push({ file: path, label, predicted });
+        issueResults.push({ file: relative(folder, path), label, predicted, durationMs: Math.round(performance.now() - started), analysis: a });
         console.log(`${predicted === label ? "✓" : "✗"} ${label.padEnd(13)} → ${predicted.padEnd(13)} ${file}`);
       } catch (e) {
-        issueResults.push({ file: path, label, predicted: null, error: e instanceof Error ? e.message : String(e) });
+        issueResults.push({ file: relative(folder, path), label, predicted: null, durationMs: Math.round(performance.now() - started), error: e instanceof Error ? e.message : String(e) });
         console.log(`! ${label.padEnd(13)} error: ${e instanceof Error ? e.message : e}`);
       }
     }
   }
 
   // Before/after pairs: does the approval rule approve real fixes and nothing else?
-  const repairResults: { pair: string; expected: string; verdict: string | null; error?: string }[] = [];
+  const repairResults: { pair: string; expected: string; verdict: string | null; durationMs: number; analysis?: RepairCheck; error?: string }[] = [];
   for (const expected of await listDir(join(folder, "repairs"))) {
     if (!REPAIR_EXPECTED.includes(expected)) {
       console.warn(`skipping repairs/${expected}: not one of ${REPAIR_EXPECTED.join(", ")}`);
@@ -82,15 +98,17 @@ async function main() {
         console.warn(`skipping ${dir}: needs before.* and after.*`);
         continue;
       }
+      await pace();
+      const started = performance.now();
       try {
         const ai = await verifyRepairPhotos(await image(join(dir, before)), await image(join(dir, after)), AI_TIMEOUT_MS);
         // Location, freshness and timing are checked separately in the app; here only the visual judgement is tested.
         const verdict = decideRepairVerdict({ fresh: true, afterWorkOrder: true, samePlace: true, ai, locationMeasured: true });
-        repairResults.push({ pair: dir, expected, verdict });
+        repairResults.push({ pair: relative(folder, dir), expected, verdict, durationMs: Math.round(performance.now() - started), analysis: ai });
         const ok = expected === "fixed" ? verdict === "approved" : verdict !== "approved";
         console.log(`${ok ? "✓" : "✗"} ${expected.padEnd(15)} → ${verdict.padEnd(12)} ${pair}`);
       } catch (e) {
-        repairResults.push({ pair: dir, expected, verdict: null, error: e instanceof Error ? e.message : String(e) });
+        repairResults.push({ pair: relative(folder, dir), expected, verdict: null, durationMs: Math.round(performance.now() - started), error: e instanceof Error ? e.message : String(e) });
         console.log(`! ${expected.padEnd(15)} error: ${e instanceof Error ? e.message : e}`);
       }
     }
@@ -104,6 +122,8 @@ async function main() {
   const falseApprovals = notFixedPairs.filter((r) => r.verdict === "approved").length;
 
   console.log(`\n| Measurement | Value |\n|---|---|`);
+  console.log(`| Issue calls completed | ${scored.length} of ${issueResults.length} attempted |`);
+  console.log(`| Repair calls completed | ${pairs.length} of ${repairResults.length} attempted |`);
   console.log(`| Issue classification accuracy | ${pct(scored.filter((r) => r.predicted === r.label).length, scored.length)} (${scored.length} photos) |`);
   console.log(`| Civic vs non-civic accuracy | ${pct(scored.filter((r) => (r.label === "not_civic") === (r.predicted === "not_civic")).length, scored.length)} |`);
   console.log(`| Issue type accuracy (civic photos) | ${pct(civic.filter((r) => r.predicted === r.label).length, civic.length)} |`);
@@ -115,9 +135,14 @@ async function main() {
   if (errors) console.log(`\n${errors} item(s) failed (not counted); see "!" lines above.`);
 
   if (jsonOut) {
-    await writeFile(jsonOut, JSON.stringify({ issues: issueResults, repairs: repairResults }, null, 2));
+    await writeFile(jsonOut, JSON.stringify({ startedAt, completedAt: new Date().toISOString(),
+      provider: "Google Gemini", model: modelNames().vision, timeoutMs: AI_TIMEOUT_MS,
+      intervalMs,
+      scope: "Visual-only evaluation. Location, freshness and work-order timing are assumed valid for repair pairs.",
+      issues: issueResults, repairs: repairResults }, null, 2));
     console.log(`wrote ${jsonOut}`);
   }
+  if (errors) process.exitCode = 2;
 }
 
 main().catch((e) => {

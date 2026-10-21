@@ -35,6 +35,7 @@ const en = {
     data: "Data",
     security: "Security",
     modelCard: "Model card",
+    impact: "Impact",
     audit: "Audit",
   },
   status: {
@@ -414,6 +415,7 @@ const bn: Dict = {
     data: "ডেটা",
     security: "নিরাপত্তা",
     modelCard: "মডেল কার্ড",
+    impact: "প্রভাব",
     audit: "অডিট",
   },
   status: {

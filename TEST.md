@@ -5,8 +5,8 @@ The acceptance criteria these tests follow are in
 [`PRELIMINARY_PROTOTYPE_REQUIREMENTS.md`](PRELIMINARY_PROTOTYPE_REQUIREMENTS.md) (§7, AC1–AC10).
 
 > **Before you start**
-> - **Shared database.** Your local app talks to the same hosted Supabase database as the team
->   and the Vercel deployment. Everything you create is visible on the public portal. Clean up
+> - **Shared database.** Your local app talks to the same hosted Supabase database (Singapore) as
+>   the team and both Vercel deployments. Everything you create is visible on the public portal. Clean up
 >   test issues when you are done (see [Cleaning up](#cleaning-up-test-data)).
 > - **Shared AI quota.** The Gemini key is on the free tier: about **20 photo checks per day for
 >   the whole team**. Each citizen report uses 1–3; each repair check uses 1. Coordinate before
@@ -186,7 +186,7 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
 ### F. General
 
 - [ ] **F1** Every screen in Bangla and English: Bangla digits, natural Bangla AI reasons.
-- [ ] **F2** `/architecture`, `/data`, `/security` and `/model-card` load (all linked in the footer).
+- [ ] **F2** `/architecture`, `/data`, `/security`, `/model-card` and `/impact` load (all linked in the footer).
   The model card's thresholds and model names match the app (70% to auto-verify, 60% to merge or
   approve, 15 m, 30 minutes).
 - [ ] **F3** Phone-width layout: nothing is cut off and there is no sideways scrolling.
@@ -207,9 +207,11 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
 - **Terminal running `pnpm dev`.** Server errors appear here, and browser console errors are
   forwarded as `[browser] …` lines. The same log is saved to `web/.next/dev/logs/next-development.log`.
 - **`/api/health`** shows which keys are configured and whether the database answers.
-- **`pnpm kpi`** prints the measurements from the live data, including AI success and fallback
-  rates and how complete the audit log is; `pnpm eval:photos <folder>` measures accuracy on a
-  labelled photo set (see the script header for the folder layout).
+- **`pnpm kpi`** prints the measurements from the live data: AI success and fallback rates,
+  timings, duplicate merges and audit completeness. The **`/impact`** page shows the same figures
+  on the site with sample sizes (`?since=YYYY-MM-DD` limits them to a test window).
+- **`pnpm eval:photos <folder>`** measures accuracy on a labelled photo set (folder layout in the
+  script header).
 - **`pnpm smoke:ai`** tests the AI services without the UI.
 - **A form says "Something went wrong"?** The real error is in the terminal.
 
@@ -222,8 +224,10 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
 | Page reloads endlessly (terminal fills with `GET /citizen` and *Suspense boundary* errors) | Tailwind scanning generated files (kept off by `source("..")` in `globals.css`), or a stale dev cache from before that fix | Stop `pnpm dev`, run `rm -rf web/.next/dev`, start again; close stale tabs |
 | *Couldn't get GPS location* on a phone | `http://` LAN link | Use the ngrok `https://` link |
 | GPS shows ±100 m or more | Laptop Wi-Fi location | Use a phone outdoors, or a demo location |
-| Report says *The AI is busy right now* | Gemini's daily limit (`429` in the terminal) or a response over 30 s | Wait and retry, or use a key with billing |
+| Report says *The AI is busy right now* | Gemini's free-tier limit (`429`), *high demand* (`503`), or a response over 30 s | Wait and retry, or use a paid key |
+| `/api/health` shows `"database": {"ok": false}` or *fetch failed* | The Supabase project is paused (free plan, about a week without activity) or the URL is wrong | Restore the project in the Supabase dashboard; check `SUPABASE_URL` |
 | Your push isn't on the live site (Vercel says *Deployment was blocked*) | Vercel's free plan only deploys commits by the account owner | The owner redeploys (see [known issue 1](#known-issues)) |
+| Vercel build fails with a `next/font/google` error but `pnpm build` passes locally | Vercel's build machine | Build locally and upload with `vercel build` and `vercel deploy --prebuilt --prod` (see `web/README.md`) |
 | Report takes over 30 s | Gemini response time (30–78 s seen) | Retry; on Vercel the limit is 60 s |
 | Map shows a pin but no place name, or only the road type | The place-name lookup (OpenStreetMap Nominatim) was slow or unreachable; the form falls back to the pilot road data | Retry; check the terminal for `reverse geocode failed` |
 | Repair always rejected from your desk | You are more than 15 m from the issue (correct) | Test approval on site (C2) |
@@ -288,9 +292,10 @@ delete from issues where id = <ID>;   -- also removes its reports, work orders, 
 
 1. **Vercel only deploys the account owner's commits** (free Hobby plan with a private repo):
    everyone else's pushes show *Deployment was blocked*, and the live site stays on the last
-   owner commit until he redeploys. There are also two Vercel projects (`civictrust`,
-   `civic-trust`) building the same repo.
-2. **Gemini free tier:** about 20 photo checks per day for the whole team.
+   owner deployment until the owner redeploys. Vercel's own build can also fail on the Google
+   font download; deploying a local build with the CLI works around it.
+2. **Gemini free tier:** about 20 photo checks per day for the whole team, and frequent
+   *high demand* (503) errors. A paid key is planned before the measurement run and recording.
 3. **CSS edits** to `globals.css` need a dev-server restart. The likely cause is the Tailwind
    Turbopack loader; Next.js recommends the PostCSS setup instead.
 4. **Gemini response time** varies (30–78 s seen). Reports now stop at 50 s with *The AI is busy*
@@ -298,16 +303,19 @@ delete from issues where id = <ID>;   -- also removes its reports, work orders, 
    **Place names** come from OpenStreetMap's free public Nominatim service (max 1 request per
    second, light use only). Fine for the prototype; production needs its own geocoder.
 5. **Thin line across the map** where two tiles meet, on some high-resolution screens. Cosmetic.
-6. **The GLM backup key is not set on Vercel** (`/api/health` shows `"glm": false`), so the live
-   site has no fallback when Groq fails.
-7. **Issues reported before 19 Oct have no measurements** (timing, AI provider); `pnpm kpi`
-   counts only what was recorded.
+6. **The free GLM model is often slow or overloaded**, so the fallback can fail when Groq is down.
+   Groq itself has been reliable.
+7. **Records from before 19 Oct have no timing or AI-provider data**, and merges before 21 Oct
+   have no duplicate-comparison counts; KPIs count only what was recorded.
+8. **Supabase free plan pauses the database** after about a week without activity. An uptime
+   monitor on `/api/health` keeps it active (see `web/README.md`).
 
 ### Not built yet (please don't report these as bugs)
 
 - Official ward boundaries: OpenStreetMap areas stand in for wards.
 - Face and number-plate blurring: the AI flags such photos, and photos are never shown publicly.
-- The KPI numbers themselves: the scripts exist and need the field photos (see `Docs/KPI_SUMMARY.md`).
+- Measured KPIs: `/impact` computes them live, but they need a measurement run with real use
+  (see `Docs/KPI_SUMMARY.md`).
 - Real contractor identity: **Viewing as** is a prototype shortcut, like the role switcher.
 
 ## 7. Reporting a bug

@@ -1,24 +1,24 @@
-# CivicTrust — Judge-Aligned Plan
+# CivicTrust: judge-aligned plan
 
 Built from the official rules in `AIBC_Participants_Guide_261015_143157.pdf` (Sections 9, 11, 13, 14, 15, 20) and the product spec in `CivicTrust.pdf`.
-Updated: 17 Oct 2026. **Preliminary closes 31 Oct 2026 (14 days).**
+Updated: 21 Oct 2026. **Preliminary closes 31 Oct 2026.**
 
 Every feature, page and minute of video below exists because it earns points somewhere in the rules. If it doesn't score, it's cut or moved later.
 
 ---
 
-## Status at a glance (19 Oct)
+## Status at a glance (21 Oct)
 
 | Area | State |
 |---|---|
 | Decisions | Next.js + Supabase · Gemini (vision, embeddings) + Groq (text, GLM fallback) · **no login** (role switcher) · pilot area Dhanmondi, Dhaka |
 | Core loop | **Built and verified end to end** on the live database: citizen report (GPS, map, manual pin, place names) → AI analysis → duplicate merge → explainable severity → Bangla/English reason → officer queue, map, area filter, corrections with history → work order with cited deadline and cost → repair verification (location, freshness, AI) → payment withheld until verified → citizen confirm/dispute → public tracker, update log, scorecards, per-area figures |
 | Safeguards | Hash-chained audit log that can't be edited or emptied; payment gate in the database; unsure AI results go to an officer; unmeasured repair locations never auto-approve; RLS on every table; photos never public |
-| Screens | All §6 screens, including `/architecture`, `/data`, `/security`, `/model-card`, `/audit`; Bangla/English; dark mode |
-| Live | `civictrust-five.vercel.app`, functions in Singapore (`sin1`) next to the database. Vercel only deploys the account owner's commits (Hobby plan) |
-| Measurements | Recorded on every report (time, AI provider, failures); `pnpm kpi` and `pnpm eval:photos` compute the §8 figures. **Not measured yet:** needs the field photo set |
-| Blockers | Paid Gemini key (free tier ≈ 20 photo checks/day); GLM key missing on Vercel; field shoot |
-| Next | Field shoot → measurements and KPI summary → 1-page problem summary → video → submit 30 Oct |
+| Screens | All §6 screens, including `/architecture`, `/data`, `/security`, `/model-card`, `/audit` and `/impact`; Bangla/English; dark mode |
+| Live | `civictrust-five.vercel.app` (main) and `civictrust-eight.vercel.app`, both in Singapore (`sin1`) on the Singapore database. Vercel Hobby only deploys the account owner's commits |
+| Impact evidence | Expected outcomes with KPIs; `/impact` computes the figures live with sample sizes. Little real data yet: a measurement run is planned once the paid Gemini key is in |
+| Validation limits | The free Gemini key often returns *high demand* errors. Desktop runs do not establish field GPS, real repair quality or field performance |
+| Next | Paid Gemini key → measurement run → 1-page problem summary → video → submission |
 
 ---
 
@@ -47,10 +47,10 @@ Every feature, page and minute of video below exists because it earns points som
 | M1 | 3-minute structured video | Script in §5 | Video ≤ 180 s, follows 5 segments |
 | M2 | Clear problem & user definition | Problem statement + 5 user roles | Sourced facts, named users |
 | M3 | AI-native approach (LLM / RAG / Graph / ML) | Vision model (Gemini) + severity model + LLM explanations (Groq) + RAG over city rules + accountability graph (contractor scorecards) | All shown in video |
-| M4 | Basic system flow input → AI → output | Architecture diagram + live flow | Diagram on screen ≥ 10 s |
-| M5 | Initial demo / prototype / workflow | Deployed app, public URL | Core loop works live |
+| M4 | Basic system flow input → AI → output | Architecture diagram + demonstration | Data, AI decisions and outputs are understandable |
+| M5 | Initial demo / prototype / workflow | Prototype demonstration or clearly labelled system walkthrough | Show executed actions accurately and distinguish illustrative steps |
 | M6 | Bangla / localization | Bangla UI (default) + Bangla AI explanations | Demo shown in Bangla |
-| M7 | Defined impact (KPIs) | KPI table §4 | KPIs on screen with measured values |
+| M7 | Defined potential impact (KPIs or expected outcomes) | Expected-outcomes table in Docs/KPI_SUMMARY.md | Explain potential benefits; distinguish unmeasured KPIs, targets and actual results |
 
 Evaluator criteria per video segment: Problem → *clarity, relevance* · Solution → *simplicity, uniqueness* · Demo → *feasibility, logic* · AI → *depth, structure* · Impact → *vision, potential*.
 
@@ -182,20 +182,24 @@ Pages in app: `/security`, `/audit` (one-click report from the audit log + safeg
 
 ---
 
-## 4. KPIs (must be on screen in the video — M7)
+## 4. Expected outcomes and planned KPIs (M7)
 
-| KPI | How we measure before 31 Oct |
+| Expected outcome | Later evaluation |
 |---|---|
-| Issue-type accuracy | Labelled set of real Dhaka photos, held out |
-| Repair-verifier accuracy | Real before/after pairs + deliberately bad "repairs" |
-| Duplicate merge rate | % of field-test submissions merged |
-| Time from photo to ranked ticket | Measured in app (seconds) |
-| False-closure rate | Target ≈ 0 with AI verification (measured on test pairs) |
-| Pilot targets (to measure after launch) | Median fix time, citizen confirmation rate, overdue % per ward |
+| Faster report triage | Submission-to-ranked-issue time, median and p90 |
+| Less duplicate case handling | Merge rate plus correct/incorrect matches on labelled examples |
+| Fewer incorrect repair closures | False approvals on labelled negative repair pairs |
+| More accountable payment status | Approved-evidence coverage of recorded payment releases |
+| More transparent service progress | Later user task-completion and understanding tests |
+| Traceable and resilient workflow | Audit completion and AI provider success/fallback rates |
 
-Only measured numbers go in the video. Targets are labelled as targets.
+Section 9.2 accepts KPIs or expected outcomes. The preliminary presents expected outcomes, and the
+`/impact` page shows each KPI computed live from the system with its sample size and status
+(*No data yet*, *Early data*, *Measured*). No field accuracy, real-world time saving or financial
+saving is claimed. Any numerical target is labelled as team-proposed.
 
-How to measure: `pnpm kpi` (live data: merge rate, photo-to-ranked time, false closures, audit completeness, AI success and fallback) and `pnpm eval:photos <folder>` (accuracy on the labelled field photos). See `web/README.md`.
+Procedure and submission wording: [Docs/KPI_SUMMARY.md](Docs/KPI_SUMMARY.md). Field GPS, real
+repair validation and user studies remain pilot work.
 
 ---
 
@@ -203,11 +207,11 @@ How to measure: `pnpm kpi` (live data: merge rate, photo-to-ranked time, false c
 
 | Time | Segment (official) | Judges look for | What we show |
 |---|---|---|---|
-| 0:00–0:30 | **Problem** | Clarity, relevance | Real Dhaka street footage; who suffers (commuters, school children, ambulance routes); reports go nowhere, and **public money is paid for repairs nobody checks**, so citizens stop trusting the system; same accountability gap in cities worldwide. Sourced numbers. |
+| 0:00–0:30 | **Problem** | Clarity, relevance | Explain users and the repair-accountability problem with sourced facts or licensed reference visuals. New on-site footage is not required. |
 | 0:30–1:00 | **Solution** | Simplicity, uniqueness | One-line pitch; the 5 roles in one graphic; the differentiator: *AI closes the job only if it's really fixed* |
-| 1:00–2:00 | **Demo** | Feasibility, logic | Live, in Bangla: snap → AI result + severity breakdown (10 s) → duplicate prompt (5 s) → officer queue + map, override, assign with cited deadline and agreed cost (15 s) → contractor uploads a **bad** repair → AI rejects with reason, **payment withheld** (10 s) → good repair → approved, payment released (10 s) → citizen confirms → public portal and contractor scorecard update (10 s) |
+| 1:00–2:00 | **Demo** | Feasibility, logic | Desktop demonstration in Bangla: labelled sample report and demo location → actual AI result or clear error → officer queue and assignment → repair safeguard/review flow → public and audit views for completed actions. Show that unmeasured work-site coordinates cannot auto-approve. Explain unexecuted steps as a walkthrough. |
 | 2:00–2:30 | **AI approach** | Depth, structure | Architecture diagram: Gemini vision → severity model (OSM facts) → dedupe (PostGIS + AI) → RAG rules → verifier; Groq explanations; model-selection logic; safeguards |
-| 2:30–3:00 | **Impact & next step** | Vision, potential | Measured KPIs; business model; pilot → city → national → global; Nov/Dec roadmap (self-hosted models, agents, graph) |
+| 2:30–3:00 | **Impact & next step** | Vision, potential | Expected benefits and planned KPIs, any separately verified results, business model, and later field validation and expansion. |
 
 Same skeleton becomes the 3-minute live pitch on 26 Dec. Keep a recorded backup of the demo in case Wi-Fi fails.
 
@@ -244,12 +248,12 @@ Check: 3–5 members · ≥1 woman (bonus) · all AI tool usage documented · NR
 |---|---|
 | App | Next.js 16 (App Router, Cache Components) + TypeScript + Tailwind, mobile-first — code in `web/` |
 | Backend | Next.js route handlers / server actions; database reachable only from server code |
-| Data | Supabase: Postgres + PostGIS + pgvector, Storage (private photo bucket), Realtime |
+| Data | Supabase (Singapore): Postgres + PostGIS + pgvector, Storage (private photo bucket) |
 | AI — vision + embeddings | **Gemini** `gemini-3.8-flash`: issue detection M1, duplicate check M3, repair verification M4, strict JSON; `gemini-embedding-001` (768-d) for policy RAG |
 | AI — text | **Groq** `openai/gpt-oss-120b` (primary), strict JSON: Bangla/English explanations, officer copilot. **GLM** `glm-4.5-flash` is the automatic fallback |
 | Access | No login. Role + language cookies; database closed to the browser by row-level security |
-| Maps | Leaflet + OpenStreetMap, marker clustering |
-| Deploy | Vercel + Supabase (public URL) |
+| Maps | Leaflet + OpenStreetMap |
+| Deploy | Vercel (`sin1`) + Supabase (public URL) |
 | Finals additions | ONNX service (YOLO, CLIP), agent orchestrator |
 
 Data model: `wards`, `pois`, `roads`, `issues`, `reports`, `work_orders`, `repair_proofs`, `citizen_feedback`, `contractors`, `ngos`, `policy_chunks` (embedding), `audit_log` (prev_hash, hash).
@@ -268,7 +272,9 @@ Pilot data: Dhanmondi area, Dhaka (bbox 23.735,90.365 → 23.760,90.390). OSM ro
 | Database hosted outside Bangladesh | The Personal Data Protection Ordinance 2025 requires restricted data to stay in Bangladesh (18-month transition) | Moved to Singapore (ap-southeast-1), the closest Supabase region: migrations replayed, data copied, audit chain checked. Stated on `/data`; a Bangladesh-hosted Postgres is the plan before a real rollout | done |
 | OSM tagging noise (some "hospitals" are pharmacies or offices) | Wrong proximity bonus | Name filter in `seed:fetch` (7 removed); officer override covers the rest; noted on `/data` | done |
 | Gemini/Groq rate limits or outage during the demo | Live demo stalls | Recorded backup video; GLM takes over text if Groq fails (10 s timeout each); clear error message in app | 27 Oct |
-| Not enough real photos (incl. before/after pairs) | KPIs can't be measured | Team photographs 30–60 issues in the pilot area; for repair pairs, revisit fixed spots | 28 Oct |
+| Physical field access unavailable | Field accuracy and real-world impact remain unvalidated | Present expected outcomes, the live `/impact` figures and a labelled desktop demonstration; physical validation is pilot work | Preliminary |
+| Free Gemini key overloaded (503) or rate-limited (429) | Photo analysis fails during the measurement run or recording | Paid Gemini key before the run; recorded backup video | 25 Oct |
+| Supabase free project pauses after a week without activity | Live demo breaks while judges review it | Uptime monitor on `/api/health` (keyword check) | 25 Oct |
 | Problem statistics unsourced | M2 weak; risk of "fabricated" claims | BA collects cited sources only | 26 Oct |
 | Team roles unfilled | Submission requirement (Sec. 13.2) | Fill §6 table | 24 Oct |
 
@@ -285,7 +291,7 @@ Pilot data: Dhanmondi area, Dhaka (bbox 23.735,90.365 → 23.760,90.390). OSM ro
 | 8–9 | 24–25 Oct | Contractor after-photo + AI verifier; citizen confirm/dispute | A (headline) | **Done** (19 Oct) |
 | 10 | 26 Oct | Public portal (incl. money released vs withheld); contractor scorecards; audit page; EXIF strip; `/architecture` `/data` `/security` `/audit` | D, E | **Done** (19 Oct); plus `/model-card` |
 | 11 | 27 Oct | Deploy public URL; blur (stretch); polish | M5 | Deployed; blur not built (photos never public) |
-| 12 | 28 Oct | Field test in pilot area; measure KPIs | M7, D | |
+| 12 | 28 Oct | Measurement run on the live site; `/impact` figures into the KPI summary | M7, D | `/impact` built (21 Oct); run waits for the paid key |
 | 13–14 | 29–30 Oct | Record video per §5; 1-page summary; submission package | M1, M2, M4 | |
 | buffer | 31 Oct | **Submit** | | |
 
@@ -321,9 +327,9 @@ Pilot data: Dhanmondi area, Dhaka (bbox 23.735,90.365 → 23.760,90.390). OSM ro
 
 - [ ] All 7 mandatory preliminary items (§1a) visible in the video
 - [ ] Video ≤ 180 s and follows the 5 official segments in order
-- [ ] Every AI result in the video is live, on real input
+- [ ] Executed AI results are from actual live or labelled recorded requests; demo data and illustrative steps are identified
 - [ ] Bangla shown on screen
-- [ ] KPIs shown are measured (targets labelled as targets)
+- [ ] Expected outcomes, proposed targets and verified measurements are clearly distinguished
 - [ ] All 6 submission components (§6) complete
 - [ ] Every team role assigned to a named member
 - [ ] AI tool usage + any NRB help documented

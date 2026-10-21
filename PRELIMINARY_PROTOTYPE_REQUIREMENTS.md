@@ -118,6 +118,7 @@ The system shall record report creation, AI decisions, duplicate decisions, over
 8. Citizen confirmation or dispute.
 9. Public transparency dashboard and contractor summary.
 10. Architecture, data, security, and model-card pages.
+11. Impact page with expected outcomes and live KPIs, each with its sample size.
 
 ## 7. Acceptance Criteria
 
@@ -136,11 +137,13 @@ The prototype shall be accepted when a reviewer can:
 
 All AI results shown must be live or explicitly labelled as recorded test results. Hard-coded output must not be presented as live AI output.
 
-## 8. Required Measurements
+## 8. Impact and Evaluation
 
-The team shall measure and document issue classification accuracy, repair verification accuracy, duplicate merge rate, median time from submission to ranked issue, false-closure rate, audit-record completion rate, and AI provider success and fallback rates.
+For the preliminary submission, the team shall document potential impact using KPIs or expected outcomes, consistent with participant-guide Section 9.2. Physical field trials and measured model-accuracy figures are not prerequisites for the preliminary impact presentation. The current approach is a desktop prototype demonstration with field validation explicitly marked as planned.
 
-Measured results and future targets must be clearly separated.
+The evaluation plan shall define issue classification accuracy, repair verification accuracy, duplicate merge rate, median time from submission to ranked issue, false-closure rate, audit-record completion rate, and AI provider success and fallback rates. Actual measurements shall include their dataset or test conditions, sample size and failures. Automated software checks shall not be presented as model accuracy or real-world impact.
+
+Measured results, expected outcomes and future targets must be clearly separated. Unmeasured results shall be labelled as not measured. Live figures are computed from the system on the `/impact` page; see [Docs/KPI_SUMMARY.md](Docs/KPI_SUMMARY.md) for the measurement method.
 
 ## 9. Deliverables
 
@@ -148,10 +151,10 @@ Measured results and future targets must be clearly separated.
 - Setup and deployment documentation.
 - Requirements, architecture, data, privacy, and security documentation.
 - Model card and responsible-AI safeguards.
-- KPI measurement summary.
+- Impact summary with expected outcomes, planned KPIs and any verified measurements.
 - Preliminary demonstration video.
 - Participant guide and supporting submission materials.
 
 ## 10. Completion Definition
 
-The preliminary prototype is complete when the end-to-end accountability workflow operates successfully, the acceptance demonstration is reproducible, safeguards are documented, and measured results and known limitations are ready for presentation.
+The preliminary prototype is complete when the accountability workflow has a reproducible acceptance demonstration, safeguards and known limitations are documented, and potential impact is presented through expected outcomes or verified KPIs. A desktop or recorded demonstration shall identify sample data, demo locations and unexecuted steps clearly. Physical GPS validation, repair-pair evaluation and user field trials remain planned until supported by evidence.

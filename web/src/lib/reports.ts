@@ -159,7 +159,7 @@ export async function submitCitizenReport(input: ReportInput): Promise<ReportOut
   const device = describeDevice(input);
 
   if (duplicate.issueId) {
-    return mergeIntoIssue(duplicate.issueId, input, analysis, photoPath, device, {
+    return mergeIntoIssue({ ...duplicate, issueId: duplicate.issueId }, input, analysis, photoPath, device, {
       total_ms: budget.elapsed(),
       analysis_ms: analysisMs,
       duplicate_ms: duplicateMs,
@@ -293,13 +293,14 @@ async function findDuplicate(input: ReportInput, analysis: IssueAnalysis, image:
 }
 
 async function mergeIntoIssue(
-  issueId: number,
+  duplicate: DuplicateResult & { issueId: number },
   input: ReportInput,
   analysis: IssueAnalysis,
   photoPath: string,
   device: string,
   timing: { total_ms: number; analysis_ms: number; duplicate_ms: number },
 ): Promise<ReportOutcome> {
+  const { issueId } = duplicate;
   const { data: issue, error } = await db()
     .from("issues")
     .select("report_count, visual_class, created_at, severity_components")
@@ -345,7 +346,14 @@ async function mergeIntoIssue(
     action: "report_merged",
     entity: "issue",
     entityId: issueId,
-    payload: { report_count: reportCount, severity: effectiveSeverity, location_source: input.locationSource, timing },
+    payload: {
+      report_count: reportCount,
+      severity: effectiveSeverity,
+      location_source: input.locationSource,
+      timing,
+      duplicate_checks: duplicate.checks,
+      duplicate_check_failures: duplicate.failures,
+    },
   });
   return { kind: "merged", issueId };
 }

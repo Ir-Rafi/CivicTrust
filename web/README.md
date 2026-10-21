@@ -1,4 +1,4 @@
-# CivicTrust — prototype
+# CivicTrust: developer guide
 
 Citizens report civic issues with photos; AI classifies them and supports an explainable urgency
 score; officers assign work; repair checks or officer review control closure and payment eligibility.
@@ -15,7 +15,7 @@ Groq (primary bilingual text) + GLM (fallback) · Leaflet + OpenStreetMap.
 
 ## Setup
 
-Requires Node 22+ (`nvm use` reads `../.nvmrc`) and pnpm.
+Requires Node 24 (`nvm use` reads `../.nvmrc`) and pnpm.
 
 ```bash
 pnpm install
@@ -56,12 +56,16 @@ Roads and facilities support location context and severity scoring. Official war
 optional; until they are loaded, public statistics group issues by recorded OpenStreetMap area.
 The policy files are team-authored pilot rules, not official city regulations.
 
-### Measurements (requirements §8)
+### Measurements
 
 ```bash
-pnpm kpi [--since YYYY-MM-DD] [--json kpi.json]   # from the live database and audit log
-pnpm eval:photos <folder> [--json eval.json]       # accuracy on a labelled photo set; see the script header for the folder layout
+pnpm kpi [--since YYYY-MM-DD] [--json kpi.json]          # live KPIs from the database and audit log
+pnpm eval:photos <folder> [--interval-ms 15000] [--json eval.json]   # accuracy on a labelled photo set (layout in the script header)
 ```
+
+The `/impact` page shows the same KPIs as `pnpm kpi` (both use `src/lib/kpi.ts`), with sample
+sizes. Its default date window comes from the optional `KPI_SINCE` setting; `/impact?since=YYYY-MM-DD`
+overrides it. Method and wording: [`../Docs/KPI_SUMMARY.md`](../Docs/KPI_SUMMARY.md).
 
 ### Run
 
@@ -86,10 +90,27 @@ the server data. Supabase access and workflow decisions remain in server code.
 1. Vercel → **Add New → Project** → import `Ir-Rafi/CivicTrust` (the repo owner may need to install the Vercel GitHub app for this private repo).
 2. **Root Directory: `web`**. Framework, pnpm and build command are detected automatically.
 3. **Environment Variables** (Production + Preview), copied from `.env.local`, marked *Sensitive*:
-   `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `GEMINI_API_KEY`, `GEMINI_VISION_MODEL`, `GEMINI_EMBEDDING_MODEL`, `GLM_API_KEY`, `GLM_API_BASE`, `GLM_TEXT_MODEL`, `GROQ_API_KEY`, `GROQ_TEXT_MODEL`.
+   `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `GEMINI_API_KEY`, `GEMINI_VISION_MODEL`, `GEMINI_EMBEDDING_MODEL`, `GLM_API_KEY`, `GLM_API_BASE`, `GLM_TEXT_MODEL`, `GROQ_API_KEY`, `GROQ_TEXT_MODEL`, and optionally `KPI_SINCE`.
    Not needed on Vercel: `DATABASE_URL` and the `*_BACKUP` keys. Never add a `NEXT_PUBLIC_` prefix.
 4. **Settings → Functions → Region:** pick the one closest to the database (Singapore `sin1` for the current project).
 5. Deploy, then open `https://<your-app>.vercel.app/api/health`: the `configured` flags for Supabase, Gemini, Groq and GLM should be `true`, and `database.ok` should be `true`. These flags confirm configuration; use the test guide to verify provider calls and workflows.
+
+Environment variables apply only to deployments made after they are saved: redeploy after any change.
+
+**If the build fails on Vercel but passes locally** (for example a `next/font/google` error), build on
+your machine and upload the result with the Vercel CLI, logged in as a member of the project:
+
+```bash
+vercel link --yes --project <project>    # from the repo root
+vercel pull --yes --environment=production
+vercel build --prod
+vercel deploy --prebuilt --prod
+```
+
+**Keep the database awake.** Supabase pauses free projects after about a week without activity.
+Add an uptime monitor (for example UptimeRobot, *Keyword* type) on `/api/health` that alerts when
+`"database":{"ok":true` is missing. `/api/health` answers HTTP 200 even when the database is down,
+so a plain status-code check is not enough.
 
 The database is already hosted on Supabase; schema changes are applied with
 `pnpm exec supabase db push --db-url "$DATABASE_URL"`, not by Vercel.
@@ -118,7 +139,8 @@ pnpm test && pnpm typecheck && pnpm lint && pnpm build
 | `supabase/migrations/` | Schema, RLS, geo/RAG functions, photo bucket |
 | `data/policy/` | Pilot service policy, the RAG source for deadline citations |
 | `data/osm/` | Pilot-area OpenStreetMap extract (ODbL) |
-| `scripts/kpi.ts`, `scripts/eval-photos.ts` | Workflow measurements and labelled-photo AI evaluation |
+| `src/lib/kpi.ts`, `src/lib/kpi-math.ts`, `src/app/impact/` | Live KPIs shared by the `/impact` page and `pnpm kpi` |
+| `scripts/kpi.ts`, `scripts/eval-photos.ts` | KPI report in the terminal and labelled-photo AI evaluation |
 
 ## Security model (prototype)
 

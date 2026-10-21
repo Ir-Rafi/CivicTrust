@@ -4,6 +4,8 @@
 
 **Report it. AI ranks it. The city fixes it. AI checks the fix.**
 
+**Live demo:** <https://civictrust-five.vercel.app> (no login; choose a role)
+
 Citizens photograph potholes, road cracks, garbage piles, open drains and waterlogging. AI identifies the problem and supports an explainable urgency score. A ward officer assigns a contractor or NGO with a deadline, and repair evidence is checked before the issue is marked fixed and payment becomes eligible. A public portal shows issue progress and contractor outcomes by area.
 
 Entry for the **International AI Builders Congress 2026** — Competition 1 (Team-Built Product), **CivicSphere AI** domain, **Transparent Government** challenge (*"Open, accountable public-spending and service insight"*). The prototype demonstrates accountability through repair verification, a payment eligibility gate, tamper-evident audit records and public contractor scorecards.
@@ -14,10 +16,11 @@ Entry for the **International AI Builders Congress 2026** — Competition 1 (Tea
 | [`PROTOTYPE_PLAN.md`](PROTOTYPE_PLAN.md) | Plan mapped to the judging rubric: status, video script, timeline, risks, judge Q&A |
 | [`PRELIMINARY_PROTOTYPE_REQUIREMENTS.md`](PRELIMINARY_PROTOTYPE_REQUIREMENTS.md) | Requirements and acceptance criteria for the preliminary-round prototype |
 | [`web/README.md`](web/README.md) | Developer setup and code layout |
-| [`Docs/PRELIMINARY_CHECKLIST.md`](Docs/PRELIMINARY_CHECKLIST.md) | Everything still to do for the preliminary submission, with owners |
+| [`Docs/KPI_SUMMARY.md`](Docs/KPI_SUMMARY.md) | Expected outcomes, KPIs and how they are measured |
+| [`Docs/PRELIMINARY_CHECKLIST.md`](Docs/PRELIMINARY_CHECKLIST.md) | Remaining work for the preliminary submission, with owners |
+| [`Docs/SUBMISSION_FORM_ANSWERS.md`](Docs/SUBMISSION_FORM_ANSWERS.md) | Draft answers for the Cloudcamp submission form |
 | [`TEST.md`](TEST.md) | How to test and debug the prototype: scenarios per role, common problems, known issues |
 | [`AIBC_Participants_Guide_261015_143157.pdf`](AIBC_Participants_Guide_261015_143157.pdf) | Participant guide for the AI Builders Congress |
-| [`Docs/Idea-Overview.txt`](Docs/Idea-Overview.txt) | Original proposal (15 Oct) |
 
 ---
 
@@ -110,15 +113,20 @@ Road and facility data come from OpenStreetMap. Public figures use official ward
 | Officer workflow | Queue and map, local status/type/area filters, issue history, AI corrections, assignment, repair review and payment status |
 | Contractor and NGO | Assigned work, repair evidence, verification results and NGO offers to help |
 | Public transparency | Issue progress, activity log, area statistics, contractor scorecards and audit-chain verification |
-| Supporting pages and tools | Architecture, data and security pages; migrations, reference-data seeding, KPI and labelled-photo evaluation scripts |
+| Impact and measurement | `/impact` page with live KPIs and sample sizes; `pnpm kpi` and labelled-photo evaluation scripts |
+| Supporting pages and tools | Architecture, data, security and model-card pages; migrations and reference-data seeding |
 
 This is a preliminary prototype. Role switching uses demonstration personas, payment release changes a recorded status, and no bank transfer is made. Official ward boundaries, production authentication and city-wide deployment are outside the current demonstration setup.
 
-Use [`TEST.md`](TEST.md) for acceptance scenarios and the measurement scripts in [`web/README.md`](web/README.md) to produce evidence. Classification accuracy, repair accuracy and other performance claims require measured results from representative test data. Scope and remaining submission work are tracked in [`PROTOTYPE_PLAN.md`](PROTOTYPE_PLAN.md).
+Use [`TEST.md`](TEST.md) for acceptance scenarios. Measured figures appear on the `/impact` page with their sample sizes; the method is described in [`Docs/KPI_SUMMARY.md`](Docs/KPI_SUMMARY.md). Classification accuracy, repair accuracy and real-world impact are reported only once measured on representative data. Scope and remaining work are tracked in [`PROTOTYPE_PLAN.md`](PROTOTYPE_PLAN.md).
+
+## Hosting
+
+The app runs on Vercel in Singapore (`sin1`), next to the Supabase database in Singapore (`ap-southeast-1`), the closest Supabase region to Bangladesh. Bangladesh's Personal Data Protection Ordinance 2025 requires restricted data to stay in the country, so a real rollout moves the database to Bangladesh-hosted or self-hosted Postgres.
 
 ## Run it locally
 
-Requires Node 22+ and pnpm.
+Requires Node 24 (`nvm use` reads `.nvmrc`) and pnpm.
 
 ```bash
 cd web
