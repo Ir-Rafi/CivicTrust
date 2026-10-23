@@ -135,7 +135,8 @@ export async function computeKpis(since: string | null) {
     since,
     counts: { issues: issues.length, reports: reports.length, workOrders: orders.length, repairProofs: proofs.length, feedback: feedback.length },
     duplicateMerge: { merged, of: reports.length, pct: pct(merged, reports.length) },
-    triageMs: { n: timings.length, median: median(timings), p90: percentile(timings, 90) },
+    // samples: each run's time in ms, for the distribution chart on /impact
+    triageMs: { n: timings.length, median: median(timings), p90: percentile(timings, 90), samples: timings },
     falseClosure: { overturned: overturned.size, of: aiApprovedOrders.size, pct: pct(overturned.size, aiApprovedOrders.size) },
     paymentsBacked: { backed, of: released.length, pct: pct(backed, released.length) },
     officerCorrections: { corrected, of: issues.length, pct: pct(corrected, issues.length) },

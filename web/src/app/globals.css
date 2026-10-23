@@ -1226,3 +1226,125 @@ textarea.input-filled {
 .place-line strong {
   font-weight: 600;
 }
+
+/* ---------------- Impact charts (/impact) ----------------
+   Series colours are validated for colour-vision deficiency against the card surface in both
+   themes (blue / yellow / red, adjacent CVD ΔE >= 10). Text never takes a series colour. */
+.viz {
+  --viz-1: #2a78d6;
+  --viz-1-strong: #1c5cab;
+  --viz-2: #eda100;
+  --viz-3: #d03b3b;
+  --viz-surface: var(--md-surface-container);
+  --viz-track: rgba(121, 116, 126, 0.12);
+  --viz-cursor: rgba(121, 116, 126, 0.1);
+  --viz-grid: rgba(121, 116, 126, 0.18);
+  --viz-axis: rgba(121, 116, 126, 0.45);
+  --viz-ink: var(--md-on-surface);
+  --viz-ink-2: var(--md-on-surface-variant);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .viz {
+    --viz-1: #3987e5;
+    --viz-1-strong: #6da7ec;
+    --viz-2: #c98500;
+    --viz-track: rgba(202, 196, 208, 0.16);
+    --viz-cursor: rgba(202, 196, 208, 0.08);
+    --viz-grid: rgba(202, 196, 208, 0.12);
+    --viz-axis: rgba(202, 196, 208, 0.35);
+  }
+}
+:root[data-theme="dark"] .viz {
+  --viz-1: #3987e5;
+  --viz-1-strong: #6da7ec;
+  --viz-2: #c98500;
+  --viz-track: rgba(202, 196, 208, 0.16);
+  --viz-cursor: rgba(202, 196, 208, 0.08);
+  --viz-grid: rgba(202, 196, 208, 0.12);
+  --viz-axis: rgba(202, 196, 208, 0.35);
+}
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.viz-wide { grid-column: 1 / -1; }
+.viz-card { min-width: 0; }
+.viz-card-head { margin-bottom: 12px; }
+.viz-card-head .label-small { margin-top: 4px; }
+.viz-plot { width: 100%; min-width: 0; }
+.viz-plot svg { overflow: visible; }
+.viz-plot text { font-family: inherit; }
+/* No browser focus rings on the chart or its layers: the clicked entry gets .viz-selection instead. */
+.viz-plot svg:focus,
+.viz-plot svg :focus,
+.viz-plot .recharts-wrapper:focus { outline: none; }
+.viz-plot .recharts-surface { cursor: pointer; }
+.viz-selection { fill: none; stroke: var(--viz-ink); stroke-width: 1.5px; pointer-events: none; }
+.viz-cat { fill: var(--viz-ink); font-size: 12.5px; font-weight: 500; }
+.viz-cat-sub { fill: var(--viz-ink-2); font-size: 11px; }
+.viz-value { fill: var(--viz-ink); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.viz-value-muted { fill: var(--viz-ink-2); font-size: 11.5px; }
+.viz-legend {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+}
+.viz-legend button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--viz-ink);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+.viz-legend button:hover,
+.viz-legend button[aria-pressed="true"] { background: var(--viz-cursor); }
+.viz-legend button:focus-visible { outline: 2px solid var(--md-primary); outline-offset: 1px; }
+.viz-legend button.is-dim { opacity: 0.45; }
+.viz-swatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; display: inline-block; }
+.viz-tooltip {
+  min-width: 190px;
+  max-width: 280px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--md-surface-container-lowest);
+  border: 1px solid var(--md-outline-variant);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14);
+  color: var(--viz-ink);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+.viz-tooltip-title { font-weight: 600; margin-bottom: 6px; }
+.viz-tooltip-line { display: flex; align-items: center; gap: 8px; padding: 1px 0; }
+.viz-tooltip-label { flex: 1; color: var(--viz-ink-2); }
+.viz-tooltip-value { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.viz-tooltip-foot { margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--md-outline-variant); }
+.viz-figures { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 8px 28px; margin-bottom: 4px; }
+.viz-figures > div:not(.viz-figure-chip) { display: flex; flex-direction: column; }
+.viz-figure { font-size: 1.6rem; font-weight: 600; line-height: 1.1; color: var(--viz-ink); }
+.viz-figure-chip { margin-left: auto; padding-bottom: 4px; }
+.viz-empty {
+  display: grid;
+  place-items: center;
+  min-height: 160px;
+  border-radius: var(--radius-s);
+  background: var(--viz-track);
+}
+.viz-footnote { margin-top: 8px; }
+.viz-table-hint { grid-column: 1 / -1; margin-top: -8px; }
+@media (max-width: 900px) {
+  .viz-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .viz-legend button { transition: none; }
+}

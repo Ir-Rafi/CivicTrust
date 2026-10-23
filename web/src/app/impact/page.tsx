@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import { Suspense, type ReactNode } from "react";
+import { ImpactCharts, type ImpactChartsProps } from "@/components/impact/impact-charts";
 import { computeKpis, type Kpis } from "@/lib/kpi";
 import { KPI_MIN_SAMPLE, parseSince, sampleStatus } from "@/lib/kpi-math";
 import { dateOnly } from "@/lib/format";
@@ -55,6 +56,8 @@ async function Impact({ searchParams }: Pick<PageProps<"/impact">, "searchParams
         </div>
       </section>
 
+      <ImpactCharts {...chartProps(k, lang, tr)} />
+
       <Outcomes k={k} lang={lang} tr={tr} />
       <Reliability k={k} lang={lang} tr={tr} />
       <AuditDetail k={k} lang={lang} tr={tr} />
@@ -78,6 +81,108 @@ async function Impact({ searchParams }: Pick<PageProps<"/impact">, "searchParams
       </section>
     </div>
   );
+}
+
+/** The same figures as the tables below, shaped for the interactive charts. */
+function chartProps(k: Kpis, lang: Lang, tr: Tr): ImpactChartsProps {
+  const rate = (key: string, label: string, part: number, whole: number, pctValue: number | null, hint?: string) => ({
+    key,
+    label,
+    hint,
+    part,
+    whole,
+    pct: pctValue,
+    status: sampleStatus(whole),
+  });
+  const e = k.explanations;
+  const failedLabel = tr("Failed", "ব্যর্থ");
+  return {
+    lang,
+    copy: {
+      outcomesTitle: tr("Outcome KPIs", "ফলের মাপকাঠি"),
+      outcomesNote: tr("Live rate for each expected outcome. Hover a bar for counts and sample size.", "প্রতিটি প্রত্যাশিত ফলের সরাসরি হার। সংখ্যা আর নমুনার আকার দেখতে বারের ওপর রাখুন।"),
+      reliabilityTitle: tr("AI reliability by step", "ধাপ অনুযায়ী এআই-এর নির্ভরযোগ্যতা"),
+      reliabilityNote: tr("Share of runs handled by the main AI, by a backup or a person, or that failed.", "কত ভাগ কাজ মূল এআই করেছে, কত ভাগে বিকল্প বা মানুষ লেগেছে, আর কত ভাগ ব্যর্থ।"),
+      triageTitle: tr("Photo to ranked issue", "ছবি থেকে ক্রম পাওয়া সমস্যা"),
+      triageNote: tr("How long each report took from upload to a scored, ranked issue.", "আপলোড থেকে স্কোরসহ ক্রমে ওঠা পর্যন্ত প্রতিটি রিপোর্টে কত সময় লেগেছে।"),
+      auditTitle: tr("Audit coverage", "অডিট কভারেজ"),
+      auditNote: tr("Stored records with their entry in the tamper-evident log, by type.", "ধরন অনুযায়ী, যেসব রেকর্ডের এন্ট্রি পরিবর্তন-ধরা-পড়া লগে আছে।"),
+      legendPrimary: tr("Main AI", "মূল এআই"),
+      legendBackup: tr("Backup or person", "বিকল্প বা মানুষ"),
+      legendFailed: failedLabel,
+      legendLogged: tr("Logged", "লগ হয়েছে"),
+      legendMissing: tr("Missing", "নেই"),
+      noData: tr("No data yet", "এখনো ডেটা নেই"),
+      early: tr("Early data", "প্রাথমিক ডেটা"),
+      measured: tr("Measured", "মাপা হয়েছে"),
+      reports: tr("Reports", "রিপোর্ট"),
+      seconds: tr("s", "সে."),
+      median: tr("Median", "মধ্যমা"),
+      p90: "p90",
+      ofTotal: tr("of", "/"),
+      notYetRecorded: tr("Nothing recorded yet", "এখনো কিছু রেকর্ড হয়নি"),
+      tableHint: tr("The same figures are listed in the tables below.", "একই সংখ্যাগুলো নিচের টেবিলেও দেওয়া আছে।"),
+    },
+    rates: [
+      rate("merge", tr("Reports merged", "যুক্ত হওয়া রিপোর্ট"), k.duplicateMerge.merged, k.duplicateMerge.of, k.duplicateMerge.pct),
+      rate("closure", tr("False repair closures", "ভুল মেরামত বন্ধ"), k.falseClosure.overturned, k.falseClosure.of, k.falseClosure.pct, tr("lower is better", "যত কম তত ভালো")),
+      rate("payments", tr("Payments with approved repair", "অনুমোদিত মেরামতসহ টাকা ছাড়"), k.paymentsBacked.backed, k.paymentsBacked.of, k.paymentsBacked.pct),
+      rate("audit", tr("Records with audit entry", "অডিট এন্ট্রিসহ রেকর্ড"), k.auditCompletion.recorded, k.auditCompletion.of, k.auditCompletion.pct),
+      rate("corrections", tr("Issues corrected by officer", "কর্মকর্তার সংশোধিত সমস্যা"), k.officerCorrections.corrected, k.officerCorrections.of, k.officerCorrections.pct),
+    ],
+    reliability: [
+      {
+        key: "photo",
+        label: tr("Photo analysis", "ছবি বিশ্লেষণ"),
+        primary: k.photoAnalysis.ok,
+        backup: 0,
+        failed: k.photoAnalysis.failed,
+        names: { primary: tr("Answered by Gemini", "Gemini উত্তর দিয়েছে"), backup: null, failed: failedLabel },
+        status: sampleStatus(k.photoAnalysis.of),
+      },
+      {
+        key: "explain",
+        label: tr("Bangla/English reason", "বাংলা/ইংরেজি কারণ"),
+        primary: e.groq,
+        backup: e.glm,
+        failed: e.none,
+        names: { primary: "Groq", backup: tr("GLM (backup)", "GLM (বিকল্প)"), failed: tr("Neither answered", "কেউ উত্তর দেয়নি") },
+        status: sampleStatus(e.of),
+      },
+      {
+        key: "duplicate",
+        label: tr("Duplicate comparison", "ডুপ্লিকেট তুলনা"),
+        primary: k.duplicateCompare.of - k.duplicateCompare.failures,
+        backup: 0,
+        failed: k.duplicateCompare.failures,
+        names: { primary: tr("Compared", "তুলনা হয়েছে"), backup: null, failed: failedLabel },
+        status: sampleStatus(k.duplicateCompare.of),
+      },
+      {
+        key: "repair",
+        label: tr("Repair check", "মেরামত যাচাই"),
+        primary: k.repairAi.of - k.repairAi.failed,
+        backup: 0,
+        failed: k.repairAi.failed,
+        names: { primary: tr("Checked by Gemini", "Gemini যাচাই করেছে"), backup: null, failed: tr("Failed, sent to an officer", "ব্যর্থ, কর্মকর্তার কাছে") },
+        status: sampleStatus(k.repairAi.of),
+      },
+      {
+        key: "override",
+        label: tr("AI result kept", "এআই-এর ফল বহাল"),
+        primary: k.officerCorrections.of - k.officerCorrections.corrected,
+        backup: k.officerCorrections.corrected,
+        failed: 0,
+        names: { primary: tr("Kept as the AI judged", "এআই যেমন বলেছে"), backup: tr("Corrected by an officer", "কর্মকর্তা সংশোধন করেছেন"), failed: failedLabel },
+        status: sampleStatus(k.officerCorrections.of),
+      },
+    ],
+    triage: { samplesMs: k.triageMs.samples, medianMs: k.triageMs.median, p90Ms: k.triageMs.p90 },
+    audit: k.auditCompletion.detail.map((d) => {
+      const label = AUDIT_LABELS[d.record];
+      return { label: label ? tr(label[0], label[1]) : d.record, recorded: d.recorded, expected: d.expected };
+    }),
+  };
 }
 
 function Status({ n, lang, tr }: { n: number; lang: Lang; tr: Tr }) {
