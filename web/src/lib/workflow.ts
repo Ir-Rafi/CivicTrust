@@ -305,7 +305,7 @@ export async function submitRepairProof(input: z.input<typeof repairSchema>) {
   const distanceM = Number(distance ?? Number.POSITIVE_INFINITY);
   const samePlace = distanceM <= REPAIR_MAX_DISTANCE_M;
 
-  let ai: RepairChecks["ai"] & { reason: string } | null = null;
+  let ai: (RepairChecks["ai"] & { reason: string; model: string }) | null = null;
   let aiFailed = false;
   if (fresh && afterWorkOrder && samePlace) {
     try {
@@ -314,7 +314,7 @@ export async function submitRepairProof(input: z.input<typeof repairSchema>) {
       const before: ImageInput = { base64: Buffer.from(await blob.arrayBuffer()).toString("base64"), mimeType: blob.type || "image/jpeg" };
       const after: ImageInput = { base64: bytes.toString("base64"), mimeType: values.photo.type };
       const result = await verifyRepairPhotos(before, after, REPAIR_AI_TIMEOUT_MS);
-      ai = { same_location: result.same_location, issue_resolved: result.issue_resolved, confidence: result.confidence, reason: result.reason };
+      ai = { same_location: result.same_location, issue_resolved: result.issue_resolved, confidence: result.confidence, reason: result.reason, model: result.ai_model };
     } catch (e) {
       // The hard checks passed; an AI outage must not reject the crew's work. An officer decides.
       console.error("repair verification AI failed", e);

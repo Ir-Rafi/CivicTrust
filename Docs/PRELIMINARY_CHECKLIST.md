@@ -26,9 +26,11 @@ Sources: [`PRELIMINARY_PROTOTYPE_REQUIREMENTS.md`](../PRELIMINARY_PROTOTYPE_REQU
 - [x] Previous database project paused
 - [x] civictrust-five.vercel.app on the Singapore database with GLM enabled (Irfan)
 - [x] civictrust-eight.vercel.app deployed from the team's own Vercel account (Backend)
-- [ ] Paid Gemini key in `web/.env.local` and on both Vercel projects (Team lead)
+- [x] New AI keys in `web/.env.local`: Gemini key pool (6 working keys) with backup models, Groq key pool (2 keys), new GLM key (Backend)
+- [ ] New AI keys on both Vercel projects, then redeploy (Backend, Irfan)
 - [ ] Reset the database password and Supabase secret key, which were shared in chat; update `.env.local` and Vercel (Team lead)
-- [ ] Rotate the keys committed to git earlier: Gemini ×2, Groq ×2, GLM, AgentRouter (Team lead)
+- [ ] After both sites run on the new keys, delete the old keys at the providers: Gemini ×2 and Groq ×2 still work, plus the old GLM and AgentRouter keys (Team lead)
+- [ ] Optional: a Zhipu balance, or another text model, so the GLM backup works (`glm-4.7-flash` is the only free GLM model and is often overloaded)
 - [ ] Share the new settings privately with teammates who run the app locally (Team lead)
 - [ ] Uptime monitor on `/api/health` (keyword `"database":{"ok":true`) so the free database never pauses during judging (Backend)
 - [ ] Push all work to `main`, then redeploy both sites (Backend, Irfan)

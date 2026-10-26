@@ -46,6 +46,10 @@ async function ModelCard() {
               <li>
                 <strong>{en ? "Model" : "মডেল"}:</strong> Google Gemini <code>{m.vision}</code>
                 {en ? ", called with storage disabled; no training on our data." : ", স্টোরেজ বন্ধ রেখে; আমাদের ডেটায় কোনো প্রশিক্ষণ নয়।"}
+                {m.visionChain.length > 1 &&
+                  (en
+                    ? ` When it is overloaded, the backup ${m.visionChain.slice(1).join(", ")} answers instead; each result records which model produced it.`
+                    : ` এটি ব্যস্ত থাকলে বিকল্প ${m.visionChain.slice(1).join(", ")} উত্তর দেয়; প্রতিটি ফলে কোন মডেল দিয়েছে তা লেখা থাকে।`)}
               </li>
               <li>
                 <strong>{en ? "Input → output" : "ইনপুট → আউটপুট"}:</strong>{" "}

@@ -1,7 +1,8 @@
 import "server-only";
 import { GoogleGenAI } from "@google/genai";
 import type { z } from "zod";
-import { geminiEnv } from "@/lib/env";
+import { geminiEnv, geminiKeys, modelNames } from "@/lib/env";
+import { ProviderPool } from "@/lib/ai/provider-pool";
 import { toStrictJsonSchema } from "@/lib/ai/json-schema";
 import {
   duplicateCheckSchema,
@@ -15,13 +16,27 @@ import {
 // Gemini handles everything that needs eyes (M1 detect, M3 duplicate, M4 repair verify)
 // plus embeddings for the policy RAG. Requests are sent with store: false so photos
 // are not retained by the API for later retrieval.
+// Calls go through a key pool (GEMINI_API_KEYS) and, for vision, a model chain
+// (GEMINI_VISION_FALLBACK_MODELS) where the backup starts if the main model is slow
+// (GEMINI_HEDGE_MS): see provider-pool.ts. Each vision result records the model
+// that produced it.
 
 export type ImageInput = { base64: string; mimeType: string };
 
-let client: GoogleGenAI | undefined;
-function gemini(): GoogleGenAI {
-  client ??= new GoogleGenAI({ apiKey: geminiEnv().GEMINI_API_KEY });
-  return client;
+/** Which model actually answered (the main one, or a backup when it was overloaded). */
+export type WithModel<T> = T & { ai_model: string };
+
+const clients = new Map<string, GoogleGenAI>();
+function gemini(key: string): GoogleGenAI {
+  let c = clients.get(key);
+  if (!c) clients.set(key, (c = new GoogleGenAI({ apiKey: key })));
+  return c;
+}
+
+let pool: ProviderPool | undefined;
+function keyPool(): ProviderPool {
+  pool ??= new ProviderPool(geminiKeys());
+  return pool;
 }
 
 /**
@@ -35,11 +50,26 @@ async function visionJson<S extends z.ZodType>(opts: {
   prompt: string;
   images: ImageInput[];
   timeoutMs: number;
-}): Promise<z.infer<S>> {
+}): Promise<WithModel<z.infer<S>>> {
   if (opts.timeoutMs <= 0) throw new Error("Gemini skipped: no time left in the request budget");
-  const interaction = await gemini().interactions.create(
+  const { value, model } = await keyPool().hedged(
+    modelNames().visionChain,
+    Date.now() + opts.timeoutMs,
+    (key, model, timeoutMs) => visionOnce(key, model, timeoutMs, opts),
+    geminiEnv().GEMINI_HEDGE_MS,
+  );
+  return Object.assign({}, value as object, { ai_model: model }) as WithModel<z.infer<S>>;
+}
+
+async function visionOnce<S extends z.ZodType>(
+  key: string,
+  model: string,
+  timeoutMs: number,
+  opts: { schema: S; system: string; prompt: string; images: ImageInput[] },
+): Promise<z.infer<S>> {
+  const interaction = await gemini(key).interactions.create(
     {
-      model: geminiEnv().GEMINI_VISION_MODEL,
+      model,
       system_instruction: opts.system,
       input: [
         { type: "text", text: opts.prompt },
@@ -49,7 +79,7 @@ async function visionJson<S extends z.ZodType>(opts: {
       generation_config: { thinking_level: "low" },
       store: false,
     },
-    { timeout_ms: opts.timeoutMs, retries: { strategy: "none" } },
+    { timeout_ms: timeoutMs, retries: { strategy: "none" } },
   );
   if (!interaction.output_text) throw new Error("Gemini returned no output");
   return opts.schema.parse(JSON.parse(interaction.output_text));
@@ -63,7 +93,7 @@ Severity guide: minor = cosmetic, no hazard; moderate = degrades use or will wor
 severe = immediate hazard to pedestrians, rickshaws or vehicles, or blocks drainage.`;
 
 /** M1: classify issue type and visual severity from a citizen photo. */
-export function analyzeIssuePhoto(photo: ImageInput, timeoutMs: number): Promise<IssueAnalysis> {
+export function analyzeIssuePhoto(photo: ImageInput, timeoutMs: number): Promise<WithModel<IssueAnalysis>> {
   return visionJson({
     schema: issueAnalysisSchema,
     system: INSPECTOR_SYSTEM,
@@ -74,7 +104,7 @@ export function analyzeIssuePhoto(photo: ImageInput, timeoutMs: number): Promise
 }
 
 /** M3 (visual half): compare a new report with an existing nearby issue. */
-export function compareForDuplicate(existing: ImageInput, incoming: ImageInput, timeoutMs: number): Promise<DuplicateCheck> {
+export function compareForDuplicate(existing: ImageInput, incoming: ImageInput, timeoutMs: number): Promise<WithModel<DuplicateCheck>> {
   return visionJson({
     schema: duplicateCheckSchema,
     system: INSPECTOR_SYSTEM,
@@ -87,7 +117,7 @@ export function compareForDuplicate(existing: ImageInput, incoming: ImageInput, 
 }
 
 /** M4 (visual half): judge a contractor's after-photo against the original report. */
-export function verifyRepairPhotos(before: ImageInput, after: ImageInput, timeoutMs: number): Promise<RepairCheck> {
+export function verifyRepairPhotos(before: ImageInput, after: ImageInput, timeoutMs: number): Promise<WithModel<RepairCheck>> {
   return visionJson({
     schema: repairCheckSchema,
     system:
@@ -107,15 +137,17 @@ const EMBEDDING_TIMEOUT_MS = 10_000;
 
 /** Text embedding for the policy RAG, normalized (required for reduced dimensions). */
 export async function embedText(text: string, kind: "document" | "query"): Promise<number[]> {
-  const res = await gemini().models.embedContent({
-    model: geminiEnv().GEMINI_EMBEDDING_MODEL,
-    contents: text,
-    config: {
-      outputDimensionality: EMBEDDING_DIMS,
-      taskType: kind === "document" ? "RETRIEVAL_DOCUMENT" : "RETRIEVAL_QUERY",
-      abortSignal: AbortSignal.timeout(EMBEDDING_TIMEOUT_MS),
-    },
-  });
+  const { value: res } = await keyPool().run([geminiEnv().GEMINI_EMBEDDING_MODEL], Date.now() + EMBEDDING_TIMEOUT_MS, (key, model, timeoutMs) =>
+    gemini(key).models.embedContent({
+      model,
+      contents: text,
+      config: {
+        outputDimensionality: EMBEDDING_DIMS,
+        taskType: kind === "document" ? "RETRIEVAL_DOCUMENT" : "RETRIEVAL_QUERY",
+        abortSignal: AbortSignal.timeout(timeoutMs),
+      },
+    }),
+  );
   const values = res.embeddings?.[0]?.values;
   if (!values || values.length !== EMBEDDING_DIMS) throw new Error("Unexpected embedding response");
   const norm = Math.hypot(...values);

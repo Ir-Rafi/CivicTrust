@@ -97,6 +97,26 @@ the server data. Supabase access and workflow decisions remain in server code.
 
 Environment variables apply only to deployments made after they are saved: redeploy after any change.
 
+**Gemini key pool and backup models (optional).** Free Gemini keys often return `503 high demand`
+or `429` quota errors. The app can spread calls over several keys and fall back to other models:
+
+```bash
+# extra keys: commas only, no spaces
+GEMINI_API_KEYS=key2,key3
+# backup models, tried after GEMINI_VISION_MODEL
+GEMINI_VISION_FALLBACK_MODELS=gemini-3.1-flash-lite,gemini-3.5-flash
+# start the next model after this many ms without an answer
+GEMINI_HEDGE_MS=5000
+# extra Groq keys, used when a Groq key hits its rate limit
+GROQ_API_KEYS=key2
+```
+
+A key that hits its quota rests and the next key is used. The vision models start one after
+another, `GEMINI_HEDGE_MS` apart, each keeping the whole remaining time; the first answer wins
+and each result records the model that produced it (`ai_model`). Quota is per Google Cloud
+project, so extra keys only help when they come from different projects; Google's API terms do
+not allow getting around usage limits. `/api/health` shows the number of keys and the model order.
+
 **If the build fails on Vercel but passes locally** (for example a `next/font/google` error), build on
 your machine and upload the result with the Vercel CLI, logged in as a member of the project:
 

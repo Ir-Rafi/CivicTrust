@@ -195,7 +195,7 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
   (location map), go to another tab and come back. Both maps must show again. Cache Components
   keeps visited pages alive but hidden, and maps that don't handle that come back blank.
 - [ ] **F6** Fallbacks:
-  - With the Gemini quota used up or Gemini too slow (over 30 s), a citizen report shows *The AI
+  - When every configured Gemini model fails or none answers within 40 s, a citizen report shows *The AI
     is busy right now. Your report was not saved; please try again in a minute.* The terminal
     shows the reason (e.g. `429 RateLimitError`), and it is counted by `pnpm kpi`.
   - A repair whose location checks pass goes to the officer with *AI verification was unavailable*.
@@ -224,11 +224,11 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
 | Page reloads endlessly (terminal fills with `GET /citizen` and *Suspense boundary* errors) | Tailwind scanning generated files (kept off by `source("..")` in `globals.css`), or a stale dev cache from before that fix | Stop `pnpm dev`, run `rm -rf web/.next/dev`, start again; close stale tabs |
 | *Couldn't get GPS location* on a phone | `http://` LAN link | Use the ngrok `https://` link |
 | GPS shows ±100 m or more | Laptop Wi-Fi location | Use a phone outdoors, or a demo location |
-| Report says *The AI is busy right now* | Gemini's free-tier limit (`429`), *high demand* (`503`), or a response over 30 s | Wait and retry, or use a paid key |
+| Report says *The AI is busy right now* | Every Gemini model in the chain failed (`429` quota, `503` *high demand*) or none answered within 40 s | Wait and retry; add keys to `GEMINI_API_KEYS` or models to `GEMINI_VISION_FALLBACK_MODELS` (see `web/README.md`) |
 | `/api/health` shows `"database": {"ok": false}` or *fetch failed* | The Supabase project is paused (free plan, about a week without activity) or the URL is wrong | Restore the project in the Supabase dashboard; check `SUPABASE_URL` |
 | Your push isn't on the live site (Vercel says *Deployment was blocked*) | Vercel's free plan only deploys commits by the account owner | The owner redeploys (see [known issue 1](#known-issues)) |
 | Vercel build fails with a `next/font/google` error but `pnpm build` passes locally | Vercel's build machine | Build locally and upload with `vercel build` and `vercel deploy --prebuilt --prod` (see `web/README.md`) |
-| Report takes over 30 s | Gemini response time (30–78 s seen) | Retry; on Vercel the limit is 60 s |
+| Report takes over 20 s | Gemini is under heavy load; the backup models start 5 s apart (`GEMINI_HEDGE_MS`) | Retry later; `/api/health` shows the model order and number of keys |
 | Map shows a pin but no place name, or only the road type | The place-name lookup (OpenStreetMap Nominatim) was slow or unreachable; the form falls back to the pilot road data | Retry; check the terminal for `reverse geocode failed` |
 | Repair always rejected from your desk | You are more than 15 m from the issue (correct) | Test approval on site (C2) |
 | No confirm/dispute buttons | Issue isn't Fixed, or you aren't the citizen role | — |

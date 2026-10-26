@@ -1,5 +1,5 @@
 import { connection } from "next/server";
-import { envStatus } from "@/lib/env";
+import { envStatus, geminiKeys, groqKeys, modelNames } from "@/lib/env";
 import { db } from "@/lib/supabase/server";
 
 /** Setup check: which integrations are configured and whether the database answers. */
@@ -21,5 +21,11 @@ export async function GET() {
       database = { ok: false, error: e instanceof Error ? e.message : String(e) };
     }
   }
-  return Response.json({ configured, database });
+  // How many Gemini keys are in the pool and the vision model order; never the keys themselves.
+  const ai = {
+    geminiKeys: configured.gemini ? geminiKeys().length : 0,
+    groqKeys: configured.groq ? groqKeys().length : 0,
+    visionModels: modelNames().visionChain,
+  };
+  return Response.json({ configured, database, ai });
 }

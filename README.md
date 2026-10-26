@@ -162,7 +162,7 @@ Declared as the Congress rules require.
 | Tool | Used for |
 |---|---|
 | Google Gemini (`gemini-3.8-flash`, `gemini-embedding-001`) | In the product: photo analysis, duplicate check, repair verification, policy search |
-| Groq (`openai/gpt-oss-120b`), GLM (`glm-4.5-flash`, fallback) | In the product: one-line Bangla/English explanations from computed facts |
+| Groq (`openai/gpt-oss-120b`), GLM (`glm-4.7-flash`, fallback) | In the product: one-line Bangla/English explanations from computed facts |
 | OpenStreetMap Nominatim | In the product: road and area names for a location (not AI) |
 | Claude Code (Anthropic) | In development: writing and reviewing code, tests, database migrations and documentation, with team review |
 

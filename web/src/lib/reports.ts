@@ -48,7 +48,9 @@ export class AiBusyError extends Error {}
 // Time budget. The report page allows 60 s (maxDuration); 50 s for AI calls leaves room for the
 // upload, the database writes and the redirect. Each step gets its cap or what is left.
 const REPORT_BUDGET_MS = 50_000;
-const ANALYSIS_TIMEOUT_MS = 30_000;
+// Under heavy Gemini load every model can take over 30 s; a saved report with a skipped duplicate
+// check (the officer can still merge it) is better than "AI busy". The explanation keeps its reserve.
+const ANALYSIS_TIMEOUT_MS = 40_000;
 const DUPLICATE_TIMEOUT_MS = 12_000;
 /** Kept back from duplicate checks so the explanation still has time. */
 const EXPLANATION_RESERVE_MS = 8_000;

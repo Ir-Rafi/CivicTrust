@@ -250,7 +250,7 @@ Check: 3–5 members · ≥1 woman (bonus) · all AI tool usage documented · NR
 | Backend | Next.js route handlers / server actions; database reachable only from server code |
 | Data | Supabase (Singapore): Postgres + PostGIS + pgvector, Storage (private photo bucket) |
 | AI — vision + embeddings | **Gemini** `gemini-3.8-flash`: issue detection M1, duplicate check M3, repair verification M4, strict JSON; `gemini-embedding-001` (768-d) for policy RAG |
-| AI — text | **Groq** `openai/gpt-oss-120b` (primary), strict JSON: Bangla/English explanations, officer copilot. **GLM** `glm-4.5-flash` is the automatic fallback |
+| AI — text | **Groq** `openai/gpt-oss-120b` (primary), strict JSON: Bangla/English explanations, officer copilot. **GLM** `glm-4.7-flash` is the automatic fallback |
 | Access | No login. Role + language cookies; database closed to the browser by row-level security |
 | Maps | Leaflet + OpenStreetMap |
 | Deploy | Vercel (`sin1`) + Supabase (public URL) |
