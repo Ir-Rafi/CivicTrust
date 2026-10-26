@@ -79,6 +79,11 @@ export class ProviderPool {
     return this.keys.length;
   }
 
+  private isResting(ids: string[]): boolean {
+    const t = this.now();
+    return ids.some((id) => (this.restingUntil.get(id) ?? 0) > t);
+  }
+
   /** Items that are not resting come first; resting ones stay as a last resort. Order is otherwise kept. */
   private ready<T>(items: T[], ids: (item: T) => string[]): T[] {
     const t = this.now();
@@ -95,6 +100,7 @@ export class ProviderPool {
     deadlineMs: number,
     call: (key: string, model: string, timeoutMs: number) => Promise<T>,
     minAttemptMs = 1500,
+    { skipRestingKeys = false }: { skipRestingKeys?: boolean } = {},
   ): Promise<{ value: T; model: string; keyIndex: number; attempts: Attempt[] }> {
     const attempts: Attempt[] = [];
     const start = this.cursor++ % this.keys.length;
@@ -103,7 +109,11 @@ export class ProviderPool {
     const chain = this.ready(models, (m) => [`model:${m}`]);
     for (const [position, model] of chain.entries()) {
       // A key rests either for every model (project problem) or only for this model (quota is per model).
-      for (const { key, index } of this.ready(rotated, (k) => [`key:${k.index}`, `key:${k.index}:${model}`])) {
+      const keyIds = (k: { index: number }) => [`key:${k.index}`, `key:${k.index}:${model}`];
+      // With other models to fall back on, keys known to be out of quota for this model are skipped
+      // instead of being tried again on every call; otherwise they stay as a last resort.
+      const keys = skipRestingKeys ? rotated.filter((k) => !this.isResting(keyIds(k))) : this.ready(rotated, keyIds);
+      for (const { key, index } of keys) {
         const left = deadlineMs - this.now();
         if (left < minAttemptMs) throw new PoolExhaustedError(attempts);
         // While a backup model remains, this one gets an even share of the time, so a model that
@@ -165,7 +175,7 @@ export class ProviderPool {
         const model = order[next++];
         startedAt.set(model, this.now());
         running.add(model);
-        this.run([model], deadlineMs, call, minAttemptMs).then(
+        this.run([model], deadlineMs, call, minAttemptMs, { skipRestingKeys: order.length > 1 }).then(
           (result) => {
             running.delete(model);
             if (done) return;

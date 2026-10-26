@@ -224,6 +224,22 @@ test("hedged: when every model is briefly busy, the round is repeated while time
   assert.equal(result.model, "m1");
 });
 
+test("hedged: keys out of quota for a model are skipped while another model can answer", async () => {
+  const pool = new ProviderPool(["k0", "k1", "k2"]);
+  const tried: string[] = [];
+  const call = async (key: string, model: string) => {
+    tried.push(`${key}/${model}`);
+    if (model === "main") throw fail(429, "20 requests per day. Please retry in 10h0m0s");
+    return model;
+  };
+  await pool.hedged(["main", "backup"], Date.now() + 5_000, call, 1_000);
+  assert.equal(tried.filter((c) => c.endsWith("/main")).length, 3, "first call learns that every key is out of quota");
+  tried.length = 0;
+  const result = await pool.hedged(["main", "backup"], Date.now() + 5_000, call, 1_000);
+  assert.equal(result.model, "backup");
+  assert.equal(tried.filter((c) => c.endsWith("/main")).length, 0, "the next call does not try those keys again");
+});
+
 test("hedged: when every model fails, the last error is thrown", async () => {
   const pool = new ProviderPool(["k0"]);
   await assert.rejects(
