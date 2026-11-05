@@ -31,6 +31,7 @@ const en = {
     public: "Where each problem is, whether it is assigned or fixed, a live update log, and contractor scorecards. No login.",
   },
   nav: {
+    docs: "Docs",
     architecture: "Architecture",
     data: "Data",
     security: "Security",
@@ -411,6 +412,7 @@ const bn: Dict = {
     public: "কোন সমস্যা কোথায়, দায়িত্ব দেওয়া হয়েছে না মেরামত হয়েছে, সর্বশেষ আপডেট আর ঠিকাদার স্কোরকার্ড। লগইন লাগে না।",
   },
   nav: {
+    docs: "ডকস",
     architecture: "আর্কিটেকচার",
     data: "ডেটা",
     security: "নিরাপত্তা",

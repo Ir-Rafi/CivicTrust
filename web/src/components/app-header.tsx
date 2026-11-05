@@ -58,6 +58,9 @@ export async function AppFooter() {
           </div>
           <ul style={{ listStyle: "none", fontSize: "0.8rem", lineHeight: 2 }}>
             <li>
+              <Link href="/docs">{t.nav.docs}</Link>
+            </li>
+            <li>
               <Link href="/architecture">{t.nav.architecture}</Link>
             </li>
             <li>

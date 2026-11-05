@@ -1,0 +1,42 @@
+[
+  {
+    "date": "2026-11-05",
+    "en": "Live /docs page: pitch, technical documentation and live system figures in one place.",
+    "bn": "লাইভ /docs পেজ: পিচ, কারিগরি ডকুমেন্টেশন আর সিস্টেমের লাইভ তথ্য এক জায়গায়।"
+  },
+  {
+    "date": "2026-10-26",
+    "en": "AI key pools with per-model quota handling, backup vision models and retry rounds.",
+    "bn": "এআই কী-পুল, প্রতিটি মডেলের কোটা আলাদা হিসাব, বিকল্প ভিশন মডেল আর আবার চেষ্টার ব্যবস্থা।"
+  },
+  {
+    "date": "2026-10-23",
+    "en": "Interactive charts on the /impact page.",
+    "bn": "/impact পেজে ইন্টারঅ্যাক্টিভ চার্ট।"
+  },
+  {
+    "date": "2026-10-21",
+    "en": "Live /impact KPIs computed from the database and audit log.",
+    "bn": "ডেটাবেস আর অডিট লগ থেকে হিসাব করা লাইভ /impact KPI।"
+  },
+  {
+    "date": "2026-10-19",
+    "en": "Public tracker and update log, truncate-proof audit log, precise GPS map with manual location, model card, dark mode, and the move to the Singapore database.",
+    "bn": "পাবলিক ট্র্যাকার ও আপডেট লগ, মোছা যায় না এমন অডিট লগ, নিখুঁত জিপিএস ম্যাপ ও হাতে লোকেশন বাছাই, মডেল কার্ড, ডার্ক মোড, আর সিঙ্গাপুরের ডেটাবেসে স্থানান্তর।"
+  },
+  {
+    "date": "2026-10-18",
+    "en": "Full workflow: officer assignment, contractor proof and AI repair verification; Groq as the main text AI with GLM as backup; natural Bangla explanations; new interface.",
+    "bn": "পুরো কাজের প্রবাহ: কর্মকর্তার নিয়োগ, ঠিকাদারের প্রমাণ আর এআই দিয়ে মেরামত যাচাই; মূল টেক্সট এআই Groq, বিকল্প GLM; স্বাভাবিক বাংলা ব্যাখ্যা; নতুন ইন্টারফেস।"
+  },
+  {
+    "date": "2026-10-17",
+    "en": "First prototype: Next.js app, Supabase schema, AI layer, citizen report flow and CI.",
+    "bn": "প্রথম প্রোটোটাইপ: Next.js অ্যাপ, Supabase স্কিমা, এআই স্তর, নাগরিকের রিপোর্ট প্রবাহ আর CI।"
+  },
+  {
+    "date": "2026-10-15",
+    "en": "Project started.",
+    "bn": "প্রকল্প শুরু।"
+  }
+]
