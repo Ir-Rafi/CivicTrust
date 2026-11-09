@@ -2,7 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 import { verifyRepairPhotos, type ImageInput } from "@/lib/ai/gemini";
-import { embedText } from "@/lib/ai/gemini";
+import { searchPilotPolicy } from "@/lib/policy";
 import { audit } from "@/lib/audit";
 import { MAX_PHOTO_AGE_MINUTES, REPAIR_MAX_DISTANCE_M } from "@/lib/geo";
 import { decideRepairVerdict, type RepairChecks } from "@/lib/repair-verdict";
@@ -24,6 +24,8 @@ export type QueueFilters = {
   area?: string;
   limit?: number;
   offset?: number;
+  minSeverity?: number;
+  excludeRejected?: boolean;
 };
 
 export type OfficerQueueItem = {
@@ -62,6 +64,8 @@ export async function listOfficerQueue(filters: QueueFilters = {}): Promise<Offi
   if (filters.issueType) query = query.eq("issue_type", filters.issueType);
   if (filters.wardId) query = query.eq("ward_id", filters.wardId);
   if (filters.area) query = query.eq("area_en", filters.area);
+  if (filters.minSeverity !== undefined) query = query.gte("severity", filters.minSeverity);
+  if (filters.excludeRejected) query = query.neq("status", "rejected");
   const { data, error } = await query;
   if (error) throw new Error(`listOfficerQueue: ${error.message}`);
   return (data ?? []) as OfficerQueueItem[];
@@ -129,13 +133,8 @@ async function deadlineBasis(severity: number) {
   const local = deadlineHoursFor(severity);
   try {
     const query = `repair deadline for severity ${severity} (${local.band})`;
-    const embedding = await embedText(query, "query");
-    const { data, error } = await db().rpc("match_policy_chunks", {
-      query_embedding: JSON.stringify(embedding),
-      match_count: 1,
-    });
-    if (!error && data?.[0]) {
-      const match = data[0] as { id: number; source: string; title: string; content: string; similarity: number };
+    const [match] = await searchPilotPolicy(query, 1);
+    if (match) {
       return {
         band: local.band,
         hours: local.hours,

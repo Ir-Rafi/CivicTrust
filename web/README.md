@@ -69,6 +69,10 @@ overrides it. Method and wording: [`../Docs/KPI_SUMMARY.md`](../Docs/KPI_SUMMARY
 
 ### Run
 
+The read-only MCP endpoint is `/api/mcp`. Configure a separate `MCP_AUTH_TOKEN`, start the app,
+then run `pnpm smoke:mcp`. Tool inventory, client setup, access limits and deployment instructions:
+[`../Docs/MCP_GUIDE.md`](../Docs/MCP_GUIDE.md).
+
 ```bash
 pnpm dev            # http://localhost:3000
 curl localhost:3000/api/health   # shows which integrations are configured
@@ -155,6 +159,9 @@ pnpm test && pnpm typecheck && pnpm lint && pnpm build
 | `src/components/officer/officer-queue.tsx`, `src/lib/officer-queue.ts` | Local queue/map filters and shareable URL state |
 | `src/lib/public-log.ts`, `src/lib/public-log-rules.ts` | Public issue progress and activity-log projection without private fields |
 | `src/lib/audit.ts` | Append to the hash-chained audit log |
+| `src/lib/mcp/`, `src/app/api/mcp/route.ts` | Read-only MCP tool contracts, service adapters, authenticated Streamable HTTP and protocol tests |
+| `src/lib/policy.ts` | Shared policy retrieval for deadlines and MCP |
+| `scripts/smoke-mcp.ts` | Official SDK client exercising the real MCP endpoint |
 | `src/lib/session.ts`, `src/app/actions/session.ts` | Role switcher + language cookie (no login, by design) |
 | `supabase/migrations/` | Schema, RLS, geo/RAG functions, photo bucket |
 | `data/policy/` | Pilot service policy, the RAG source for deadline citations |

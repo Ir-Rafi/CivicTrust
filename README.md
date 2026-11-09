@@ -17,6 +17,7 @@ Entry for the **International AI Builders Congress 2026** — Competition 1 (Tea
 | [`PRELIMINARY_PROTOTYPE_REQUIREMENTS.md`](PRELIMINARY_PROTOTYPE_REQUIREMENTS.md) | Requirements and acceptance criteria for the preliminary-round prototype |
 | [`web/README.md`](web/README.md) | Developer setup and code layout |
 | [`Docs/KPI_SUMMARY.md`](Docs/KPI_SUMMARY.md) | Expected outcomes, KPIs and how they are measured |
+| [`Docs/MCP_GUIDE.md`](Docs/MCP_GUIDE.md) | Six read-only MCP tools, client setup, verification and submission evidence |
 | [`Docs/PRELIMINARY_CHECKLIST.md`](Docs/PRELIMINARY_CHECKLIST.md) | Remaining work for the preliminary submission, with owners |
 | [`Docs/SUBMISSION_FORM_ANSWERS.md`](Docs/SUBMISSION_FORM_ANSWERS.md) | Draft answers for the Cloudcamp submission form |
 | [`TEST.md`](TEST.md) | How to test and debug the prototype: scenarios per role, common problems, known issues |
@@ -67,6 +68,7 @@ flowchart TB
         Actions["Server actions<br/>Demo-role checks and input validation"]
         Workflow["Report and duplicate processing · severity formula<br/>Assignment and policy deadlines · repair review<br/>Payment gate · citizen feedback · public views"]
         Actions --> Workflow
+        MCP["MCP endpoint /api/mcp<br/>Bearer authentication · validated read-only tools"] --> Workflow
     end
 
     subgraph AI["AI providers"]
@@ -83,6 +85,7 @@ flowchart TB
     Policy["Team-authored pilot service policy"]
 
     UI <-->|"Server requests and results"| Actions
+    Assistant["MCP client / AI assistant"] <-->|"Streamable HTTP"| MCP
     Workflow <--> Gemini
     Workflow <--> Text
     Workflow <--> DB
@@ -115,6 +118,7 @@ Road and facility data come from OpenStreetMap. Public figures use official ward
 | Public transparency | Issue progress, activity log, area statistics, contractor scorecards and audit-chain verification |
 | Impact and measurement | `/impact` page with live KPIs and sample sizes; `pnpm kpi` and labelled-photo evaluation scripts |
 | Supporting pages and tools | Architecture, data, security and model-card pages; migrations and reference-data seeding |
+| MCP integration | Six read-only tools over authenticated Streamable HTTP; shared backend functions and an SDK smoke client. Deployment and assistant recording are separate verification steps. |
 
 This is a preliminary prototype. Role switching uses demonstration personas, payment release changes a recorded status, and no bank transfer is made. Official ward boundaries, production authentication and city-wide deployment are outside the current demonstration setup.
 

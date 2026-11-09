@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "civictrust": {
+      "type": "http",
+      "url": "${MCP_URL:-http://127.0.0.1:3000/api/mcp}",
+      "headers": {
+        "Authorization": "Bearer ${MCP_AUTH_TOKEN}"
+      }
+    }
+  }
+}

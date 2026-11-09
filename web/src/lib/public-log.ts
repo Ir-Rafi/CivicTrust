@@ -68,13 +68,15 @@ function placeOf(row: Pick<IssueRow, "road_name" | "area_en" | "area_bn" | "seve
 }
 
 /** Every public issue, newest first, with how far it has got. */
-export async function listPublicIssues(limit = 50): Promise<PublicIssue[]> {
-  const { data, error } = await db()
+export async function listPublicIssues(limit = 50, issueId?: number): Promise<PublicIssue[]> {
+  let query = db()
     .from("issues")
     .select(ISSUE_COLUMNS)
     .neq("status", "rejected")
     .order("created_at", { ascending: false })
     .limit(limit);
+  if (issueId !== undefined) query = query.eq("id", issueId);
+  const { data, error } = await query;
   if (error) throw new Error(`public issues: ${error.message}`);
   return ((data ?? []) as unknown as IssueRow[]).flatMap((row) => {
     const stage = publicStage(row.status);

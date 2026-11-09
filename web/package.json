@@ -15,12 +15,14 @@
     "seed:policy": "tsx --env-file=.env.local scripts/embed-policy.ts",
     "test": "tsx --test \"src/**/*.test.ts\"",
     "smoke:ai": "tsx --conditions=react-server --env-file=.env.local scripts/smoke-ai.ts",
+    "smoke:mcp": "tsx --env-file=.env.local scripts/smoke-mcp.ts",
     "backfill:areas": "tsx --conditions=react-server --env-file=.env.local scripts/backfill-areas.ts",
     "kpi": "tsx --conditions=react-server --env-file=.env.local scripts/kpi.ts",
     "eval:photos": "tsx --conditions=react-server --env-file=.env.local scripts/eval-photos.ts"
   },
   "dependencies": {
     "@google/genai": "^2.30.0",
+    "@modelcontextprotocol/sdk": "1.32.2",
     "@supabase/supabase-js": "^2.118.0",
     "clsx": "^2.1.1",
     "exifr": "^7.1.3",

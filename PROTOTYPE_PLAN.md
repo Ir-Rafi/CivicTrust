@@ -132,7 +132,7 @@ Rubric columns: A Innovation · B Technical · C Business · D Scale/Impact · E
 | Heatmap, overdue alerts | C | |
 | NGO claim board + officer approval | D | Jobs/societal benefit story |
 | Open311 (GeoReport v2) compatible API | D | Plug into cities worldwide |
-| MCP server exposing CivicTrust tools to AI assistants | B | MCP is a named preferred capability |
+| MCP server exposing CivicTrust tools to AI assistants | B | Implemented: six read-only tools at `/api/mcp`; see `Docs/MCP_GUIDE.md`. Hosted deployment and assistant demonstration must be verified separately. |
 
 ### Roadmap only (P2)
 Phone-OTP login and per-user permissions, SMS gateway, FCM push, AI weekly ward summary, directions, multi-city tenancy.
