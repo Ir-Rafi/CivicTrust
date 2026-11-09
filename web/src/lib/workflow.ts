@@ -20,7 +20,7 @@ export type QueueFilters = {
   status?: string;
   issueType?: IssueType;
   wardId?: number;
-  /** OpenStreetMap area name in English (issues.area_en), e.g. "Lalmatia". */
+  /** OpenStreetMap area name in English (issues.area_en), e.g. "Lalmatia". Matched whole, ignoring case. */
   area?: string;
   limit?: number;
   offset?: number;
@@ -63,7 +63,8 @@ export async function listOfficerQueue(filters: QueueFilters = {}): Promise<Offi
   if (filters.status) query = query.eq("status", filters.status);
   if (filters.issueType) query = query.eq("issue_type", filters.issueType);
   if (filters.wardId) query = query.eq("ward_id", filters.wardId);
-  if (filters.area) query = query.eq("area_en", filters.area);
+  // ILIKE without wildcards is a case-insensitive exact match; escape the pattern characters.
+  if (filters.area) query = query.ilike("area_en", filters.area.replace(/[\\%_]/g, "\\$&"));
   if (filters.minSeverity !== undefined) query = query.gte("severity", filters.minSeverity);
   if (filters.excludeRejected) query = query.neq("status", "rejected");
   const { data, error } = await query;

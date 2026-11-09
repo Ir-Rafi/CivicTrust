@@ -69,6 +69,19 @@ Import from `src/app/audit/actions.ts`:
 
 The chain status returns the total number of records and the first broken record ID, or `null` when the chain is intact. Officers get full entries; every other role gets citizen names replaced with "Citizen" and comments hidden.
 
+## MCP endpoint
+
+`POST /api/mcp` (`src/app/api/mcp/route.ts`) is a read-only MCP server over Streamable HTTP for AI assistants. It is separate from the server actions above and from the demo-role cookie:
+
+- Authentication: `Authorization: Bearer <MCP_AUTH_TOKEN>`. Without a token of at least 32 characters configured, it returns 503; a missing or wrong token returns 401. Requests that send an `Origin` header must match `MCP_ALLOWED_ORIGINS`.
+- Stateless JSON responses only: `GET`, `DELETE` and `OPTIONS` return 405. Bodies over 16 KB are rejected; each server process allows 60 requests per minute and 4 at once.
+- Tools: `list_issues`, `get_issue_timeline`, `search_repair_policy`, `get_contractor_scorecards`, `get_impact_summary`, `verify_audit_chain`. Inputs and outputs are Zod schemas in `src/lib/mcp/contracts.ts`; the output schemas strip every unlisted field, so no coordinates, photos, names, comments, costs or AI internals are returned.
+- Adapters in `src/lib/mcp/services.ts` reuse `listOfficerQueue` (with `minSeverity` and `excludeRejected`), `listPublicIssues`, `listIssueHistory` filtered through `publicEvent`, `searchPilotPolicy` (`src/lib/policy.ts`, shared with work-order deadline citations), `listContractorScorecards`, `computeKpis` and `verifyAuditChain`. No tool writes to the database or the audit log.
+- `list_issues` matches `area` as a whole name, ignoring case (`lalmatia` finds `Lalmatia`).
+- Tool errors return an `isError` result. An unknown or non-public issue ID gets a specific "not found" message; any other failure gets a generic message, so raw database or provider errors are never sent to the client.
+
+Setup, client configuration and verification: [`../Docs/MCP_GUIDE.md`](../Docs/MCP_GUIDE.md).
+
 ## Database migration
 
 `supabase/migrations/20261018000000_preliminary_workflow.sql` adds:

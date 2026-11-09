@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { LATEST_PROTOCOL_VERSION } from "@modelcontextprotocol/sdk/types.js";
-import { inputs, type McpServices } from "./contracts";
+import { inputs, McpToolError, type McpServices } from "./contracts";
 import { createMcpHandler } from "./http";
 
 const TOKEN = "test-only-token-not-a-real-secret-123456789";
@@ -104,6 +104,15 @@ test("service errors and invalid output never expose raw database errors or part
     assert.equal(json.result.isError, true);
     assert.equal(JSON.stringify(json).includes(SECRET), false);
   }
+});
+
+test("client-safe tool errors such as an unknown issue reach the assistant with their message", async () => {
+  const services = fixtures();
+  services.get_issue_timeline = async ({ issue_id }) => { throw new McpToolError(`Issue ${issue_id} was not found or is not public.`); };
+  const handle = createMcpHandler(services, () => ({ token: TOKEN }));
+  const json = await (await handle(request(call("get_issue_timeline", { issue_id: 999 })))).json();
+  assert.equal(json.result.isError, true);
+  assert.equal(json.result.content[0].text, "Issue 999 was not found or is not public.");
 });
 
 test("transport rejects malformed JSON, oversized bodies and unsupported protocol versions", async () => {

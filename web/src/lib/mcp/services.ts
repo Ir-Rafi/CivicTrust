@@ -5,7 +5,7 @@ import { publicEvent } from "@/lib/public-log-rules";
 import { searchPilotPolicy } from "@/lib/policy";
 import { deadlineHoursFor } from "@/lib/severity";
 import { listContractorScorecards, listIssueHistory, listOfficerQueue, verifyAuditChain } from "@/lib/workflow";
-import type { McpServices } from "./contracts";
+import { McpToolError, type McpServices } from "./contracts";
 
 export const civicTrustServices: McpServices = {
   async list_issues({ area, status, issue_type, min_severity, limit, offset }) {
@@ -15,7 +15,7 @@ export const civicTrustServices: McpServices = {
   },
   async get_issue_timeline({ issue_id, limit }) {
     const [issue] = await listPublicIssues(1, issue_id);
-    if (!issue) throw new Error("Public issue not found");
+    if (!issue) throw new McpToolError(`Issue ${issue_id} was not found or is not public. Use list_issues to find valid issue IDs.`);
     const history = await listIssueHistory(issue_id);
     const events = history.flatMap((row) => {
       const event = publicEvent(row.action, row.payload);

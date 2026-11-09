@@ -9,7 +9,7 @@ const status = z.enum(["reported", "verified", "assigned", "in_progress", "fixed
 
 export const inputs = {
   list_issues: z.object({
-    area: z.string().trim().min(1).max(100).optional().describe("Exact English OpenStreetMap area name, e.g. Lalmatia. Omit to include all pilot areas."),
+    area: z.string().trim().min(1).max(100).optional().describe("English OpenStreetMap area name, e.g. Lalmatia (whole name, case-insensitive). Omit to include all pilot areas."),
     status: status.optional(),
     issue_type: issueType.optional(),
     min_severity: z.number().int().min(1).max(10).optional(),
@@ -60,6 +60,9 @@ export const outputs = {
   }),
   verify_audit_chain: z.object({ total: count, first_broken_id: id.nullable(), status: z.enum(["valid", "broken", "empty"]), limitation: z.string() }),
 };
+
+/** An error whose message is safe to show the client (no database or provider text). */
+export class McpToolError extends Error {}
 
 export type ToolName = keyof typeof inputs;
 export type McpServices = { [K in ToolName]: (args: z.output<(typeof inputs)[K]>) => Promise<unknown> };

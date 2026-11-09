@@ -26,7 +26,7 @@ chain. No database migration or frontend change is required.
 | `get_impact_summary` | None | All-time aggregates with denominators and limitations |
 | `verify_audit_chain` | None | Entry count, first broken entry, and `valid`, `broken` or `empty` status |
 
-`area` is an exact English OpenStreetMap area name, not an official ward boundary. Omit it to
+`area` is an English OpenStreetMap area name, matched whole but ignoring case, not an official ward boundary. Omit it to
 discover recorded areas. `status` uses the app's internal states: reported, verified, assigned,
 in_progress, fixed, confirmed or disputed. Omit it to include all non-rejected issues.
 

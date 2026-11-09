@@ -532,6 +532,13 @@ function Apis({ tr }: { tr: Tr }) {
           "ডেটাবেসের অবস্থা আর এআই কনফিগারেশন (সংখ্যা ও মডেলের নাম, কী কখনো নয়), আপটাইম যাচাইয়ের জন্য। সাইন-ইন লাগে না। লেখার জন্য কোনো পাবলিক API নেই: পরিবর্তন হয় শুধু অ্যাপের সার্ভার অ্যাকশন দিয়ে।",
         )}
       </p>
+      <p>
+        <span className="mono">POST /api/mcp</span> —{" "}
+        {tr(
+          "read-only MCP server (Streamable HTTP) for AI assistants, with six tools: list issues, issue timeline, repair-policy search, contractor scorecards, impact summary and audit-chain check. Needs a bearer token set by the operator; returns no coordinates, photos, names or comments, and cannot change data.",
+          "এআই সহকারীর জন্য শুধু-পড়ার MCP সার্ভার (Streamable HTTP), ছয়টি টুলসহ: সমস্যার তালিকা, সমস্যার টাইমলাইন, মেরামত-নীতি খোঁজা, ঠিকাদারের স্কোরকার্ড, প্রভাবের সারাংশ আর অডিট-চেইন যাচাই। অপারেটরের দেওয়া বেয়ারার টোকেন লাগে; অবস্থান, ছবি, নাম বা মন্তব্য দেয় না, আর কোনো ডেটা বদলাতে পারে না।",
+        )}
+      </p>
       <p className="label-small">{tr("Planned: an Open311 (GeoReport v2) compatible API.", "পরিকল্পনা: Open311 (GeoReport v2) সামঞ্জস্যপূর্ণ API।")}</p>
     </>
   );
@@ -620,7 +627,7 @@ function Roadmap({ tr }: { tr: Tr }) {
         <li>{tr("Self-hosted vision models so photos stay on city infrastructure.", "নিজস্ব সার্ভারে ভিশন মডেল, যাতে ছবি সিটির অবকাঠামোতেই থাকে।")}</li>
         <li>{tr("\"Ask CivicTrust\" officer assistant over the rules and live issue data.", "নিয়ম আর লাইভ সমস্যার তথ্য নিয়ে কর্মকর্তাদের জন্য \"Ask CivicTrust\" সহকারী।")}</li>
         <li>{tr("Accountability view linking issue, area, road, contractor and payment, with repeat-failure flags.", "সমস্যা, এলাকা, রাস্তা, ঠিকাদার আর পরিশোধ একসাথে দেখার জবাবদিহি ভিউ, বারবার ব্যর্থতার চিহ্নসহ।")}</li>
-        <li>{tr("Open311-compatible API and an MCP server for AI assistants.", "Open311-সামঞ্জস্যপূর্ণ API আর এআই সহকারীর জন্য MCP সার্ভার।")}</li>
+        <li>{tr("Open311-compatible API for city systems.", "সিটির সিস্টেমের জন্য Open311-সামঞ্জস্যপূর্ণ API।")}</li>
       </ul>
       <p>
         <strong>{tr("Later", "পরে")}</strong>

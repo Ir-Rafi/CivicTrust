@@ -1,5 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { inputs, outputs, type McpServices, type ToolName } from "./contracts";
+import { inputs, McpToolError, outputs, type McpServices, type ToolName } from "./contracts";
 
 const descriptions: Record<ToolName, string> = {
   list_issues: "List pilot issues ranked by stored severity, with optional area, status and type filters. Returns road/area names, never exact coordinates or photos. Follow next_offset to paginate.",
@@ -26,7 +26,9 @@ export function createCivicTrustMcpServer(services: McpServices) {
         // Parse again at the boundary to enforce strict unknown-key rejection across SDK versions.
         const data = outputs[name].parse(await invoke(inputs[name].parse(args)));
         return { structuredContent: data, content: [{ type: "text" as const, text: JSON.stringify(data) }] };
-      } catch {
+      } catch (error) {
+        // Only messages written for the client are passed on.
+        if (error instanceof McpToolError) return { isError: true, content: [{ type: "text" as const, text: error.message }] };
         // Database/SDK error text can include credentials, SQL or private record contents.
         console.error(`CivicTrust MCP tool failed: ${name}`);
         return { isError: true, content: [{ type: "text" as const, text: "The tool could not complete this request. Check the arguments and service availability; no result should be inferred." }] };

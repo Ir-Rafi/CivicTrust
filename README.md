@@ -19,7 +19,6 @@ Entry for the **International AI Builders Congress 2026** — Competition 1 (Tea
 | [`Docs/KPI_SUMMARY.md`](Docs/KPI_SUMMARY.md) | Expected outcomes, KPIs and how they are measured |
 | [`Docs/MCP_GUIDE.md`](Docs/MCP_GUIDE.md) | Six read-only MCP tools, client setup, verification and submission evidence |
 | [`Docs/PRELIMINARY_CHECKLIST.md`](Docs/PRELIMINARY_CHECKLIST.md) | Remaining work for the preliminary submission, with owners |
-| [`Docs/SUBMISSION_FORM_ANSWERS.md`](Docs/SUBMISSION_FORM_ANSWERS.md) | Draft answers for the Cloudcamp submission form |
 | [`TEST.md`](TEST.md) | How to test and debug the prototype: scenarios per role, common problems, known issues |
 | [`AIBC_Participants_Guide_261015_143157.pdf`](AIBC_Participants_Guide_261015_143157.pdf) | Participant guide for the AI Builders Congress |
 

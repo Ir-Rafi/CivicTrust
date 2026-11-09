@@ -45,6 +45,23 @@ Automated tests use the real SDK client/transport with fixture services to verif
 - Malformed JSON, unsupported protocol versions and oversized request bodies are rejected.
 - Authenticated requests are rate limited per process.
 
+## Deployment status
+
+Checked on 9 November 2026 with an unauthenticated `POST` to each demo deployment's `/api/mcp`:
+
+| Deployment | Response | Meaning |
+|---|---|---|
+| `civictrust-eight.vercel.app` (backup) | 401 | Route deployed and a token is configured |
+| `civictrust-five.vercel.app` (main demo) | 404 | Deployed build predates the MCP commit; redeploy and set `MCP_AUTH_TOKEN` |
+
+A 401 only shows the route is live and closed to anonymous calls. The tools have not been called
+against a deployed endpoint yet; run `pnpm smoke:mcp` with `MCP_URL` set to the deployment to record that.
+
+A second local check on the same day (production build, live backend, fresh token) passed all six
+tools again, rejected a missing token (401) and a disallowed Origin (403), and returned an
+`isError` result for a non-existent issue ID. Follow-up fixes the same day: `area` now ignores case,
+and a non-existent issue ID returns a specific "not found" message instead of the generic error.
+
 ## Reproduce and complete submission evidence
 
 Follow [MCP_GUIDE.md](MCP_GUIDE.md). Run `pnpm smoke:mcp --json /tmp/civictrust-mcp-evidence.json`

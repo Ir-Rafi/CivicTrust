@@ -52,7 +52,7 @@ Procedure: [`KPI_SUMMARY.md`](KPI_SUMMARY.md).
 - [ ] One-page problem summary: problem, users, need, sourced facts (Business Analyst)
 - [ ] Bangla text reviewed by a native speaker: AI reasons and screen text (Team)
 - [ ] `CivicTrust.pdf` matches what is built (Backend)
-- [ ] Cloudcamp submission form completed from [`SUBMISSION_FORM_ANSWERS.md`](SUBMISSION_FORM_ANSWERS.md), under the International AI Builders Congress event (Team lead)
+- [ ] Cloudcamp submission form completed, under the International AI Builders Congress event (Team lead)
 
 ## 5. Video (at most 180 seconds, the five official segments in order)
 

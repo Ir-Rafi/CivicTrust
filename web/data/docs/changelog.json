@@ -1,5 +1,10 @@
 [
   {
+    "date": "2026-11-09",
+    "en": "Read-only MCP server at /api/mcp: six tools for AI assistants, protected by a bearer token.",
+    "bn": "/api/mcp-এ শুধু-পড়ার MCP সার্ভার: এআই সহকারীর জন্য ছয়টি টুল, বেয়ারার টোকেন দিয়ে সুরক্ষিত।"
+  },
+  {
     "date": "2026-11-05",
     "en": "Live /docs page: pitch, technical documentation and live system figures in one place.",
     "bn": "লাইভ /docs পেজ: পিচ, কারিগরি ডকুমেন্টেশন আর সিস্টেমের লাইভ তথ্য এক জায়গায়।"
