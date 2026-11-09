@@ -52,7 +52,7 @@ Checked on 9 November 2026 with an unauthenticated `POST` to each demo deploymen
 | Deployment | Response | Meaning |
 |---|---|---|
 | `civictrust-eight.vercel.app` (backup) | 401 | Route deployed and a token is configured |
-| `civictrust-five.vercel.app` (main demo) | 404 | Deployed build predates the MCP commit; redeploy and set `MCP_AUTH_TOKEN` |
+| `civic-trust-siuu.vercel.app` (main demo) | 404 | Deployed build predates the MCP commit; redeploy and set `MCP_AUTH_TOKEN` |
 
 A 401 only shows the route is live and closed to anonymous calls. The tools have not been called
 against a deployed endpoint yet; run `pnpm smoke:mcp` with `MCP_URL` set to the deployment to record that.

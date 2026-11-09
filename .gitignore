@@ -9,3 +9,5 @@ web/supabase/.branches/
 
 # Local database backups (citizen data and photos): never commit
 db-backup-*/
+.vercel
+.env*

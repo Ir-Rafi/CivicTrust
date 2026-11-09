@@ -24,7 +24,7 @@ Sources: [`PRELIMINARY_PROTOTYPE_REQUIREMENTS.md`](../PRELIMINARY_PROTOTYPE_REQU
 
 - [x] Database moved to the Singapore Supabase project; data, photos and audit chain verified
 - [x] Previous database project paused
-- [x] civictrust-five.vercel.app on the Singapore database with GLM enabled (Irfan)
+- [x] civic-trust-siuu.vercel.app on the Singapore database with GLM enabled (Irfan)
 - [x] civictrust-eight.vercel.app deployed from the team's own Vercel account (Backend)
 - [x] New AI keys in `web/.env.local`: Gemini key pool (6 working keys) with backup models, Groq key pool (2 keys), new GLM key (Backend)
 - [ ] New AI keys on both Vercel projects, then redeploy (Backend, Irfan)
