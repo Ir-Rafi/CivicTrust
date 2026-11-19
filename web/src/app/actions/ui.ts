@@ -3,7 +3,7 @@
 import { submitFeedback } from "@/app/citizen/actions";
 import { submitRepair } from "@/app/contractor/actions";
 import { offerToHelp } from "@/app/ngo/actions";
-import { correctIssue, createWorkOrder, releaseWorkOrderPayment, reviewRepairProof } from "@/app/officer/actions";
+import { askAssistant, correctIssue, createWorkOrder, releaseWorkOrderPayment, reviewRepairProof } from "@/app/officer/actions";
 
 // Thin wrappers over the contract actions in BACKEND_CONTRACT.md for client forms.
 // Production builds hide thrown server-action messages, so return them instead: the
@@ -72,5 +72,12 @@ export async function uiOfferHelp(input: Parameters<typeof offerToHelp>[0]) {
   return attempt(async () => {
     const result = await offerToHelp(input);
     return { alreadyOffered: result.alreadyOffered };
+  });
+}
+
+export async function uiAskAssistant(input: Parameters<typeof askAssistant>[0]) {
+  return attempt(async () => {
+    const r = await askAssistant(input);
+    return { answer: r.answer, tools: r.tools };
   });
 }

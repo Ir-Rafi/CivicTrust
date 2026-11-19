@@ -1,5 +1,15 @@
 [
   {
+    "date": "2026-11-19",
+    "en": "\"Ask CivicTrust\" officer assistant: a Mastra agent that answers officers' questions with 7 read-only tools and cites the records it used.",
+    "bn": "\"Ask CivicTrust\" কর্মকর্তার সহকারী: Mastra এজেন্ট, ৭টি শুধু-পড়ার টুল দিয়ে কর্মকর্তাদের প্রশ্নের উত্তর দেয় আর ব্যবহৃত রেকর্ডের সূত্র জানায়।"
+  },
+  {
+    "date": "2026-11-19",
+    "en": "Daily overdue-repair check, scheduled by Vercel Cron or a self-hosted n8n workflow: late work orders are flagged for officers and recorded in the public log. Optional local model (Ollama, Qwen 2.5 3B, chosen by comparing five local models) as the last backup for explanations, reachable by the hosted app through a token-checked Cloudflare Tunnel. Next.js security update.",
+    "bn": "দৈনিক সময়সীমা যাচাই, Vercel Cron বা নিজস্ব সার্ভারের n8n ওয়ার্কফ্লো দিয়ে: দেরি হওয়া কাজের আদেশ কর্মকর্তাদের জন্য চিহ্নিত হয় আর পাবলিক লগে লেখা হয়। ব্যাখ্যার শেষ বিকল্প হিসেবে ঐচ্ছিক লোকাল মডেল (Ollama, Qwen 2.5 3B, পাঁচটি লোকাল মডেল তুলনা করে বেছে নেওয়া), টোকেন-যাচাই করা Cloudflare Tunnel দিয়ে হোস্ট করা অ্যাপ থেকেও ব্যবহারযোগ্য। Next.js নিরাপত্তা আপডেট।"
+  },
+  {
     "date": "2026-11-09",
     "en": "Read-only MCP server at /api/mcp: six tools for AI assistants, protected by a bearer token.",
     "bn": "/api/mcp-এ শুধু-পড়ার MCP সার্ভার: এআই সহকারীর জন্য ছয়টি টুল, বেয়ারার টোকেন দিয়ে সুরক্ষিত।"

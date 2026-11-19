@@ -42,9 +42,11 @@ async function main() {
   const severity = computeSeverity({ visualClass, context: context as LocationContext, reportCount: 1, daysOpen: 0 });
   console.log("severity:", severity.score, severity.components.map((c) => `${c.key}=${c.points}`).join(" "));
 
-  // Both providers, so a broken fallback shows up before the demo does.
+  // Every configured provider, so a broken fallback shows up before the demo does.
   const facts = { issueType, observations, severity };
-  for (const [name, explain] of [["groq", explainWithGroq], ["glm", explainWithGlm]] as const) {
+  const providers: [string, typeof explainWithGroq][] = [["groq", explainWithGroq], ["glm", explainWithGlm]];
+  if (process.env.OLLAMA_BASE_URL) providers.push(["ollama", (await import("@/lib/ai/ollama")).explainSeverity]);
+  for (const [name, explain] of providers) {
     const t = Date.now();
     try {
       const explanation = await explain(facts);

@@ -1,6 +1,7 @@
 import "server-only";
 import type { IssueType } from "@/lib/ai/schemas";
 import type { IssueStatus } from "@/lib/issues";
+import { isOverdue } from "@/lib/overdue";
 import { signedPhotoUrl } from "@/lib/reports";
 import { db } from "@/lib/supabase/server";
 
@@ -124,7 +125,7 @@ async function hydrateOrder(row: OrderRow): Promise<WorkOrderDetail> {
     ...order,
     agreed_cost: order.agreed_cost === null ? null : Number(order.agreed_cost),
     assignee_name: contractors?.name ?? ngos?.name ?? null,
-    overdue: !["approved", "cancelled"].includes(order.status) && new Date(order.deadline).getTime() < Date.now(),
+    overdue: isOverdue(order, Date.now()),
     proofs: await Promise.all(
       proofs.map(async ({ photo_path, ...p }) => ({ ...p, photoUrl: await signedPhotoUrl(photo_path) })),
     ),
@@ -223,16 +224,29 @@ export async function listVolunteerCandidates(ngoId?: number): Promise<Volunteer
   return rows.map((r) => ({ ...r, offered: offered.has(r.id) }));
 }
 
-export type OrderFlag = "review" | "payable";
+export type OrderFlag = "review" | "payable" | "overdue";
 
-/** Issues whose work order needs an officer: a repair to review, or a verified repair to pay. */
+/**
+ * Issues whose work order needs an officer: a repair to review, a verified repair to pay, or a job
+ * past its deadline. Review and payment come first: they are the officer's own next step.
+ */
 export async function listOrderFlags(): Promise<Map<number, OrderFlag>> {
-  const { data, error } = await db()
-    .from("work_orders")
-    .select("issue_id, status, payment_status")
-    .or("status.eq.submitted,and(status.eq.approved,payment_status.eq.eligible)");
-  if (error) throw new Error(`order flags: ${error.message}`);
+  const now = Date.now();
+  const [actionable, late] = await Promise.all([
+    db()
+      .from("work_orders")
+      .select("issue_id, status, payment_status")
+      .or("status.eq.submitted,and(status.eq.approved,payment_status.eq.eligible)"),
+    db()
+      .from("work_orders")
+      .select("issue_id, status, deadline")
+      .not("status", "in", "(approved,cancelled)")
+      .lt("deadline", new Date(now).toISOString()),
+  ]);
+  if (actionable.error) throw new Error(`order flags: ${actionable.error.message}`);
+  if (late.error) throw new Error(`overdue flags: ${late.error.message}`);
   const flags = new Map<number, OrderFlag>();
-  for (const o of data ?? []) flags.set(o.issue_id, o.status === "submitted" ? "review" : "payable");
+  for (const o of actionable.data ?? []) flags.set(o.issue_id, o.status === "submitted" ? "review" : "payable");
+  for (const o of late.data ?? []) if (!flags.has(o.issue_id) && isOverdue(o, now)) flags.set(o.issue_id, "overdue");
   return flags;
 }

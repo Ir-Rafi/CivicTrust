@@ -119,10 +119,11 @@ export async function computeKpis(since: string | null) {
   const explained = {
     groq: providers.get("groq") ?? 0,
     glm: providers.get("glm") ?? 0,
+    ollama: providers.get("ollama") ?? 0,
     none: providers.get(null) ?? 0,
     notRecorded: providers.get("not recorded") ?? 0,
   };
-  const explainedTotal = explained.groq + explained.glm + explained.none;
+  const explainedTotal = explained.groq + explained.glm + explained.ollama + explained.none;
   // Comparisons are recorded on new issues and, since 21 Oct, on merges too.
   const comparisons = [...events("issue_assessed"), ...events("report_merged")];
   const dupChecks = comparisons.reduce((s, a) => s + Number(a.payload?.duplicate_checks ?? 0), 0);
@@ -142,7 +143,7 @@ export async function computeKpis(since: string | null) {
     officerCorrections: { corrected, of: issues.length, pct: pct(corrected, issues.length) },
     auditCompletion: { recorded: auditRecorded, of: auditExpected, pct: pct(auditRecorded, auditExpected), detail: audit },
     photoAnalysis: { ok: analysesOk, failed: analysesFailed, of: analysesOk + analysesFailed, pct: pct(analysesOk, analysesOk + analysesFailed) },
-    explanations: { ...explained, of: explainedTotal, fallbackPct: pct(explained.glm, explainedTotal), missingPct: pct(explained.none, explainedTotal) },
+    explanations: { ...explained, of: explainedTotal, fallbackPct: pct(explained.glm + explained.ollama, explainedTotal), missingPct: pct(explained.none, explainedTotal) },
     duplicateCompare: { failures: dupFailures, of: dupChecks, pct: pct(dupFailures, dupChecks) },
     repairAi: { failed: repairAiFailed, of: repairAiCalls.length, pct: pct(repairAiFailed, repairAiCalls.length) },
   };

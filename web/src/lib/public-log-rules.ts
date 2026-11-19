@@ -7,7 +7,7 @@ import type { LocationContext } from "@/lib/severity";
 
 export type PublicStage = "reported" | "assigned" | "fixed" | "confirmed" | "disputed";
 
-export type PublicEventKind = "reported" | "assigned" | "fixed" | "not_accepted" | "disputed" | "confirmed";
+export type PublicEventKind = "reported" | "assigned" | "fixed" | "not_accepted" | "overdue" | "disputed" | "confirmed";
 
 export type Landmark = { kind: "school" | "hospital"; name: string; distance_m: number };
 
@@ -17,6 +17,7 @@ export const PUBLIC_AUDIT_ACTIONS = [
   "work_order_created",
   "repair_proof_submitted",
   "repair_reviewed",
+  "work_order_overdue",
   "repair_disputed",
   "repair_confirmed",
 ] as const;
@@ -51,6 +52,8 @@ export function publicEvent(action: string, payload: Record<string, unknown> | n
       return payload?.verdict === "approved" ? { kind: "fixed", verifiedBy: "ai" } : null;
     case "repair_reviewed":
       return payload?.decision === "approved" ? { kind: "fixed", verifiedBy: "officer" } : { kind: "not_accepted" };
+    case "work_order_overdue":
+      return { kind: "overdue" };
     case "repair_disputed":
       return { kind: "disputed" };
     case "repair_confirmed":

@@ -1,0 +1,45 @@
+{
+  "id": "CivicTrustOverdu",
+  "name": "CivicTrust: daily overdue-repair check",
+  "active": false,
+  "settings": { "timezone": "Asia/Dhaka", "executionOrder": "v1" },
+  "nodes": [
+    {
+      "id": "6c0e2d0a-1b1e-4c58-9a1f-2f5a1c9d0001",
+      "name": "Every day at 09:00 (Dhaka)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0],
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 9 * * *" }] } }
+    },
+    {
+      "id": "6c0e2d0a-1b1e-4c58-9a1f-2f5a1c9d0002",
+      "name": "Run now (manual test)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 200],
+      "parameters": {}
+    },
+    {
+      "id": "6c0e2d0a-1b1e-4c58-9a1f-2f5a1c9d0003",
+      "name": "Run CivicTrust overdue check",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [280, 100],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.CIVICTRUST_URL }}/api/automation/overdue{{ $env.CIVICTRUST_DRY_RUN === '1' ? '?dry_run=1' : '' }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "=Bearer {{ $env.CIVICTRUST_CRON_SECRET }}" }] },
+        "options": { "timeout": 60000 }
+      }
+    }
+  ],
+  "connections": {
+    "Every day at 09:00 (Dhaka)": { "main": [[{ "node": "Run CivicTrust overdue check", "type": "main", "index": 0 }]] },
+    "Run now (manual test)": { "main": [[{ "node": "Run CivicTrust overdue check", "type": "main", "index": 0 }]] }
+  }
+}

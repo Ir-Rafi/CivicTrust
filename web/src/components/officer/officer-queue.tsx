@@ -139,8 +139,8 @@ export function OfficerQueue({ all, flagEntries, panelIssueId, lang, t, children
                         <td>
                           <span className={`tag ${statusTone(i.status)}`}>{t.status[i.status as keyof typeof t.status] ?? i.status}</span>
                           {flag && (
-                            <span className="tag warning" style={{ display: "flex", marginTop: 4 }}>
-                              {flag === "review" ? t.officer.flagReview : t.officer.flagPayable}
+                            <span className={`tag ${flag === "overdue" ? "critical" : "warning"}`} style={{ display: "flex", marginTop: 4 }}>
+                              {flag === "review" ? t.officer.flagReview : flag === "payable" ? t.officer.flagPayable : t.officer.flagOverdue}
                             </span>
                           )}
                         </td>

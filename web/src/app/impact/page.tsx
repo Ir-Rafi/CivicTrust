@@ -144,9 +144,9 @@ function chartProps(k: Kpis, lang: Lang, tr: Tr): ImpactChartsProps {
         key: "explain",
         label: tr("Bangla/English reason", "বাংলা/ইংরেজি কারণ"),
         primary: e.groq,
-        backup: e.glm,
+        backup: e.glm + e.ollama,
         failed: e.none,
-        names: { primary: "Groq", backup: tr("GLM (backup)", "GLM (বিকল্প)"), failed: tr("Neither answered", "কেউ উত্তর দেয়নি") },
+        names: { primary: "Groq", backup: tr("GLM or local model (backup)", "GLM বা লোকাল মডেল (বিকল্প)"), failed: tr("None answered", "কেউ উত্তর দেয়নি") },
         status: sampleStatus(e.of),
       },
       {
@@ -297,8 +297,11 @@ function Reliability({ k, lang, tr }: { k: Kpis; lang: Lang; tr: Tr }) {
       n: k.photoAnalysis.of,
     },
     {
-      what: tr("Explanations written by Groq / by GLM (fallback) / none", "ব্যাখ্যা লিখেছে Groq / GLM (বিকল্প) / কেউ না"),
-      result: `${num(e.groq, lang)} / ${num(e.glm, lang)} / ${num(e.none, lang)}`,
+      what: tr(
+        "Explanations written by Groq / by GLM (fallback) / by a local model (fallback) / none",
+        "ব্যাখ্যা লিখেছে Groq / GLM (বিকল্প) / লোকাল মডেল (বিকল্প) / কেউ না",
+      ),
+      result: `${num(e.groq, lang)} / ${num(e.glm, lang)} / ${num(e.ollama, lang)} / ${num(e.none, lang)}`,
       n: e.of,
     },
     {

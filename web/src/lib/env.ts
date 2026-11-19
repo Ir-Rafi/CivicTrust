@@ -37,6 +37,15 @@ const glmSchema = z.object({
   GLM_REASONING_EFFORT: z.enum(["low", "high", "max"]).optional(),
 });
 
+/** Optional local model through Ollama: last text fallback, only where an Ollama server is reachable. */
+const ollamaSchema = z.object({
+  OLLAMA_BASE_URL: z.url(),
+  /** Best local model in `pnpm eval:local-models` (19/21 rules; Groq 21/21). */
+  OLLAMA_MODEL: z.string().default("qwen2.5:3b"),
+  /** Bearer token for a remote Ollama behind automation/ollama-tunnel; unset for a local server. */
+  OLLAMA_API_KEY: z.string().min(32).optional(),
+});
+
 function lazyEnv<S extends z.ZodObject>(schema: S, name: string): () => z.infer<S> {
   let cached: z.infer<S> | undefined;
   return () => {
@@ -55,6 +64,7 @@ export const supabaseEnv = lazyEnv(supabaseSchema, "Supabase");
 export const geminiEnv = lazyEnv(geminiSchema, "Gemini");
 export const groqEnv = lazyEnv(groqSchema, "Groq");
 export const glmEnv = lazyEnv(glmSchema, "GLM");
+export const ollamaEnv = lazyEnv(ollamaSchema, "Ollama");
 
 /** Which integrations are configured, without throwing. Used by /api/health. */
 export function envStatus() {
@@ -63,6 +73,7 @@ export function envStatus() {
     gemini: geminiSchema.safeParse(process.env).success,
     groq: groqSchema.safeParse(process.env).success,
     glm: glmSchema.safeParse(process.env).success,
+    ollama: ollamaSchema.safeParse(process.env).success,
   };
 }
 
@@ -88,5 +99,7 @@ export function modelNames() {
     embedding: geminiSchema.shape.GEMINI_EMBEDDING_MODEL.parse(process.env.GEMINI_EMBEDDING_MODEL),
     text: groqSchema.shape.GROQ_TEXT_MODEL.parse(process.env.GROQ_TEXT_MODEL),
     textFallback: glmSchema.shape.GLM_TEXT_MODEL.parse(process.env.GLM_TEXT_MODEL),
+    /** Null when no Ollama server is configured (e.g. on Vercel). */
+    textLocal: process.env.OLLAMA_BASE_URL ? ollamaSchema.shape.OLLAMA_MODEL.parse(process.env.OLLAMA_MODEL) : null,
   };
 }

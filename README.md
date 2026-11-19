@@ -18,6 +18,7 @@ Entry for the **International AI Builders Congress 2026** — Competition 1 (Tea
 | [`web/README.md`](web/README.md) | Developer setup and code layout |
 | [`Docs/KPI_SUMMARY.md`](Docs/KPI_SUMMARY.md) | Expected outcomes, KPIs and how they are measured |
 | [`Docs/MCP_GUIDE.md`](Docs/MCP_GUIDE.md) | Six read-only MCP tools, client setup, verification and submission evidence |
+| [`automation/`](automation) | n8n workflow for the daily overdue check; token-checked gateway and Cloudflare Tunnel for the local model |
 | [`Docs/PRELIMINARY_CHECKLIST.md`](Docs/PRELIMINARY_CHECKLIST.md) | Remaining work for the preliminary submission, with owners |
 | [`TEST.md`](TEST.md) | How to test and debug the prototype: scenarios per role, common problems, known issues |
 | [`AIBC_Participants_Guide_261015_143157.pdf`](AIBC_Participants_Guide_261015_143157.pdf) | Participant guide for the AI Builders Congress |
@@ -48,10 +49,11 @@ The prototype has **no login**: a role switcher gives one-click access so judges
 | M2 Severity score | Transparent formula | 1–10 from the photo + road class + distance to schools/hospitals + reports + days open; every factor is shown |
 | M3 Duplicate filter | PostGIS + Gemini | Searches open issues within 25 m and merges confident visual matches |
 | M4 Repair verifier | GPS + time + Gemini | Checks freshness, location and before/after evidence; routes uncertain repairs to officer review |
-| Explanation | Groq primary, GLM fallback | One-line reason in Bangla and English, written only from computed facts |
+| Explanation | Groq primary, GLM fallback, optional local model (Ollama) | One-line reason in Bangla and English, written only from computed facts |
 | Policy RAG | Gemini embeddings + pgvector | Retrieves the pilot policy citation for repair deadlines |
+| Officer assistant | Mastra agent on Groq | "Ask CivicTrust" answers officers' questions with seven read-only tools and cites the records it used; it cannot change anything |
 
-The score is computed in code; text models explain its inputs. AI calls have timeouts. If both explanation providers fail, factual observations remain available; an unavailable repair verifier requires officer review.
+The score is computed in code; text models explain its inputs. AI calls have timeouts. If every explanation provider fails, factual observations remain available; an unavailable repair verifier requires officer review.
 
 ## Architecture
 
@@ -112,12 +114,14 @@ Road and facility data come from OpenStreetMap. Public figures use official ward
 | Area | Implemented |
 |---|---|
 | Citizen reporting | Photo submission, GPS or manual pin, live AI assessment, duplicate merging, severity breakdown and repair feedback |
-| Officer workflow | Queue and map, local status/type/area filters, issue history, AI corrections, assignment, repair review and payment status |
+| Officer workflow | Queue and map, local status/type/area filters, issue history, AI corrections, assignment, repair review, payment status, overdue flags and the "Ask CivicTrust" assistant |
 | Contractor and NGO | Assigned work, repair evidence, verification results and NGO offers to help |
 | Public transparency | Issue progress, activity log, area statistics, contractor scorecards and audit-chain verification |
 | Impact and measurement | `/impact` page with live KPIs and sample sizes; `pnpm kpi` and labelled-photo evaluation scripts |
 | Supporting pages and tools | Architecture, data, security and model-card pages; migrations and reference-data seeding |
 | MCP integration | Six read-only tools over authenticated Streamable HTTP; shared backend functions and an SDK smoke client. Deployment and assistant recording are separate verification steps. |
+| Automation | Daily overdue-repair check (`/api/automation/overdue`), run by Vercel Cron or the self-hosted n8n workflow in [`automation/n8n`](automation/n8n); records each late work order once in the audit log and public update log, with a dry-run mode |
+| Local model | Optional Ollama fallback for explanations (`qwen2.5:3b`, chosen with `pnpm eval:local-models`); reachable from the hosted app through the token-checked tunnel in [`automation/ollama-tunnel`](automation/ollama-tunnel) |
 
 This is a preliminary prototype. Role switching uses demonstration personas, payment release changes a recorded status, and no bank transfer is made. Official ward boundaries, production authentication and city-wide deployment are outside the current demonstration setup.
 

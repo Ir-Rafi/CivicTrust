@@ -13,6 +13,7 @@ Import from `src/app/officer/actions.ts`:
 - `createWorkOrder({ issueId, assigneeType, contractorId?, ngoId?, agreedCost?, deadline? })`
 - `reviewRepairProof({ workOrderId, decision: "approved" | "rejected", reason })`
 - `releaseWorkOrderPayment({ workOrderId })`
+- `askAssistant({ question })`: "Ask CivicTrust" answer (`answer`, `tools`, `ms`, `model`, `lang`) from a Mastra agent with read-only tools (`src/lib/agent`). Questions are 3–500 characters; each answered question is written to the audit log as `assistant_question` with the tools used.
 
 The actor name in the audit log is set on the server from the demo persona; the browser does not send it.
 
@@ -54,7 +55,7 @@ Import from `src/app/public/actions.ts`:
 - `getPublicContractorScorecards()`
 
 - `getPublicIssues(limit?)`: every reported problem, newest first, with `issue_type`, `place` (`road` name, `area` `{ en, bn }` from OpenStreetMap, and nearest named school/hospital within 500 m as `landmark`), `stage` (`reported`, `assigned`, `fixed`, `confirmed`, `disputed`), `report_count`, and the `reported_at`, `assigned_at` and `fixed_at` dates.
-- `getPublicLog(limit?)`: plain-language update log, newest first. Each entry has `kind` (`reported`, `assigned`, `fixed`, `not_accepted`, `disputed`, `confirmed`), `verified_by` (`ai` or `officer` for fixes), the time, the issue's type and place, and the audit record `id`.
+- `getPublicLog(limit?)`: plain-language update log, newest first. Each entry has `kind` (`reported`, `assigned`, `fixed`, `not_accepted`, `overdue`, `disputed`, `confirmed`), `verified_by` (`ai` or `officer` for fixes), the time, the issue's type and place, and the audit record `id`.
 
 Both return no coordinates, reporter names, comments, costs or AI internals. The log is read from the hash-chained audit log, so it updates by itself with every workflow action; rejected or unsure repair attempts and internal actions (AI scores, overrides, payments) are not shown. The mapping rules are in `src/lib/public-log-rules.ts` with tests.
 
@@ -68,6 +69,15 @@ Import from `src/app/audit/actions.ts`:
 - `getAuditEntries({ entity?, entityId?, limit? })`
 
 The chain status returns the total number of records and the first broken record ID, or `null` when the chain is intact. Officers get full entries; every other role gets citizen names replaced with "Citizen" and comments hidden.
+
+## Overdue check
+
+`GET /api/automation/overdue` (`src/app/api/automation/overdue/route.ts`) runs the daily overdue check, scheduled by Vercel Cron (`vercel.json`) or the n8n workflow in `automation/n8n`:
+
+- Authentication: `Authorization: Bearer <CRON_SECRET>`. Without a secret of at least 16 characters configured, it returns 503; a missing or wrong one returns 401.
+- It finds work orders past their deadline whose status is not `approved` or `cancelled`, and writes one `work_order_overdue` audit entry per work order (payload: `issue_id`, `deadline`, `hours_late`, `assignee_type`). Orders already recorded are skipped, so repeated runs are safe.
+- `?dry_run=1` returns the same counts (`overdue`, `to_record`) and writes nothing.
+- The public update log shows these entries as "overdue"; the officer queue flags such issues "Past deadline" (review and payment flags take precedence).
 
 ## MCP endpoint
 

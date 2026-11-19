@@ -34,7 +34,7 @@ export const outputs = {
   get_issue_timeline: z.object({
     issue_id: id,
     stage: z.enum(["reported", "assigned", "fixed", "confirmed", "disputed"]),
-    events: z.array(z.object({ id, at: z.string(), kind: z.enum(["reported", "assigned", "fixed", "not_accepted", "disputed", "confirmed"]),
+    events: z.array(z.object({ id, at: z.string(), kind: z.enum(["reported", "assigned", "fixed", "not_accepted", "overdue", "disputed", "confirmed"]),
       verified_by: z.enum(["ai", "officer"]).nullable() })).max(50),
     has_more: z.boolean(),
   }),

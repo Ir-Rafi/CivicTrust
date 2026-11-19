@@ -124,12 +124,12 @@ Rubric columns: A Innovation · B Technical · C Business · D Scale/Impact · E
 |---|---|---|
 | Self-hosted YOLO detector + CLIP similarity (ONNX) replacing Gemini for M1/M3/M4 | B, E | Model-selection logic + **data sovereignty** (photos stay on city-controlled infra) |
 | **Agent pipeline** made explicit: Triage → Dedupe → Routing → Verifier agents with an orchestrator, traced per issue | A, B | "Agentic", "multi-agent" are named preferred capabilities |
-| "Ask CivicTrust" officer copilot (RAG over rules + live issue data, Bangla/English) | B | RAG beyond one citation |
+| "Ask CivicTrust" officer copilot (RAG over rules + live issue data, Bangla/English) | B | Implemented 19 Nov: Mastra agent on Groq with seven read-only tools on the officer page; answers cite issue IDs and policy sections and are logged |
 | Full accountability graph view: issue ↔ ward ↔ road ↔ contractor ↔ payment, repeat-failure and anomaly flags | A, B, C | Extends the preliminary's scorecards into the challenge's "knowledge graph" |
 | Planning insights: recurring hotspots, road segments repaired repeatedly (rebuild vs patch) | C, D | Secondary benefit for city planning |
 | Citizen trust score (verified reports up, fake ones down) | B, E | Personalization + anti-fraud (mistake #5) |
 | Offline report queue + low-bandwidth mode | D | UI/UX role must cover low-bandwidth |
-| Heatmap, overdue alerts | C | |
+| Heatmap, overdue alerts | C | Overdue alerts implemented 19 Nov: daily check (Vercel Cron or n8n), officer queue flag, public update log. Heatmap still open |
 | NGO claim board + officer approval | D | Jobs/societal benefit story |
 | Open311 (GeoReport v2) compatible API | D | Plug into cities worldwide |
 | MCP server exposing CivicTrust tools to AI assistants | B | Implemented: six read-only tools at `/api/mcp`; see `Docs/MCP_GUIDE.md`. Hosted deployment and assistant demonstration must be verified separately. |
@@ -250,7 +250,7 @@ Check: 3–5 members · ≥1 woman (bonus) · all AI tool usage documented · NR
 | Backend | Next.js route handlers / server actions; database reachable only from server code |
 | Data | Supabase (Singapore): Postgres + PostGIS + pgvector, Storage (private photo bucket) |
 | AI — vision + embeddings | **Gemini** `gemini-3.8-flash`: issue detection M1, duplicate check M3, repair verification M4, strict JSON; `gemini-embedding-001` (768-d) for policy RAG |
-| AI — text | **Groq** `openai/gpt-oss-120b` (primary), strict JSON: Bangla/English explanations, officer copilot. **GLM** `glm-4.7-flash` is the automatic fallback |
+| AI — text | **Groq** `openai/gpt-oss-120b` (primary), strict JSON: Bangla/English explanations, officer copilot. **GLM** `glm-4.7-flash` is the automatic fallback; an optional local **Ollama** model (`qwen2.5:3b`) is tried last where configured |
 | Access | No login. Role + language cookies; database closed to the browser by row-level security |
 | Maps | Leaflet + OpenStreetMap |
 | Deploy | Vercel (`sin1`) + Supabase (public URL) |

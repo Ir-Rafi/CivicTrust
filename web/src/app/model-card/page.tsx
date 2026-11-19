@@ -155,11 +155,36 @@ async function ModelCard() {
                   : "। এরা শুধু হিসাব করা তথ্য পায় (ধরন, রাস্তা, দূরত্ব, স্কোরের অংশ), কখনো ছবি নয়, আর কিছু যোগ না করার নির্দেশ থাকে। শুধু দেখানোর জন্য: এরা কোনো সিদ্ধান্ত নেয় না।"}
               </li>
               <li>
+                {en
+                  ? "Where an Ollama server is configured, an open-weight model running on that machine is the last fallback (default Qwen 2.5 3B, the best of five local models we compared), so explanations keep working without the cloud. Its Bangla is weaker than Groq's, and a Bangla line with letters from other scripts is discarded. On this server: "
+                  : "যেখানে Ollama সার্ভার চালু আছে, সেখানে ওই মেশিনেই চলা একটি ওপেন-ওয়েট মডেল শেষ বিকল্প (ডিফল্ট Qwen 2.5 3B, তুলনা করা পাঁচটি লোকাল মডেলের মধ্যে সেরা), যাতে ক্লাউড ছাড়াও ব্যাখ্যা চলে। এর বাংলা Groq-এর চেয়ে দুর্বল, আর অন্য লিপির অক্ষর থাকলে বাংলা লাইনটি বাদ দেওয়া হয়। এই সার্ভারে: "}
+                {m.textLocal ? <code>{m.textLocal}</code> : en ? "not configured." : "চালু নেই।"}
+              </li>
+              <li>
                 {en ? "Deadline citations: Gemini embeddings " : "সময়সীমার উদ্ধৃতি: জেমিনি এমবেডিং "}
                 <code>{m.embedding}</code>
                 {en
                   ? " find the pilot policy clause behind each deadline. The deadline itself is computed by code; the search only cites the rule."
                   : " প্রতিটি সময়সীমার পেছনের নীতিমালার অংশ খুঁজে দেয়। সময়সীমা নিজে কোড হিসাব করে; খোঁজা শুধু নিয়মটি উদ্ধৃত করে।"}
+              </li>
+            </ul>
+          ),
+        },
+        {
+          heading: en ? "6. Officer assistant (Ask CivicTrust)" : "৬. কর্মকর্তার সহকারী (Ask CivicTrust)",
+          body: (
+            <ul>
+              <li>
+                {en ? "A tool-calling agent (Mastra) on Groq " : "টুল ব্যবহারকারী এজেন্ট (Mastra), Groq "}
+                <code>{m.text}</code>
+                {en
+                  ? " answers officers' questions by choosing and combining 7 read-only tools: issues, timelines, policy search, contractor scorecards, KPIs, audit check and overdue repairs. The same privacy filters as the MCP server apply."
+                  : "-এ চলে; কর্মকর্তার প্রশ্নের উত্তর দিতে ৭টি শুধু-পড়ার টুল বেছে নেয় আর মেলায়: সমস্যা, ইতিহাস, নীতিমালা খোঁজা, ঠিকাদার স্কোরকার্ড, KPI, অডিট যাচাই আর সময় পেরোনো মেরামত। MCP সার্ভারের মতো একই গোপনীয়তা-ফিল্টার প্রযোজ্য।"}
+              </li>
+              <li>
+                {en
+                  ? "It cannot change anything: assigning, approving and paying stay with the officer. Answers must cite real issue and work-order IDs; made-up labels are removed. At most 6 model steps and 45 seconds per question. Each question and the tools used are recorded in the audit log."
+                  : "এটি কিছু বদলাতে পারে না: কাজ দেওয়া, অনুমোদন আর পরিশোধ কর্মকর্তার হাতেই। উত্তরে আসল সমস্যা ও কাজের আদেশের আইডি থাকতে হয়; বানানো লেবেল বাদ দেওয়া হয়। প্রতি প্রশ্নে সর্বোচ্চ ৬টি ধাপ আর ৪৫ সেকেন্ড। প্রতিটি প্রশ্ন আর ব্যবহৃত টুল অডিট লগে লেখা হয়।"}
               </li>
             </ul>
           ),

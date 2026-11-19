@@ -129,6 +129,17 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
   garbage, drain or waterlogging issue press **We can help** → *Offer sent. The ward officer
   decides.* Then Ward officer → that issue → **Offers to help** lists the group; assign it to
   them with **Assign to → NGO / volunteers**. Once assigned, no new offers are accepted.
+- [ ] **B6 Ask CivicTrust.** At the top of the officer page, press an example question or type one
+  in English or Bangla → **Ask**.
+  - The answer comes in the question's language, usually within 3–20 s, cites real issue IDs
+    (#CT-N) or the policy section, and lists what it checked (e.g. *overdue repairs · issue timeline*).
+  - Ask it to assign or approve something → it refuses and points to the queue; nothing changes.
+  - The Audit tab shows `assistant_question` with the tools used.
+- [ ] **B7 Overdue repairs.** A work order past its deadline without an approved repair shows a red
+  **Past deadline** flag in the queue and appears under **Action needed**.
+  - After the daily check runs (or `curl -H "Authorization: Bearer $CRON_SECRET" localhost:3000/api/automation/overdue`),
+    the public update log shows *Repair deadline passed without an approved repair*, once per work order.
+  - `?dry_run=1` reports `to_record` without writing anything.
 
 ### C. Contractor repair and payment (AC7, AC8)
 
@@ -304,7 +315,9 @@ delete from issues where id = <ID>;   -- also removes its reports, work orders, 
    second, light use only). Fine for the prototype; production needs its own geocoder.
 5. **Thin line across the map** where two tiles meet, on some high-resolution screens. Cosmetic.
 6. **The free GLM model is often slow or overloaded**, so the fallback can fail when Groq is down.
-   Groq itself has been reliable.
+   Groq itself has been reliable. Where `OLLAMA_BASE_URL` is set, a local model (`qwen2.5:3b`) is
+   tried last; its Bangla is weaker than Groq's, and a Bangla line with letters from another script
+   is discarded rather than shown.
 7. **Records from before 19 Oct have no timing or AI-provider data**, and merges before 21 Oct
    have no duplicate-comparison counts; KPIs count only what was recorded.
 8. **Supabase free plan pauses the database** after about a week without activity. An uptime

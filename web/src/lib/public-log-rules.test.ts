@@ -19,6 +19,7 @@ test("only approved repairs become 'fixed' events", () => {
   assert.equal(publicEvent("repair_proof_submitted", { verdict: "rejected" }), null);
   assert.equal(publicEvent("repair_proof_submitted", { verdict: "needs_review" }), null);
   assert.deepEqual(publicEvent("repair_reviewed", { decision: "approved" }), { kind: "fixed", verifiedBy: "officer" });
+  assert.deepEqual(publicEvent("work_order_overdue", { issue_id: 3, hours_late: 26 }), { kind: "overdue" });
   assert.deepEqual(publicEvent("repair_reviewed", { decision: "rejected" }), { kind: "not_accepted" });
 });
 

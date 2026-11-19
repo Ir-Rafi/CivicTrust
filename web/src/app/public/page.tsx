@@ -277,6 +277,8 @@ function eventLabel(e: PublicEvent, t: Dict): string {
       return e.verified_by === "officer" ? t.publicPortal.evFixedOfficer : t.publicPortal.evFixedAi;
     case "not_accepted":
       return t.publicPortal.evNotAccepted;
+    case "overdue":
+      return t.publicPortal.evOverdue;
     case "disputed":
       return t.publicPortal.evDisputed;
     case "confirmed":
@@ -289,6 +291,7 @@ const EVENT_TONE: Record<PublicEvent["kind"], string> = {
   assigned: "primary",
   fixed: "verified",
   not_accepted: "critical",
+  overdue: "critical",
   disputed: "critical",
   confirmed: "verified",
 };

@@ -481,6 +481,14 @@ function AiLayer({ live, lang, tr }: { live: Live; lang: Lang; tr: Tr }) {
               <td>{tr("Explanation (backup)", "ব্যাখ্যা (বিকল্প)")}</td>
               <td className="mono">{live.models.textFallback}</td>
             </tr>
+            <tr>
+              <td>{tr("Explanation (local backup, Ollama)", "ব্যাখ্যা (লোকাল বিকল্প, Ollama)")}</td>
+              <td className="mono">{live.models.textLocal ?? tr("not configured on this server", "এই সার্ভারে চালু নেই")}</td>
+            </tr>
+            <tr>
+              <td>{tr("Officer assistant (Mastra agent, 7 read-only tools)", "কর্মকর্তার সহকারী (Mastra এজেন্ট, ৭টি শুধু-পড়ার টুল)")}</td>
+              <td className="mono">{live.models.text}</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -625,7 +633,7 @@ function Roadmap({ tr }: { tr: Tr }) {
       <ul>
         <li>{tr("A field pilot with real reports and measured KPIs.", "আসল রিপোর্ট আর মাপা KPI নিয়ে মাঠ পর্যায়ের পাইলট।")}</li>
         <li>{tr("Self-hosted vision models so photos stay on city infrastructure.", "নিজস্ব সার্ভারে ভিশন মডেল, যাতে ছবি সিটির অবকাঠামোতেই থাকে।")}</li>
-        <li>{tr("\"Ask CivicTrust\" officer assistant over the rules and live issue data.", "নিয়ম আর লাইভ সমস্যার তথ্য নিয়ে কর্মকর্তাদের জন্য \"Ask CivicTrust\" সহকারী।")}</li>
+        <li>{tr("Extend the \"Ask CivicTrust\" officer assistant: follow-up questions and a weekly area summary.", "\"Ask CivicTrust\" সহকারী আরও বাড়ানো: পরের প্রশ্ন মনে রাখা আর সাপ্তাহিক এলাকাভিত্তিক সারাংশ।")}</li>
         <li>{tr("Accountability view linking issue, area, road, contractor and payment, with repeat-failure flags.", "সমস্যা, এলাকা, রাস্তা, ঠিকাদার আর পরিশোধ একসাথে দেখার জবাবদিহি ভিউ, বারবার ব্যর্থতার চিহ্নসহ।")}</li>
         <li>{tr("Open311-compatible API for city systems.", "সিটির সিস্টেমের জন্য Open311-সামঞ্জস্যপূর্ণ API।")}</li>
       </ul>
@@ -644,7 +652,7 @@ function Changelog({ lang }: { lang: Lang }) {
   return (
     <ul style={{ listStyle: "none", paddingLeft: 0 }}>
       {changelog.map((c) => (
-        <li key={c.date} style={{ marginBottom: 8 }}>
+        <li key={`${c.date} ${c.en}`} style={{ marginBottom: 8 }}>
           <span className="label-small" style={{ display: "block", fontWeight: 600 }}>
             {dateOnly(`${c.date}T12:00:00+06:00`, lang)}
           </span>

@@ -11,7 +11,8 @@ The system architecture diagram and prototype limits are in the [root README](..
 ## Stack
 
 Next.js 16 · Supabase (Postgres + PostGIS + pgvector, Storage) · Gemini (vision, embeddings) ·
-Groq (primary bilingual text) + GLM (fallback) · Leaflet + OpenStreetMap.
+Groq (primary bilingual text) + GLM (fallback) + optional local Ollama · Mastra (officer assistant) ·
+Leaflet + OpenStreetMap.
 
 ## Setup
 
@@ -61,6 +62,8 @@ The policy files are team-authored pilot rules, not official city regulations.
 ```bash
 pnpm kpi [--since YYYY-MM-DD] [--json kpi.json]          # live KPIs from the database and audit log
 pnpm eval:photos <folder> [--interval-ms 15000] [--json eval.json]   # accuracy on a labelled photo set (layout in the script header)
+pnpm eval:local-models qwen2.5:3b llama3.2:3b   # local Ollama models vs Groq on the explanation prompt's rules
+pnpm smoke:agent ["Which repairs are late?"]    # ask the officer assistant real questions (read-only)
 ```
 
 The `/impact` page shows the same KPIs as `pnpm kpi` (both use `src/lib/kpi.ts`), with sample
@@ -96,6 +99,9 @@ the server data. Supabase access and workflow decisions remain in server code.
 3. **Environment Variables** (Production + Preview), copied from `.env.local`, marked *Sensitive*:
    `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `GEMINI_API_KEY`, `GEMINI_VISION_MODEL`, `GEMINI_EMBEDDING_MODEL`, `GLM_API_KEY`, `GLM_API_BASE`, `GLM_TEXT_MODEL`, `GROQ_API_KEY`, `GROQ_TEXT_MODEL`, and optionally `KPI_SINCE`.
    Not needed on Vercel: `DATABASE_URL` and the `*_BACKUP` keys. Never add a `NEXT_PUBLIC_` prefix.
+   Set `CRON_SECRET` on the one deployment that should run the daily overdue check (all deployments share one
+   database). `OLLAMA_BASE_URL` and `OLLAMA_API_KEY` are only for demos with the Ollama tunnel running
+   ([`../automation/ollama-tunnel`](../automation/ollama-tunnel)).
 4. **Settings → Functions → Region:** pick the one closest to the database (Singapore `sin1` for the current project).
 5. Deploy, then open `https://<your-app>.vercel.app/api/health`: the `configured` flags for Supabase, Gemini, Groq and GLM should be `true`, and `database.ok` should be `true`. These flags confirm configuration; use the test guide to verify provider calls and workflows.
 
@@ -108,7 +114,7 @@ or `429` quota errors. The app can spread calls over several keys and fall back 
 # extra keys: commas only, no spaces
 GEMINI_API_KEYS=key2,key3
 # backup models, tried after GEMINI_VISION_MODEL
-GEMINI_VISION_FALLBACK_MODELS=gemini-3.1-flash-lite,gemini-3.5-flash
+GEMINI_VISION_FALLBACK_MODELS=gemini-3.6-flash,gemini-3-flash-preview,gemini-3.1-flash-lite
 # start the next model after this many ms without an answer
 GEMINI_HEDGE_MS=5000
 # extra Groq keys, used when a Groq key hits its rate limit
@@ -152,6 +158,9 @@ pnpm test && pnpm typecheck && pnpm lint && pnpm build
 | `src/lib/ai/gemini.ts` | M1 issue analysis, M3 duplicate compare, M4 repair verify, embeddings |
 | `src/lib/ai/glm.ts` | Fallback Bangla + English severity explanation via GLM |
 | `src/lib/ai/groq.ts` | Primary Bangla + English severity explanation (Groq) |
+| `src/lib/ai/ollama.ts`, `src/lib/ai/bangla.ts` | Optional local explanation fallback (Ollama) and the Bangla-script guard for its answers |
+| `src/lib/agent/`, `src/components/officer/assistant-panel.tsx` | "Ask CivicTrust" officer assistant: Mastra agent, read-only tools and answer rules |
+| `src/lib/overdue.ts`, `src/lib/automation/`, `src/app/api/automation/overdue/` | Overdue rules and the daily overdue check (Vercel Cron in `vercel.json`, or n8n) |
 | `src/lib/reports.ts` | Citizen report pipeline, provider time budgets, duplicate merging and location recording |
 | `src/lib/severity.ts` | M2 explainable severity score + SLA deadline bands |
 | `src/lib/workflow.ts`, `src/lib/repair-verdict.ts` | Assignment, repair checks and officer review, payment gate, feedback, NGO offers and audit queries |
@@ -168,6 +177,8 @@ pnpm test && pnpm typecheck && pnpm lint && pnpm build
 | `data/osm/` | Pilot-area OpenStreetMap extract (ODbL) |
 | `src/lib/kpi.ts`, `src/lib/kpi-math.ts`, `src/app/impact/` | Live KPIs shared by the `/impact` page and `pnpm kpi` |
 | `scripts/kpi.ts`, `scripts/eval-photos.ts` | KPI report in the terminal and labelled-photo AI evaluation |
+| `scripts/smoke-agent.ts`, `scripts/eval-local-models.ts` | Officer assistant smoke test and local-model comparison |
+| `../automation/` | n8n workflow for the overdue check; Ollama gateway and Cloudflare Tunnel |
 
 ## Security model (prototype)
 

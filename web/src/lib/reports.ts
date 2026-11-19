@@ -3,6 +3,8 @@ import { cacheLife } from "next/cache";
 import { analyzeIssuePhoto, compareForDuplicate, type ImageInput } from "@/lib/ai/gemini";
 import { explainSeverity as explainWithGlm } from "@/lib/ai/glm";
 import { explainSeverity as explainWithGroq } from "@/lib/ai/groq";
+import { explainSeverity as explainWithOllama } from "@/lib/ai/ollama";
+import { envStatus } from "@/lib/env";
 import { EXPLANATION_TIMEOUT_MS } from "@/lib/ai/explanation-prompt";
 import type { Explanation } from "@/lib/ai/schemas";
 import type { IssueAnalysis } from "@/lib/ai/schemas";
@@ -55,11 +57,14 @@ const DUPLICATE_TIMEOUT_MS = 12_000;
 /** Kept back from duplicate checks so the explanation still has time. */
 const EXPLANATION_RESERVE_MS = 8_000;
 
-type ExplanationResult = { explanation: Explanation | null; provider: "groq" | "glm" | null; ms: number; fallbackReason: string | null };
+type ExplanationResult = { explanation: Explanation | null; provider: "groq" | "glm" | "ollama" | null; ms: number; fallbackReason: string | null };
 
 const shortError = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0, 160);
 
-/** Groq first, GLM if Groq fails and time is left; neither is essential (the breakdown explains the score). */
+/**
+ * Groq first, GLM if Groq fails, then a local Ollama model where one is configured, while time is
+ * left. None is essential: the score breakdown already explains the score.
+ */
 async function explainSeverity(
   facts: { issueType: string; observations: string; severity: SeverityResult },
   budget: TimeBudget,
@@ -78,8 +83,16 @@ async function explainSeverity(
     return { explanation, provider: "glm", ms: Date.now() - started, fallbackReason };
   } catch (e) {
     console.error("Groq and GLM explanations both failed", shortError(e));
-    return { explanation: null, provider: null, ms: Date.now() - started, fallbackReason };
   }
+  if (envStatus().ollama) {
+    try {
+      const explanation = await explainWithOllama(facts, budget.timeoutFor(EXPLANATION_TIMEOUT_MS));
+      return { explanation, provider: "ollama", ms: Date.now() - started, fallbackReason };
+    } catch (e) {
+      console.error("Local Ollama explanation failed too", shortError(e));
+    }
+  }
+  return { explanation: null, provider: null, ms: Date.now() - started, fallbackReason };
 }
 
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);

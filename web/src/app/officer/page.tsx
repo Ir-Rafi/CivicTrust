@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { getOfficerQueue } from "@/app/officer/actions";
 import { SeverityBadge, SeverityBreakdown } from "@/components/issues/severity-breakdown";
+import { AssistantPanel } from "@/components/officer/assistant-panel";
 import { OfficerQueue } from "@/components/officer/officer-queue";
 import { AssignForm, OverrideForm, ReleaseButton, ReviewForm } from "@/components/officer/officer-forms";
 import { RoleGate } from "@/components/role-gate";
@@ -34,14 +35,17 @@ async function OfficerView({ searchParams }: Pick<PageProps<"/officer">, "search
   const [all, flags] = await Promise.all([loadQueue(), listOrderFlags()]);
 
   return (
-    <OfficerQueue all={all} flagEntries={[...flags]} panelIssueId={selectedId} lang={lang}
-      t={{ officer: t.officer, issueType: t.issueType, visualClass: t.visualClass, common: t.common, status: t.status }}>
-      {selectedId && (
-        <Suspense key={selectedId} fallback={<p className="label-small">{t.common.loading}</p>}>
-          <IssuePanel issueId={selectedId} lang={lang} />
-        </Suspense>
-      )}
-    </OfficerQueue>
+    <div className="stack" style={{ gap: 24 }}>
+      <AssistantPanel t={t.assistant} />
+      <OfficerQueue all={all} flagEntries={[...flags]} panelIssueId={selectedId} lang={lang}
+        t={{ officer: t.officer, issueType: t.issueType, visualClass: t.visualClass, common: t.common, status: t.status }}>
+        {selectedId && (
+          <Suspense key={selectedId} fallback={<p className="label-small">{t.common.loading}</p>}>
+            <IssuePanel issueId={selectedId} lang={lang} />
+          </Suspense>
+        )}
+      </OfficerQueue>
+    </div>
   );
 }
 
