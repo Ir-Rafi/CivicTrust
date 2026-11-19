@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { checkQuestion, isRateLimit, plainAnswer, QUESTION_MAX, replyLanguage, toolsUsed } from "./rules";
+import { checkQuestion, isMalformedToolCall, isRateLimit, plainAnswer, QUESTION_MAX, replyLanguage, toolsUsed } from "./rules";
 
 test("checkQuestion trims, collapses spaces and enforces the length limits", () => {
   assert.deepEqual(checkQuestion("  Which   repairs are late? "), { ok: true, question: "Which repairs are late?" });
@@ -37,6 +37,13 @@ test("plainAnswer drops made-up issue labels and keeps real ones", () => {
   assert.equal(plainAnswer("- Contractor A: on-time rate 0 (#CT‑none)"), "- Contractor A: on-time rate 0");
   assert.equal(plainAnswer("Within 7 days [#CT‑policy Severity bands]."), "Within 7 days.");
   assert.equal(plainAnswer("See #CT-16 and (#CT-3)."), "See #CT-16 and (#CT-3).");
+});
+
+test("isMalformedToolCall recognises Groq's tool-argument rejections only", () => {
+  assert.equal(isMalformedToolCall(new Error("Tool call validation failed: parameters for tool list_issues did not match schema: errors: [missing properties: 'offset']")), true);
+  assert.equal(isMalformedToolCall(new Error('{"code":"tool_use_failed"}')), true);
+  assert.equal(isMalformedToolCall(new Error("Rate limit reached for model openai/gpt-oss-120b")), false);
+  assert.equal(isMalformedToolCall(new Error("The tool could not complete this request")), false);
 });
 
 test("isRateLimit recognises 429s and quota messages only", () => {

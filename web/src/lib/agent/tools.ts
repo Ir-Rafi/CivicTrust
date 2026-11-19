@@ -19,11 +19,21 @@ const descriptions: Record<ToolName, string> = {
   verify_audit_chain: "Check the hash chain of recorded audit entries: valid, broken or empty.",
 };
 
+// For Groq's "openai/…" models Mastra marks every field required (unused ones as null), and the
+// model sometimes leaves one out, which Groq rejects (askCivicTrust then asks again). The
+// assistant shows top results and doesn't page, so dropping `offset` leaves fewer fields to miss;
+// parsing with the full MCP schema in execute fills it back in as 0.
+const agentInputs: { [K in ToolName]: z.ZodType } = {
+  ...inputs,
+  list_issues: inputs.list_issues.omit({ offset: true }),
+  get_contractor_scorecards: inputs.get_contractor_scorecards.omit({ offset: true }),
+};
+
 function mcpTool(name: ToolName) {
   return createTool({
     id: name,
     description: descriptions[name],
-    inputSchema: inputs[name],
+    inputSchema: agentInputs[name],
     outputSchema: outputs[name],
     execute: async (args) => {
       try {

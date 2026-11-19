@@ -47,6 +47,18 @@ export function toolsUsed(steps: { toolCalls?: { payload?: { toolName?: string }
   return names;
 }
 
+/** Extra attempts after the model sends a tool call that leaves out a field. */
+export const MAX_MALFORMED_RETRIES = 2;
+
+/**
+ * Groq rejects a tool call whose arguments don't match the schema before any tool runs, so the
+ * question can safely be asked again; the next sample usually fills every field.
+ */
+export function isMalformedToolCall(e: unknown): boolean {
+  const message = e instanceof Error ? e.message : String(e);
+  return /tool call validation failed|tool_use_failed|did not match schema/i.test(message);
+}
+
 /** A provider refusal that another API key may not hit (rate limit or quota). */
 export function isRateLimit(e: unknown): boolean {
   const status = (e as { statusCode?: unknown; status?: unknown } | null)?.statusCode ?? (e as { status?: unknown } | null)?.status;
