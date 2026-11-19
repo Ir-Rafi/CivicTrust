@@ -1,5 +1,5 @@
 # Self-hosted n8n that runs the daily CivicTrust overdue-repair check (see README.md).
-#   CIVICTRUST_URL=https://civic-trust-siuu.vercel.app CIVICTRUST_CRON_SECRET=... docker compose up -d
+#   CIVICTRUST_URL=https://civictrust-eight.vercel.app CIVICTRUST_CRON_SECRET=... docker compose up -d
 services:
   n8n:
     image: n8nio/n8n:2.46.5
@@ -10,7 +10,7 @@ services:
       TZ: Asia/Dhaka
       # The workflow reads these three with $env; only they are passed in.
       N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
-      CIVICTRUST_URL: ${CIVICTRUST_URL:?set CIVICTRUST_URL, e.g. https://civic-trust-siuu.vercel.app}
+      CIVICTRUST_URL: ${CIVICTRUST_URL:?set CIVICTRUST_URL, e.g. https://civictrust-eight.vercel.app}
       CIVICTRUST_CRON_SECRET: ${CIVICTRUST_CRON_SECRET:?set CIVICTRUST_CRON_SECRET to the app's CRON_SECRET}
       CIVICTRUST_DRY_RUN: ${CIVICTRUST_DRY_RUN:-0}
     volumes:

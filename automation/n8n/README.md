@@ -15,7 +15,7 @@ Needs Docker and the app's `CRON_SECRET`.
 
 ```sh
 cd automation/n8n
-export CIVICTRUST_URL=https://civic-trust-siuu.vercel.app
+export CIVICTRUST_URL=https://civictrust-eight.vercel.app
 export CIVICTRUST_CRON_SECRET=...        # same value as CRON_SECRET in the app
 docker compose up -d
 docker compose exec n8n n8n import:workflow --input=/workflows/overdue-check.workflow.json

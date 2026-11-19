@@ -4,7 +4,7 @@
 
 **Report it. AI ranks it. The city fixes it. AI checks the fix.**
 
-**Live demo:** <https://civic-trust-siuu.vercel.app> (no login; choose a role) · Backup: <https://civictrust-eight.vercel.app>
+**Live demo:** <https://civictrust-eight.vercel.app> (no login; choose a role) · Backup: <https://civic-trust-siuu.vercel.app>
 
 Citizens photograph potholes, road cracks, garbage piles, open drains and waterlogging. AI identifies the problem and supports an explainable urgency score. A ward officer assigns a contractor or NGO with a deadline, and repair evidence is checked before the issue is marked fixed and payment becomes eligible. A public portal  shows  issue progress and contractor outcomes by area.
 
