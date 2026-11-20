@@ -65,3 +65,32 @@ export function isRateLimit(e: unknown): boolean {
   const message = e instanceof Error ? e.message : String(e);
   return status === 429 || /rate.?limit|quota|too many requests/i.test(message);
 }
+
+/**
+ * A temporary refusal worth another attempt: a rate limit, a server error (5xx) or a failed
+ * connection. Mastra's own retries are turned off (see assistant.ts), so these come here.
+ */
+export function shouldTryNextKey(e: unknown): boolean {
+  if (isRateLimit(e)) return true;
+  const err = e as { statusCode?: unknown; status?: unknown; isRetryable?: unknown } | null;
+  const status = err?.statusCode ?? err?.status;
+  return (typeof status === "number" && status >= 500) || err?.isRetryable === true;
+}
+
+/** Attempts after a temporary refusal, across keys, within the question's time budget. */
+export const MAX_PROVIDER_RETRIES = 4;
+/** Longest wait for a rate limit to clear before trying again. */
+export const MAX_RATE_LIMIT_WAIT_MS = 8_000;
+
+/**
+ * How long Groq asks us to wait: the retry-after header, else "try again in 1.22s" in the message.
+ * Undefined when neither is present.
+ */
+export function retryDelayMs(e: unknown): number | undefined {
+  const headers = (e as { responseHeaders?: Record<string, string> } | null)?.responseHeaders;
+  const header = Number.parseFloat(headers?.["retry-after"] ?? "");
+  if (Number.isFinite(header) && header >= 0) return Math.ceil(header * 1000);
+  const message = e instanceof Error ? e.message : String(e);
+  const m = /try again in (?:(\d+)m)?(\d+(?:\.\d+)?)s/i.exec(message);
+  return m ? Math.ceil((Number(m[1] ?? 0) * 60 + Number(m[2])) * 1000) : undefined;
+}

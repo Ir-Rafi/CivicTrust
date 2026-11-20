@@ -1,6 +1,21 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { checkQuestion, isMalformedToolCall, isRateLimit, plainAnswer, QUESTION_MAX, replyLanguage, toolsUsed } from "./rules";
+import { checkQuestion, isMalformedToolCall, isRateLimit, plainAnswer, QUESTION_MAX, replyLanguage, retryDelayMs, shouldTryNextKey, toolsUsed } from "./rules";
+
+test("retryDelayMs reads Groq's retry-after header, else the wait in the message", () => {
+  assert.equal(retryDelayMs(Object.assign(new Error("Rate limit"), { responseHeaders: { "retry-after": "3" } })), 3000);
+  assert.equal(retryDelayMs(new Error("Rate limit reached ... Please try again in 1.2225s. Need more tokens?")), 1223);
+  assert.equal(retryDelayMs(new Error("Please try again in 1m30.5s.")), 90500);
+  assert.equal(retryDelayMs(new Error("Service unavailable")), undefined);
+});
+
+test("shouldTryNextKey: rate limits, server errors and failed connections move to the next key", () => {
+  assert.equal(shouldTryNextKey(Object.assign(new Error("Too Many Requests"), { statusCode: 429 })), true);
+  assert.equal(shouldTryNextKey(Object.assign(new Error("Service unavailable"), { statusCode: 503 })), true);
+  assert.equal(shouldTryNextKey(Object.assign(new Error("Cannot connect to API"), { isRetryable: true })), true);
+  assert.equal(shouldTryNextKey(Object.assign(new Error("Invalid API key"), { statusCode: 401, isRetryable: false })), false);
+  assert.equal(shouldTryNextKey(new Error("Tool call validation failed")), false);
+});
 
 test("checkQuestion trims, collapses spaces and enforces the length limits", () => {
   assert.deepEqual(checkQuestion("  Which   repairs are late? "), { ok: true, question: "Which repairs are late?" });
