@@ -35,8 +35,8 @@ async function ModelCard() {
       title={en ? "What the AI does, and where it can go wrong" : "এআই কী করে, আর কোথায় ভুল করতে পারে"}
       intro={
         en
-          ? "CivicTrust uses AI at five points. None of them pays anyone or closes a job on its own: money and closure depend on checks the code enforces and on officers, and every AI decision is in the audit log. Every result shown in the app is computed live on real input."
-          : "CivicTrust পাঁচটি জায়গায় এআই ব্যবহার করে। কোনোটিই নিজে থেকে কাউকে টাকা দেয় না বা কাজ বন্ধ করে না: টাকা আর কাজ বন্ধ হওয়া নির্ভর করে কোডের যাচাই আর কর্মকর্তাদের ওপর, আর এআই-এর প্রতিটি সিদ্ধান্ত অডিট লগে থাকে। অ্যাপে দেখানো প্রতিটি ফল আসল ইনপুটে সরাসরি হিসাব করা।"
+          ? "CivicTrust uses AI at six points. None of them pays anyone or closes a job on its own: money and closure depend on checks the code enforces and on officers, and every AI decision is in the audit log. Every result shown in the app is computed live on real input."
+          : "CivicTrust ছয়টি জায়গায় এআই ব্যবহার করে। কোনোটিই নিজে থেকে কাউকে টাকা দেয় না বা কাজ বন্ধ করে না: টাকা আর কাজ বন্ধ হওয়া নির্ভর করে কোডের যাচাই আর কর্মকর্তাদের ওপর, আর এআই-এর প্রতিটি সিদ্ধান্ত অডিট লগে থাকে। অ্যাপে দেখানো প্রতিটি ফল আসল ইনপুটে সরাসরি হিসাব করা।"
       }
       sections={[
         {
@@ -195,8 +195,13 @@ async function ModelCard() {
             <ul>
               <li>
                 {en
-                  ? "Accuracy is measured on a labelled set of real Dhanmondi photos and before/after pairs (pnpm eval:photos), and the live figures (duplicate rate, time to a ranked issue, false closures, audit completeness, AI success and fallback) come from the audit log (pnpm kpi)."
-                  : "নির্ভুলতা মাপা হয় ধানমন্ডির আসল ছবি আর আগে/পরে জোড়ার লেবেল করা সেটে (pnpm eval:photos), আর সরাসরি হিসাব (ডুপ্লিকেট হার, র‍্যাঙ্ক হওয়া পর্যন্ত সময়, ভুল বন্ধ, অডিট সম্পূর্ণতা, এআই সাফল্য ও বিকল্প) আসে অডিট লগ থেকে (pnpm kpi)।"}
+                  ? "Accuracy will be measured on a labelled set of real Dhanmondi photos and before/after pairs (script: pnpm eval:photos). The live figures (duplicate rate, time to a ranked issue, false closures, audit completeness, AI success and fallback) come from the audit log (script: pnpm kpi)."
+                  : "নির্ভুলতা মাপা হবে ধানমন্ডির আসল ছবি আর আগে/পরে জোড়ার লেবেল করা সেটে (স্ক্রিপ্ট: pnpm eval:photos)। সরাসরি হিসাব (ডুপ্লিকেট হার, র‍্যাঙ্ক হওয়া পর্যন্ত সময়, ভুল বন্ধ, অডিট সম্পূর্ণতা, এআই সাফল্য ও বিকল্প) আসে অডিট লগ থেকে (স্ক্রিপ্ট: pnpm kpi)।"}
+              </li>
+              <li>
+                {en
+                  ? "Local models were compared with Groq on the explanation prompt's own rules (script: pnpm eval:local-models, 21 checks): Qwen 2.5 3B 19/21, Llama 3.2 3B 17/21, Gemma 2 13/21, Groq 21/21. These check the rules, not the quality of the Bangla."
+                  : "লোকাল মডেলগুলোকে Groq-এর সঙ্গে ব্যাখ্যার প্রম্পটের নিজস্ব নিয়মে তুলনা করা হয়েছে (স্ক্রিপ্ট: pnpm eval:local-models, ২১টি যাচাই): Qwen 2.5 3B ১৯/২১, Llama 3.2 3B ১৭/২১, Gemma 2 ১৩/২১, Groq ২১/২১। এগুলো নিয়ম মানা যাচাই করে, বাংলার মান নয়।"}
               </li>
               <li>
                 {en

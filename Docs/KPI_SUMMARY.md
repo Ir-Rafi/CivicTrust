@@ -48,8 +48,10 @@ and offers **demo spots** inside the pilot area; such reports are recorded with 
 
 **Before starting**
 
-1. A paid Gemini key in `web/.env.local` and on Vercel. On the free key, photo analysis often
-   fails with "high demand" (503) or rate limits (429), which would distort the figures.
+1. Working Gemini keys in `web/.env.local` and on Vercel: the pool of free keys from different
+   projects, with backup vision models (`GEMINI_API_KEYS`, `GEMINI_VISION_FALLBACK_MODELS`). With a
+   single free key, photo analysis often fails with "high demand" (503) or rate limits (429), which
+   would distort the figures.
 2. Set `KPI_SINCE` to the day of the run, so earlier test attempts are excluded.
 3. Prepare 10–15 photos the team may use: its own street photos, or openly licensed photos with
    their source and licence noted. Include a few non-civic photos and two photos of the same problem.

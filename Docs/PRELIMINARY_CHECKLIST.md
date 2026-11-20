@@ -1,6 +1,7 @@
 # Preliminary round checklist
 
-**Deadline: 31 October 2026. Target: submit on 30 October** (31 October is the buffer).
+**Deadline: 20 November 2026, 5:59 PM UTC (11:59 PM Bangladesh time)** on Cloudcamp ("Idea to Unicorn —
+Preliminary Submission"; first set for 31 October).
 Work from top to bottom: later steps depend on earlier ones. Tick items only after checking them.
 Sources: [`PRELIMINARY_PROTOTYPE_REQUIREMENTS.md`](../PRELIMINARY_PROTOTYPE_REQUIREMENTS.md) and
 [`PROTOTYPE_PLAN.md`](../PROTOTYPE_PLAN.md) (§1a, §6 and §11).
@@ -25,15 +26,17 @@ Sources: [`PRELIMINARY_PROTOTYPE_REQUIREMENTS.md`](../PRELIMINARY_PROTOTYPE_REQU
 - [x] Database moved to the Singapore Supabase project; data, photos and audit chain verified
 - [x] Previous database project paused
 - [x] civic-trust-siuu.vercel.app on the Singapore database with GLM enabled (Irfan)
-- [x] civictrust-eight.vercel.app deployed from the team's own Vercel account (Backend)
-- [x] New AI keys in `web/.env.local`: Gemini key pool (6 working keys) with backup models, Groq key pool (2 keys), new GLM key (Backend)
-- [ ] New AI keys on both Vercel projects, then redeploy (Backend, Irfan)
+- [x] civictrust-eight.vercel.app deployed from the team's own Vercel account; it is now the main demo, with civic-trust-siuu as backup (Backend)
+- [x] New AI keys in `web/.env.local`: Gemini key pool (10 keys) with four backup models, Groq key pool (2 keys), new GLM key (Backend)
+- [x] New AI keys on both Vercel projects, then redeploy (Backend, Irfan): both report 10 Gemini and 2 Groq keys
+- [x] `CRON_SECRET` on eight only, for the daily overdue check (first automatic run 20 Nov, 09:03)
+- [ ] Remove `CRON_SECRET` from siuu, so only one deployment runs the daily check (Rafi)
 - [ ] Reset the database password and Supabase secret key, which were shared in chat; update `.env.local` and Vercel (Team lead)
 - [ ] After both sites run on the new keys, delete the old keys at the providers: Gemini ×2 and Groq ×2 still work, plus the old GLM and AgentRouter keys (Team lead)
 - [ ] Optional: a Zhipu balance, or another text model, so the GLM backup works (`glm-4.7-flash` is the only free GLM model and is often overloaded)
 - [ ] Share the new settings privately with teammates who run the app locally (Team lead)
 - [ ] Uptime monitor on `/api/health` (keyword `"database":{"ok":true`) so the free database never pauses during judging (Backend)
-- [ ] Push all work to `main`, then redeploy both sites (Backend, Irfan)
+- [ ] Push all work to `main`, then redeploy both sites (Backend, Irfan): eight is on the latest commit; siuu is one commit behind
 - [ ] Remove the duplicate Vercel project (`civictrust` or `civic-trust`) (Irfan)
 
 ## 3. Measurement and impact
@@ -42,14 +45,14 @@ Procedure: [`KPI_SUMMARY.md`](KPI_SUMMARY.md).
 
 - [x] Expected outcomes and KPIs defined; unmeasured results labelled
 - [x] KPI counting reviewed: AI events counted for every run; duplicate comparisons recorded on merges
-- [ ] Measurement run on the live site with the paid key and `KPI_SINCE` set (Team)
+- [ ] Measurement run on the live site with the key pool and `KPI_SINCE` set (Team)
 - [ ] Copy the `/impact` figures, with sample sizes and date window, into `KPI_SUMMARY.md` (Backend)
 - [ ] Optional: labelled-photo evaluation with labels set by people (Team)
 
 ## 4. Documents
 
 - [ ] Name a member for every role in the README team table (Team lead)
-- [ ] One-page problem summary: problem, users, need, sourced facts (Business Analyst)
+- [x] One-page problem summary: problem, users, need, sourced facts (`Docs/CivicTrust_One_Page_Summary-1.pdf`)
 - [ ] Bangla text reviewed by a native speaker: AI reasons and screen text (Team)
 - [ ] `CivicTrust.pdf` matches what is built (Backend)
 - [ ] Cloudcamp submission form completed, under the International AI Builders Congress event (Team lead)

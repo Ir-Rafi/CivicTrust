@@ -306,7 +306,8 @@ delete from issues where id = <ID>;   -- also removes its reports, work orders, 
    owner deployment until the owner redeploys. Vercel's own build can also fail on the Google
    font download; deploying a local build with the CLI works around it.
 2. **Gemini free tier:** about 20 photo checks per day for the whole team, and frequent
-   *high demand* (503) errors. A paid key is planned before the measurement run and recording.
+   *high demand* (503) errors. The app spreads calls over a pool of free keys from different
+   projects and falls back to backup models (see `web/README.md`); a paid key would remove the limit.
 3. **CSS edits** to `globals.css` need a dev-server restart. The likely cause is the Tailwind
    Turbopack loader; Next.js recommends the PostCSS setup instead.
 4. **Gemini response time** varies (30–78 s seen). Reports now stop at 50 s with *The AI is busy*

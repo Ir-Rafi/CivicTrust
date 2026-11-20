@@ -47,15 +47,16 @@ Automated tests use the real SDK client/transport with fixture services to verif
 
 ## Deployment status
 
-Checked on 9 November 2026 with an unauthenticated `POST` to each demo deployment's `/api/mcp`:
+Checked on 20 November 2026 with an unauthenticated `POST` to each demo deployment's `/api/mcp`:
 
 | Deployment | Response | Meaning |
 |---|---|---|
 | `civictrust-eight.vercel.app` (main demo) | 401 | Route deployed and a token is configured |
-| `civic-trust-siuu.vercel.app` (backup) | 404 | Deployed build predates the MCP commit; redeploy and set `MCP_AUTH_TOKEN` |
+| `civic-trust-siuu.vercel.app` (backup) | 503 | Route deployed; no `MCP_AUTH_TOKEN` set, so MCP stays off there |
 
-A 401 only shows the route is live and closed to anonymous calls. The tools have not been called
-against a deployed endpoint yet; run `pnpm smoke:mcp` with `MCP_URL` set to the deployment to record that.
+On the same day `pnpm smoke:mcp` with `MCP_URL` set to the eight deployment passed all six tools
+(`list_issues`, `get_issue_timeline`, `search_repair_policy`, `get_contractor_scorecards`,
+`get_impact_summary`, `verify_audit_chain`), each in under 0.7 s.
 
 A second local check on the same day (production build, live backend, fresh token) passed all six
 tools again, rejected a missing token (401) and a disallowed Origin (403), and returned an

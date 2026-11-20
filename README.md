@@ -12,7 +12,8 @@ Entry for the **International AI Builders Congress 2026** — Competition 1 (Tea
 
 | Document | What's in it |
 |---|---|
-| [`CivicTrust.pdf`](CivicTrust.pdf) | Product brief, preliminary compliance status, AI models, and architecture |
+| [`CivicTrust.pdf`](CivicTrust.pdf) | Product brief as of 19 Oct (snapshot). The current overview, with live figures, is the demo's `/docs` page |
+| [`Docs/CivicTrust_One_Page_Summary-1.pdf`](Docs/CivicTrust_One_Page_Summary-1.pdf) | One-page summary for the preliminary round: problem, users, how it works, impact |
 | [`PROTOTYPE_PLAN.md`](PROTOTYPE_PLAN.md) | Plan mapped to the judging rubric: status, video script, timeline, risks, judge Q&A |
 | [`PRELIMINARY_PROTOTYPE_REQUIREMENTS.md`](PRELIMINARY_PROTOTYPE_REQUIREMENTS.md) | Requirements and acceptance criteria for the preliminary-round prototype |
 | [`web/README.md`](web/README.md) | Developer setup and code layout |
@@ -168,8 +169,10 @@ Declared as the Congress rules require.
 
 | Tool | Used for |
 |---|---|
-| Google Gemini (`gemini-3.8-flash`, `gemini-embedding-001`) | In the product: photo analysis, duplicate check, repair verification, policy search |
+| Google Gemini (`gemini-3.8-flash`; backups `gemini-3.6-flash`, `gemini-3-flash-preview`, `gemini-3.1-flash-lite`; `gemini-embedding-001`) | In the product: photo analysis, duplicate check, repair verification, policy search |
 | Groq (`openai/gpt-oss-120b`), GLM (`glm-4.7-flash`, fallback) | In the product: one-line Bangla/English explanations from computed facts |
+| Mastra agent on Groq (`openai/gpt-oss-120b`) | In the product: the "Ask CivicTrust" officer assistant, with read-only tools |
+| Ollama with Qwen 2.5 3B (optional, local) | In the product: last fallback for explanations where configured; Llama 3.2 3B and Gemma 2/3 were compared with `pnpm eval:local-models` |
 | OpenStreetMap Nominatim | In the product: road and area names for a location (not AI) |
 | Claude Code (Anthropic) | In development: writing and reviewing code, tests, database migrations and documentation, with team review |
 

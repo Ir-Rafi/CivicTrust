@@ -7,18 +7,19 @@ Every feature, page and minute of video below exists because it earns points som
 
 ---
 
-## Status at a glance (21 Oct)
+## Status at a glance (20 Nov)
 
 | Area | State |
 |---|---|
 | Decisions | Next.js + Supabase · Gemini (vision, embeddings) + Groq (text, GLM fallback) · **no login** (role switcher) · pilot area Dhanmondi, Dhaka |
 | Core loop | **Built and verified end to end** on the live database: citizen report (GPS, map, manual pin, place names) → AI analysis → duplicate merge → explainable severity → Bangla/English reason → officer queue, map, area filter, corrections with history → work order with cited deadline and cost → repair verification (location, freshness, AI) → payment withheld until verified → citizen confirm/dispute → public tracker, update log, scorecards, per-area figures |
 | Safeguards | Hash-chained audit log that can't be edited or emptied; payment gate in the database; unsure AI results go to an officer; unmeasured repair locations never auto-approve; RLS on every table; photos never public |
-| Screens | All §6 screens, including `/architecture`, `/data`, `/security`, `/model-card`, `/audit` and `/impact`; Bangla/English; dark mode |
+| Screens | All §6 screens, including `/architecture`, `/data`, `/security`, `/model-card`, `/audit`, `/impact` and `/docs`; Bangla/English; dark mode |
+| Added since 21 Oct | Gemini and Groq key pools with four backup vision models; live `/docs`; read-only MCP server (`/api/mcp`, six tools); "Ask CivicTrust" officer assistant (Mastra agent, read-only tools); daily overdue-repair check (Vercel Cron, n8n workflow); optional local model (Ollama, `qwen2.5:3b`) reachable through a token-checked Cloudflare Tunnel |
 | Live | `civictrust-eight.vercel.app` (main demo and submission URL) and `civic-trust-siuu.vercel.app` (backup), both in Singapore (`sin1`) on the Singapore database. Vercel Hobby only deploys the account owner's commits |
-| Impact evidence | Expected outcomes with KPIs; `/impact` computes the figures live with sample sizes. Little real data yet: a measurement run is planned once the paid Gemini key is in |
-| Validation limits | The free Gemini key often returns *high demand* errors. Desktop runs do not establish field GPS, real repair quality or field performance |
-| Next | Paid Gemini key → measurement run → 1-page problem summary → video → submission |
+| Impact evidence | Expected outcomes with KPIs; `/impact` computes the figures live with sample sizes. Little real data yet: a measurement run with real reports is still to do (no paid Gemini key; the free key pool is used) |
+| Validation limits | Free Gemini keys often return *high demand* errors; the key pool and backup models usually answer. Desktop runs do not establish field GPS, real repair quality or field performance |
+| Next | Preliminary submission on Cloudcamp (deadline 20 Nov, 11:59 PM Bangladesh time) → finals preparation |
 
 ---
 
@@ -273,7 +274,7 @@ Pilot data: Dhanmondi area, Dhaka (bbox 23.735,90.365 → 23.760,90.390). OSM ro
 | OSM tagging noise (some "hospitals" are pharmacies or offices) | Wrong proximity bonus | Name filter in `seed:fetch` (7 removed); officer override covers the rest; noted on `/data` | done |
 | Gemini/Groq rate limits or outage during the demo | Live demo stalls | Recorded backup video; GLM takes over text if Groq fails (10 s timeout each); clear error message in app | 27 Oct |
 | Physical field access unavailable | Field accuracy and real-world impact remain unvalidated | Present expected outcomes, the live `/impact` figures and a labelled desktop demonstration; physical validation is pilot work | Preliminary |
-| Free Gemini key overloaded (503) or rate-limited (429) | Photo analysis fails during the measurement run or recording | Paid Gemini key before the run; recorded backup video | 25 Oct |
+| Free Gemini key overloaded (503) or rate-limited (429) | Photo analysis fails during the measurement run or recording | Key pool across free-tier projects and four backup vision models with staggered fallback (no paid key available); recorded backup video | done |
 | Supabase free project pauses after a week without activity | Live demo breaks while judges review it | Uptime monitor on `/api/health` (keyword check) | 25 Oct |
 | Problem statistics unsourced | M2 weak; risk of "fabricated" claims | BA collects cited sources only | 26 Oct |
 | Team roles unfilled | Submission requirement (Sec. 13.2) | Fill §6 table | 24 Oct |
@@ -291,9 +292,9 @@ Pilot data: Dhanmondi area, Dhaka (bbox 23.735,90.365 → 23.760,90.390). OSM ro
 | 8–9 | 24–25 Oct | Contractor after-photo + AI verifier; citizen confirm/dispute | A (headline) | **Done** (19 Oct) |
 | 10 | 26 Oct | Public portal (incl. money released vs withheld); contractor scorecards; audit page; EXIF strip; `/architecture` `/data` `/security` `/audit` | D, E | **Done** (19 Oct); plus `/model-card` |
 | 11 | 27 Oct | Deploy public URL; blur (stretch); polish | M5 | Deployed; blur not built (photos never public) |
-| 12 | 28 Oct | Measurement run on the live site; `/impact` figures into the KPI summary | M7, D | `/impact` built (21 Oct); run waits for the paid key |
-| 13–14 | 29–30 Oct | Record video per §5; 1-page summary; submission package | M1, M2, M4 | |
-| buffer | 31 Oct | **Submit** | | |
+| 12 | 28 Oct | Measurement run on the live site; `/impact` figures into the KPI summary | M7, D | `/impact` built (21 Oct); run with real reports still to do (free key pool, no paid key) |
+| 13–14 | 29–30 Oct | Record video per §5; 1-page summary; submission package | M1, M2, M4 | Video (2:56) and one-page summary done |
+| buffer | 20 Nov | **Submit** (Cloudcamp deadline moved to 20 Nov, 5:59 PM UTC) | | |
 
 ### After selection (15 Nov → 25 Dec)
 | Window | Work | Rubric target |

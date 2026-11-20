@@ -527,7 +527,8 @@ function Apis({ tr }: { tr: Tr }) {
   return (
     <>
       <p>
-        <strong>{tr("Used", "ব্যবহৃত")}</strong>: Google Gemini, Groq, Zhipu GLM, OpenStreetMap Overpass, OpenStreetMap Nominatim, Supabase.
+        <strong>{tr("Used", "ব্যবহৃত")}</strong>: Google Gemini, Groq, Zhipu GLM, OpenStreetMap Overpass, OpenStreetMap Nominatim, Supabase,{" "}
+        {tr("and optionally a local Ollama model.", "আর ঐচ্ছিকভাবে একটি লোকাল Ollama মডেল।")}
       </p>
       <p>
         <strong>{tr("Exposed", "প্রকাশিত")}</strong>:{" "}
@@ -545,6 +546,13 @@ function Apis({ tr }: { tr: Tr }) {
         {tr(
           "read-only MCP server (Streamable HTTP) for AI assistants, with six tools: list issues, issue timeline, repair-policy search, contractor scorecards, impact summary and audit-chain check. Needs a bearer token set by the operator; returns no coordinates, photos, names or comments, and cannot change data.",
           "এআই সহকারীর জন্য শুধু-পড়ার MCP সার্ভার (Streamable HTTP), ছয়টি টুলসহ: সমস্যার তালিকা, সমস্যার টাইমলাইন, মেরামত-নীতি খোঁজা, ঠিকাদারের স্কোরকার্ড, প্রভাবের সারাংশ আর অডিট-চেইন যাচাই। অপারেটরের দেওয়া বেয়ারার টোকেন লাগে; অবস্থান, ছবি, নাম বা মন্তব্য দেয় না, আর কোনো ডেটা বদলাতে পারে না।",
+        )}
+      </p>
+      <p>
+        <span className="mono">GET /api/automation/overdue</span> —{" "}
+        {tr(
+          "the daily overdue-repair check, called by Vercel Cron or an n8n workflow with a secret. It records each work order that missed its deadline once, for officers and the public update log.",
+          "দৈনিক সময়সীমা যাচাই, Vercel Cron বা n8n ওয়ার্কফ্লো গোপন চাবি দিয়ে ডাকে। সময়সীমা পেরোনো প্রতিটি কাজের আদেশ একবার লেখা হয়, কর্মকর্তা আর পাবলিক আপডেট লগের জন্য।",
         )}
       </p>
       <p className="label-small">{tr("Planned: an Open311 (GeoReport v2) compatible API.", "পরিকল্পনা: Open311 (GeoReport v2) সামঞ্জস্যপূর্ণ API।")}</p>

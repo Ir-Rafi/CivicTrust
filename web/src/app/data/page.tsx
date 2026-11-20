@@ -84,7 +84,22 @@ async function DataPage() {
               </li>
               <li>
                 <strong>Groq</strong> ({en ? "GLM as fallback" : "বিকল্প GLM"}) —{" "}
-                {en ? "receives text facts only (score components, place names), never photos." : "শুধু টেক্সট তথ্য পায় (স্কোরের উপাদান, স্থানের নাম), কখনো ছবি নয়।"}
+                {en ? "receives text facts only (score components, place names), never photos." : "শুধু টেক্সট তথ্য পায় (স্কোরের উপাদান, স্থানের নাম), কখনো ছবি নয়।"}{" "}
+                {en
+                  ? "Groq also runs the officer assistant: it receives the officer's question and the read-only tool results, with no coordinates, photos or names."
+                  : "Groq কর্মকর্তার সহকারীও চালায়: কর্মকর্তার প্রশ্ন আর শুধু-পড়ার টুলের ফল পায়, অবস্থান, ছবি বা নাম ছাড়া।"}
+              </li>
+              <li>
+                <strong>{en ? "Local model (Ollama, optional)" : "লোকাল মডেল (Ollama, ঐচ্ছিক)"}</strong> —{" "}
+                {en
+                  ? "where configured, a team machine runs the last explanation fallback. It receives the same text facts, never photos, through a Cloudflare Tunnel that needs a token."
+                  : "যেখানে চালু আছে, দলের একটি মেশিন ব্যাখ্যার শেষ বিকল্প চালায়। এটিও একই টেক্সট তথ্য পায়, কখনো ছবি নয়, টোকেন-সুরক্ষিত Cloudflare Tunnel দিয়ে।"}
+              </li>
+              <li>
+                <strong>{en ? "MCP clients" : "MCP ক্লায়েন্ট"}</strong> —{" "}
+                {en
+                  ? "AI assistants holding the MCP token can read issues, timelines, the pilot policy, scorecards and KPIs. They never receive coordinates, photos, names or comments, and cannot change anything."
+                  : "MCP টোকেনধারী এআই সহকারী সমস্যা, টাইমলাইন, পাইলট নীতিমালা, স্কোরকার্ড আর KPI পড়তে পারে। তারা কখনো অবস্থান, ছবি, নাম বা মন্তব্য পায় না, আর কিছু বদলাতে পারে না।"}
               </li>
               <li>
                 <strong>OpenStreetMap Nominatim</strong> —{" "}

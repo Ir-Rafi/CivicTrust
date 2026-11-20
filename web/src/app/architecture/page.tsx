@@ -39,8 +39,8 @@ async function Architecture() {
       title={en ? "Architecture" : "আর্কিটেকচার"}
       intro={
         en
-          ? "One core loop: Report → Analyse → Prioritise → Assign → Verify → Publish. AI decides type, urgency, duplicates and closure; officers can override every AI decision, and every step is written to a hash-chained audit log."
-          : "একটি মূল প্রবাহ: রিপোর্ট → বিশ্লেষণ → অগ্রাধিকার → নিয়োগ → যাচাই → প্রকাশ। এআই ধরন, জরুরিতা, ডুপ্লিকেট ও কাজ বন্ধের সিদ্ধান্ত নেয়; কর্মকর্তা যেকোনো এআই সিদ্ধান্ত বদলাতে পারেন, এবং প্রতিটি ধাপ হ্যাশ-শৃঙ্খলিত অডিট লগে লেখা হয়।"
+          ? "One core loop: Report → Analyse → Prioritise → Assign → Verify → Publish. AI reads each photo, spots duplicates and compares repair photos; urgency comes from a published formula, and a job closes only when the code's checks pass or an officer approves it. Officers can override every AI result, and every step is written to a hash-chained audit log."
+          : "একটি মূল প্রবাহ: রিপোর্ট → বিশ্লেষণ → অগ্রাধিকার → নিয়োগ → যাচাই → প্রকাশ। এআই প্রতিটি ছবি পড়ে, ডুপ্লিকেট খোঁজে আর মেরামতের ছবি মেলায়; জরুরিতা আসে একটি প্রকাশিত সূত্র থেকে, আর কাজ বন্ধ হয় শুধু কোডের যাচাই পার হলে বা কর্মকর্তা অনুমোদন দিলে। কর্মকর্তা যেকোনো এআই ফল বদলাতে পারেন, এবং প্রতিটি ধাপ হ্যাশ-শৃঙ্খলিত অডিট লগে লেখা হয়।"
       }
       sections={[
         { heading: en ? "Pipeline" : "প্রবাহ", body: <Flow steps={FLOW[lang as Lang]} /> },
@@ -58,8 +58,8 @@ async function Architecture() {
               <li>
                 <strong>AI</strong> —{" "}
                 {en
-                  ? "Gemini for vision (report analysis, duplicate check, repair verification) and embeddings; Groq for Bangla/English explanations, with GLM as automatic fallback."
-                  : "ভিশনের জন্য জেমিনি (রিপোর্ট বিশ্লেষণ, ডুপ্লিকেট যাচাই, মেরামত যাচাই) ও এমবেডিং; বাংলা/ইংরেজি ব্যাখ্যার জন্য Groq, বিকল্প হিসেবে GLM।"}
+                  ? "Gemini for vision (report analysis, duplicate check, repair verification) and embeddings; Groq for Bangla/English explanations, with GLM and an optional local model (Ollama) as fallbacks. The Ask CivicTrust officer assistant is a Mastra agent on Groq that can only call read-only tools."
+                  : "ভিশনের জন্য জেমিনি (রিপোর্ট বিশ্লেষণ, ডুপ্লিকেট যাচাই, মেরামত যাচাই) ও এমবেডিং; বাংলা/ইংরেজি ব্যাখ্যার জন্য Groq, বিকল্প হিসেবে GLM আর ঐচ্ছিক লোকাল মডেল (Ollama)। Ask CivicTrust কর্মকর্তার সহকারী Groq-এ চলা একটি Mastra এজেন্ট, যা শুধু-পড়ার টুল ডাকতে পারে।"}
               </li>
               <li>
                 <strong>{en ? "Knowledge" : "জ্ঞানভান্ডার"}</strong> —{" "}
@@ -68,6 +68,12 @@ async function Architecture() {
               <li>
                 <strong>{en ? "Data" : "ডেটা"}</strong> —{" "}
                 {en ? "Supabase Postgres + PostGIS, private photo storage, append-only audit log." : "Supabase Postgres + PostGIS, ব্যক্তিগত ছবি স্টোরেজ, শুধু-যোগযোগ্য অডিট লগ।"}
+              </li>
+              <li>
+                <strong>{en ? "Integrations" : "সংযোগ"}</strong> —{" "}
+                {en
+                  ? "A read-only MCP server (/api/mcp) for AI assistants, and a daily overdue-repair check run by Vercel Cron or an n8n workflow."
+                  : "এআই সহকারীর জন্য শুধু-পড়ার MCP সার্ভার (/api/mcp), আর Vercel Cron বা n8n ওয়ার্কফ্লো দিয়ে চালানো দৈনিক সময়সীমা যাচাই।"}
               </li>
             </ul>
           ),
@@ -81,7 +87,12 @@ async function Architecture() {
                   ? "Gemini: strong vision on day one with no training data; called with storage disabled."
                   : "জেমিনি: প্রশিক্ষণ ডেটা ছাড়াই প্রথম দিন থেকে ভালো ভিশন; স্টোরেজ বন্ধ রেখে ব্যবহার।"}
               </li>
-              <li>{en ? "Groq: fast text generation for explanations." : "Groq: ব্যাখ্যার জন্য দ্রুত টেক্সট তৈরি।"}</li>
+              <li>{en ? "Groq: fast text generation for explanations and the officer assistant." : "Groq: ব্যাখ্যা আর কর্মকর্তার সহকারীর জন্য দ্রুত টেক্সট তৈরি।"}</li>
+              <li>
+                {en
+                  ? "Free-tier resilience: requests rotate over a pool of API keys, and if the main vision model is busy, backup Gemini models start one after another; the first answer wins."
+                  : "ফ্রি-টিয়ারে টিকে থাকা: অনুরোধগুলো কয়েকটি API কী-তে ঘুরে ঘুরে যায়, আর মূল ভিশন মডেল ব্যস্ত থাকলে বিকল্প জেমিনি মডেল একের পর এক শুরু হয়; যে আগে উত্তর দেয় সেটিই নেওয়া হয়।"}
+              </li>
               <li>
                 {en
                   ? "All models are swappable by configuration. Finals roadmap: self-hosted YOLO + CLIP so photos stay on city infrastructure."
