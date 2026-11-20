@@ -97,7 +97,7 @@ the server data. Supabase access and workflow decisions remain in server code.
 1. Vercel → **Add New → Project** → import `Ir-Rafi/CivicTrust` (the repo owner may need to install the Vercel GitHub app for this private repo).
 2. **Root Directory: `web`**. Framework, pnpm and build command are detected automatically.
 3. **Environment Variables** (Production + Preview), copied from `.env.local`, marked *Sensitive*:
-   `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `GEMINI_API_KEY`, `GEMINI_VISION_MODEL`, `GEMINI_EMBEDDING_MODEL`, `GLM_API_KEY`, `GLM_API_BASE`, `GLM_TEXT_MODEL`, `GROQ_API_KEY`, `GROQ_TEXT_MODEL`, and optionally `KPI_SINCE`.
+   `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `GEMINI_API_KEY`, `GEMINI_VISION_MODEL`, `GEMINI_EMBEDDING_MODEL`, `GLM_API_KEY`, `GLM_API_BASE`, `GLM_TEXT_MODEL`, `GROQ_API_KEY`, `GROQ_TEXT_MODEL`, `MCP_AUTH_TOKEN` (at least 32 characters; without it MCP stays off), the key pools below, and optionally `KPI_SINCE`.
    Not needed on Vercel: `DATABASE_URL` and the `*_BACKUP` keys. Never add a `NEXT_PUBLIC_` prefix.
    Set `CRON_SECRET` on the one deployment that should run the daily overdue check (all deployments share one
    database). `OLLAMA_BASE_URL` and `OLLAMA_API_KEY` are only for demos with the Ollama tunnel running

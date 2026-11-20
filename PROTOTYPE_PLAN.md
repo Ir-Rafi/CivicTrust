@@ -1,7 +1,7 @@
 # CivicTrust: judge-aligned plan
 
 Built from the official rules in `AIBC_Participants_Guide_261015_143157.pdf` (Sections 9, 11, 13, 14, 15, 20) and the product spec in `CivicTrust.pdf`.
-Updated: 21 Oct 2026. **Preliminary closes 31 Oct 2026.**
+Updated: 20 Nov 2026. **Preliminary closes 20 Nov 2026, 11:59 PM Bangladesh time** (first set for 31 Oct).
 
 Every feature, page and minute of video below exists because it earns points somewhere in the rules. If it doesn't score, it's cut or moved later.
 
@@ -86,7 +86,7 @@ Fabricated demos or **fake/simulated results** · misrepresenting technical capa
 
 ## 2. Features mapped to points
 
-Priority means **when it must score**: **P0 = preliminary (31 Oct)** · **P1 = finals (by 25 Dec)** · **P2 = roadmap slide only**.
+Priority means **when it must score**: **P0 = preliminary (20 Nov)** · **P1 = finals (by 25 Dec)** · **P2 = roadmap slide only**.
 Rubric columns: A Innovation · B Technical · C Business · D Scale/Impact · E Responsible AI.
 
 ### Core loop (P0 — this is the demo)
@@ -133,7 +133,7 @@ Rubric columns: A Innovation · B Technical · C Business · D Scale/Impact · E
 | Heatmap, overdue alerts | C | Overdue alerts implemented 19 Nov: daily check (Vercel Cron or n8n), officer queue flag, public update log. Heatmap still open |
 | NGO claim board + officer approval | D | Jobs/societal benefit story |
 | Open311 (GeoReport v2) compatible API | D | Plug into cities worldwide |
-| MCP server exposing CivicTrust tools to AI assistants | B | Implemented: six read-only tools at `/api/mcp`; see `Docs/MCP_GUIDE.md`. Hosted deployment and assistant demonstration must be verified separately. |
+| MCP server exposing CivicTrust tools to AI assistants | B | Implemented: six read-only tools at `/api/mcp`; see `Docs/MCP_GUIDE.md`. All six tools pass on both deployments (20 Nov; `Docs/MCP_VERIFICATION.md`) |
 
 ### Roadmap only (P2)
 Phone-OTP login and per-user permissions, SMS gateway, FCM push, AI weekly ward summary, directions, multi-city tenancy.
@@ -296,7 +296,7 @@ Pilot data: Dhanmondi area, Dhaka (bbox 23.735,90.365 → 23.760,90.390). OSM ro
 | 13–14 | 29–30 Oct | Record video per §5; 1-page summary; submission package | M1, M2, M4 | Video (2:56) and one-page summary done |
 | buffer | 20 Nov | **Submit** (Cloudcamp deadline moved to 20 Nov, 5:59 PM UTC) | | |
 
-### After selection (15 Nov → 25 Dec)
+### After selection (late Nov → 25 Dec)
 | Window | Work | Rubric target |
 |---|---|---|
 | Nov | Self-hosted YOLO + CLIP; agent pipeline; offline mode | B, E (sovereignty), D |

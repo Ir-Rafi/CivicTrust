@@ -1,8 +1,8 @@
 # MCP implementation verification
 
-Verified on 9 November 2026 at 20:13 Bangladesh time.
-This records a local production-build check against the configured live backend services.
-It is not evidence of a deployed public MCP endpoint or an LLM-host demonstration.
+First verified on 9 November 2026 at 20:13 Bangladesh time with a local production build against the
+live backend services; the deployed endpoints were checked on 20 November (see *Deployment status*).
+Neither check is an LLM-host demonstration.
 
 | Item | Result |
 |---|---|
@@ -52,11 +52,12 @@ Checked on 20 November 2026 with an unauthenticated `POST` to each demo deployme
 | Deployment | Response | Meaning |
 |---|---|---|
 | `civictrust-eight.vercel.app` (main demo) | 401 | Route deployed and a token is configured |
-| `civic-trust-siuu.vercel.app` (backup) | 503 | Route deployed; no `MCP_AUTH_TOKEN` set, so MCP stays off there |
+| `civic-trust-siuu.vercel.app` (backup) | 401 | Route deployed and a token is configured |
 
-On the same day `pnpm smoke:mcp` with `MCP_URL` set to the eight deployment passed all six tools
+On the same day `pnpm smoke:mcp` with `MCP_URL` set to each deployment passed all six tools
 (`list_issues`, `get_issue_timeline`, `search_repair_policy`, `get_contractor_scorecards`,
-`get_impact_summary`, `verify_audit_chain`), each in under 0.7 s.
+`get_impact_summary`, `verify_audit_chain`), each in under 0.7 s; a wrong token was refused (401).
+`verify_audit_chain` reported 161 entries, status `valid`.
 
 A second local check on the same day (production build, live backend, fresh token) passed all six
 tools again, rejected a missing token (401) and a disallowed Origin (403), and returned an

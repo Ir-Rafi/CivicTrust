@@ -120,7 +120,7 @@ Road and facility data come from OpenStreetMap. Public figures use official ward
 | Public transparency | Issue progress, activity log, area statistics, contractor scorecards and audit-chain verification |
 | Impact and measurement | `/impact` page with live KPIs and sample sizes; `pnpm kpi` and labelled-photo evaluation scripts |
 | Supporting pages and tools | Architecture, data, security and model-card pages; migrations and reference-data seeding |
-| MCP integration | Six read-only tools over authenticated Streamable HTTP; shared backend functions and an SDK smoke client. Deployment and assistant recording are separate verification steps. |
+| MCP integration | Six read-only tools over authenticated Streamable HTTP; shared backend functions and an SDK smoke client. All six tools pass on both deployments (checked 20 Nov); see [`Docs/MCP_VERIFICATION.md`](Docs/MCP_VERIFICATION.md). |
 | Automation | Daily overdue-repair check (`/api/automation/overdue`), run by Vercel Cron or the self-hosted n8n workflow in [`automation/n8n`](automation/n8n); records each late work order once in the audit log and public update log, with a dry-run mode |
 | Local model | Optional Ollama fallback for explanations (`qwen2.5:3b`, chosen with `pnpm eval:local-models`); reachable from the hosted app through the token-checked tunnel in [`automation/ollama-tunnel`](automation/ollama-tunnel) |
 

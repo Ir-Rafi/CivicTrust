@@ -8,9 +8,9 @@ The acceptance criteria these tests follow are in
 > - **Shared database.** Your local app talks to the same hosted Supabase database (Singapore) as
 >   the team and both Vercel deployments. Everything you create is visible on the public portal. Clean up
 >   test issues when you are done (see [Cleaning up](#cleaning-up-test-data)).
-> - **Shared AI quota.** The Gemini key is on the free tier: about **20 photo checks per day for
->   the whole team**. Each citizen report uses 1–3; each repair check uses 1. Coordinate before
->   running many reports.
+> - **Shared AI quota.** The Gemini keys are on the free tier and shared by the whole team and both
+>   deployments, so daily photo checks are limited. Each citizen report uses 1–3; each repair check
+>   uses 1. Coordinate before running many reports.
 > - **No faces or number plates.** Blurring is not built yet, so photograph only the problem.
 
 ## 1. Run it
@@ -305,8 +305,7 @@ delete from issues where id = <ID>;   -- also removes its reports, work orders, 
    everyone else's pushes show *Deployment was blocked*, and the live site stays on the last
    owner deployment until the owner redeploys. Vercel's own build can also fail on the Google
    font download; deploying a local build with the CLI works around it.
-2. **Gemini free tier:** about 20 photo checks per day for the whole team, and frequent
-   *high demand* (503) errors. The app spreads calls over a pool of free keys from different
+2. **Gemini free tier:** a small daily quota per key, and frequent *high demand* (503) errors. The app spreads calls over a pool of free keys from different
    projects and falls back to backup models (see `web/README.md`); a paid key would remove the limit.
 3. **CSS edits** to `globals.css` need a dev-server restart. The likely cause is the Tailwind
    Turbopack loader; Next.js recommends the PostCSS setup instead.

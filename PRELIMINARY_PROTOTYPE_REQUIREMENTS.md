@@ -27,13 +27,14 @@ The prototype must demonstrate this workflow:
 - Citizen confirmation or dispute of a reported repair.
 - Public status dashboard and contractor performance summary.
 - Hash-chained audit records for important actions and AI decisions.
+- Added during the build: a read-only officer assistant ("Ask CivicTrust"), a read-only MCP server for AI assistants, and a daily check that flags repairs past their deadline.
 
 ### 2.2 Excluded
 
 - Production authentication, phone verification, and granular permissions.
 - Full city coverage, multi-city tenancy, and offline synchronization.
 - SMS, push notifications, Open311 integration, and automated bank payments.
-- Self-hosted vision models, agent orchestration, and a full graph interface.
+- Self-hosted vision models, multi-agent orchestration, and a full graph interface.
 - Claims of production-level accuracy or official government policy.
 
 ## 3. User Requirements
@@ -68,7 +69,7 @@ The system shall search for open issues within 25 metres and compare images to d
 
 ### FR-05: AI explanation
 
-The system shall generate concise English and natural Bangla explanations based only on computed facts. Groq shall be the primary text provider, with GLM as an automatic fallback. Each provider has a timeout so a slow provider cannot block the report. If both providers fail, the report shall remain available with its factual observations.
+The system shall generate concise English and natural Bangla explanations based only on computed facts. Groq shall be the primary text provider, with GLM as an automatic fallback and an optional local model (Ollama) as the last one. Each provider has a timeout so a slow provider cannot block the report. If both providers fail, the report shall remain available with its factual observations.
 
 ### FR-06: Officer review and override
 

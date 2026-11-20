@@ -27,17 +27,18 @@ Sources: [`PRELIMINARY_PROTOTYPE_REQUIREMENTS.md`](../PRELIMINARY_PROTOTYPE_REQU
 - [x] Previous database project paused
 - [x] civic-trust-siuu.vercel.app on the Singapore database with GLM enabled (Irfan)
 - [x] civictrust-eight.vercel.app deployed from the team's own Vercel account; it is now the main demo, with civic-trust-siuu as backup (Backend)
-- [x] New AI keys in `web/.env.local`: Gemini key pool (10 keys) with four backup models, Groq key pool (2 keys), new GLM key (Backend)
-- [x] New AI keys on both Vercel projects, then redeploy (Backend, Irfan): both report 10 Gemini and 2 Groq keys
+- [x] New AI keys in `web/.env.local`: Gemini key pool (10 keys) with four backup models, Groq key pool (5 keys), new GLM key (Backend)
+- [x] New AI keys on both Vercel projects, then redeploy (Backend, Irfan): both report 10 Gemini and 5 Groq keys (checked 20 Nov)
 - [x] `CRON_SECRET` on eight only, for the daily overdue check (first automatic run 20 Nov, 09:03)
-- [ ] Remove `CRON_SECRET` from siuu, so only one deployment runs the daily check (Rafi)
+- [x] Remove `CRON_SECRET` from siuu, so only one deployment runs the daily check (Rafi; siuu's overdue endpoint returns 503, checked 20 Nov)
+- [x] `MCP_AUTH_TOKEN` on both sites: all six MCP tools pass with the token and requests without it get 401 (checked 20 Nov)
 - [ ] Reset the database password and Supabase secret key, which were shared in chat; update `.env.local` and Vercel (Team lead)
 - [ ] After both sites run on the new keys, delete the old keys at the providers: Gemini ×2 and Groq ×2 still work, plus the old GLM and AgentRouter keys (Team lead)
 - [ ] Optional: a Zhipu balance, or another text model, so the GLM backup works (`glm-4.7-flash` is the only free GLM model and is often overloaded)
 - [ ] Share the new settings privately with teammates who run the app locally (Team lead)
 - [ ] Uptime monitor on `/api/health` (keyword `"database":{"ok":true`) so the free database never pauses during judging (Backend)
-- [ ] Push all work to `main`, then redeploy both sites (Backend, Irfan): eight is on the latest commit; siuu is one commit behind
-- [ ] Remove the duplicate Vercel project (`civictrust` or `civic-trust`) (Irfan)
+- [x] Push all work to `main`, then redeploy both sites (Backend, Irfan): both run the latest app code; later commits change documents only (checked 20 Nov)
+- [ ] Remove the spare Vercel project (`civic-trust`, civic-trust-sigma.vercel.app) (Irfan)
 
 ## 3. Measurement and impact
 
@@ -71,22 +72,23 @@ Outline: [`PROTOTYPE_PLAN.md`](../PROTOTYPE_PLAN.md) §5.
 
 ## 6. Submission package (Section 9.1)
 
-- [ ] Problem definition: one-page summary
-- [ ] AI architecture: diagram, `/architecture`, model card
-- [ ] Data and sovereignty: `/data`, data flows, external services
-- [ ] Demo: public URL (no login) and the video
-- [ ] Scalability roadmap: pilot, city, national, global
-- [ ] Ethical safeguards: `/security`, `/audit`, model card, privacy and bias
+- [x] Problem definition: one-page summary (`Docs/CivicTrust_One_Page_Summary-1.pdf`)
+- [x] AI architecture: diagram, `/architecture`, model card
+- [x] Data and sovereignty: `/data`, data flows, external services
+- [x] Demo: public URL with no login (civictrust-eight.vercel.app; backup civic-trust-siuu.vercel.app)
+- [ ] Demo: the video, attached in the Cloudcamp form (Team lead)
+- [x] Scalability roadmap: pilot, city, national, global (`/docs` roadmap and business sections, one-page summary)
+- [x] Ethical safeguards: `/security`, `/audit`, model card, privacy and bias
 
 ## 7. Final self-check
 
 - [ ] All seven mandatory items (M1–M7) visible in the video
 - [ ] Video at most 180 seconds, five segments in order
 - [ ] Bangla shown on screen
-- [ ] Expected outcomes, targets and measured results clearly separated
-- [ ] All six submission components complete
+- [x] Expected outcomes, targets and measured results clearly separated (`/impact` status labels, `KPI_SUMMARY.md`)
+- [ ] All six submission components complete (only the video in the form is left to confirm)
 - [ ] Every team role assigned to a named member
-- [ ] AI tool usage documented (README, "AI tools used")
-- [ ] Data licences and sources listed (OpenStreetMap ODbL)
+- [x] AI tool usage documented (README, "AI tools used")
+- [x] Data licences and sources listed (OpenStreetMap ODbL; README and `/data`)
 - [ ] Public URL opens on a phone for someone outside the team
 - [ ] **Submitted** (date: ____ )
