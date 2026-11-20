@@ -54,7 +54,7 @@ Procedure: [`KPI_SUMMARY.md`](KPI_SUMMARY.md).
 - [ ] Name a member for every role in the README team table (Team lead)
 - [x] One-page problem summary: problem, users, need, sourced facts (`Docs/CivicTrust_One_Page_Summary-1.pdf`)
 - [ ] Bangla text reviewed by a native speaker: AI reasons and screen text (Team)
-- [ ] `CivicTrust.pdf` matches what is built (Backend)
+- [x] `CivicTrust.pdf` matches what is built (Backend; updated 20 Nov)
 - [ ] Cloudcamp submission form completed, under the International AI Builders Congress event (Team lead)
 
 ## 5. Video (at most 180 seconds, the five official segments in order)

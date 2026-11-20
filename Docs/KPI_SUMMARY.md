@@ -12,7 +12,7 @@ size and date window. No field accuracy, time saving or financial saving is clai
 | **`/impact` page** (public, on the site) | Live KPIs from the database and audit log, recomputed every time the page opens, each with its sample size and a status | Open `https://<site>/impact` |
 | **`pnpm kpi`** | The same figures in the terminal, from the same code (`web/src/lib/kpi.ts`) | `pnpm kpi [--since YYYY-MM-DD] [--json out.json]` |
 | **`pnpm eval:photos`** | Accuracy of the vision model on photos labelled by people | `pnpm eval:photos <folder> [--interval-ms 15000] [--json out.json]` |
-| **Automated tests** | Software rules: severity formula, repair verdicts, geography, time budgets, KPI maths (36 tests) | `pnpm test` |
+| **Automated tests** | Software rules: severity formula, repair verdicts, geography, time budgets, KPI maths (78 tests) | `pnpm test` |
 
 **Status labels on `/impact`:** *No data yet* (no records), *Early data* (fewer than 10 records)
 and *Measured* (10 or more). Outcomes that need a real pilot are shown as *Not measured*.

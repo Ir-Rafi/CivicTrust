@@ -12,7 +12,7 @@ Entry for the **International AI Builders Congress 2026** — Competition 1 (Tea
 
 | Document | What's in it |
 |---|---|
-| [`CivicTrust.pdf`](CivicTrust.pdf) | Product brief as of 19 Oct (snapshot). The current overview, with live figures, is the demo's `/docs` page |
+| [`CivicTrust.pdf`](CivicTrust.pdf) | Product brief (4 pages, 20 Nov): scope, workflow, AI components, architecture, safeguards and what has been verified. Live figures are on the demo's `/docs` and `/impact` pages |
 | [`Docs/CivicTrust_One_Page_Summary-1.pdf`](Docs/CivicTrust_One_Page_Summary-1.pdf) | One-page summary for the preliminary round: problem, users, how it works, impact |
 | [`PROTOTYPE_PLAN.md`](PROTOTYPE_PLAN.md) | Plan mapped to the judging rubric: status, video script, timeline, risks, judge Q&A |
 | [`PRELIMINARY_PROTOTYPE_REQUIREMENTS.md`](PRELIMINARY_PROTOTYPE_REQUIREMENTS.md) | Requirements and acceptance criteria for the preliminary-round prototype |
