@@ -467,6 +467,39 @@ body {
   }
 }
 
+/* Phones: hamburger, logo, name, theme and language buttons must fit in one row
+   (at 375 px the default spacing overflowed by about 19 px and clipped the language button). */
+@media (max-width: 480px) {
+  .app-bar-content {
+    gap: 10px;
+  }
+  .brand-group {
+    gap: 8px;
+  }
+  .brand-logo {
+    width: 34px;
+    height: 34px;
+  }
+  .brand-name {
+    font-size: 1.1rem;
+  }
+  .header-actions {
+    gap: 6px;
+  }
+  .theme-toggle-btn {
+    width: 38px;
+    height: 38px;
+  }
+  .lang-pill-btn {
+    padding: 8px 12px;
+  }
+}
+@media (max-width: 360px) {
+  .lang-pill-btn svg {
+    display: none;
+  }
+}
+
 /* ---------------- Hero ---------------- */
 .hero-banner {
   margin: 40px 0 36px;
@@ -822,6 +855,13 @@ body {
 }
 .factor-list li:first-child {
   border-top: none;
+}
+/* A long status label (e.g. "Deadline passed…") wraps instead of pushing the date column off screen. */
+.factor-list li > span:first-child {
+  min-width: 0;
+}
+.factor-list .tag {
+  white-space: normal;
 }
 .factor-list li.total {
   border-top: 1px dashed var(--md-outline-variant);

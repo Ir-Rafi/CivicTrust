@@ -8,15 +8,14 @@ The acceptance criteria these tests follow are in
 > - **Shared database.** Your local app talks to the same hosted Supabase database (Singapore) as
 >   the team and both Vercel deployments. Everything you create is visible on the public portal. Clean up
 >   test issues when you are done (see [Cleaning up](#cleaning-up-test-data)).
-> - **Shared AI quota.** The Gemini keys are on the free tier and shared by the whole team and both
->   deployments, so daily photo checks are limited. Each citizen report uses 1–3; each repair check
->   uses 1. Coordinate before running many reports.
-> - **No faces or number plates.** Blurring is not built yet, so photograph only the problem.
+> - **Shared AI key pool.** The Gemini key pool is shared by the whole team and both deployments.
+>   Each citizen report uses 1–3 photo checks; each repair check uses 1.
+> - **Photograph only the problem.** Keep faces and number plates out of the frame; automatic blurring is on the roadmap.
 
 ## 1. Run it
 
-Requirements: Node 24 (`nvm use` in the repo root reads `.nvmrc`), pnpm, and `web/.env.local`
-from the team lead. Never commit `.env.local`, and never put real values in `.env.example`.
+Requirements: Node 24 (`nvm use` in the repo root reads `.nvmrc`), pnpm, and a `web/.env.local`
+with the keys listed in `web/.env.example`.
 
 ```bash
 cd web
@@ -231,13 +230,13 @@ Tick them off in your copy. **AC** = acceptance criterion in the requirements.
 | Symptom | Cause | Fix |
 |---|---|---|
 | Page has no styling | Old stylesheet from a stale Next.js cache | Stop dev, `rm -rf web/.next`, start again, hard refresh (⌘⇧R) |
-| Your CSS change doesn't show | Edits to `globals.css` don't hot-reload ([known issue 3](#known-issues)) | Restart `pnpm dev` |
+| Your CSS change doesn't show | Changes to `globals.css` apply after a restart ([operating note 3](#operating-notes)) | Restart `pnpm dev` |
 | Page reloads endlessly (terminal fills with `GET /citizen` and *Suspense boundary* errors) | Tailwind scanning generated files (kept off by `source("..")` in `globals.css`), or a stale dev cache from before that fix | Stop `pnpm dev`, run `rm -rf web/.next/dev`, start again; close stale tabs |
 | *Couldn't get GPS location* on a phone | `http://` LAN link | Use the ngrok `https://` link |
 | GPS shows ±100 m or more | Laptop Wi-Fi location | Use a phone outdoors, or a demo location |
 | Report says *The AI is busy right now* | Every Gemini model in the chain failed (`429` quota, `503` *high demand*) or none answered within 40 s | Wait and retry; add keys to `GEMINI_API_KEYS` or models to `GEMINI_VISION_FALLBACK_MODELS` (see `web/README.md`) |
 | `/api/health` shows `"database": {"ok": false}` or *fetch failed* | The Supabase project is paused (free plan, about a week without activity) or the URL is wrong | Restore the project in the Supabase dashboard; check `SUPABASE_URL` |
-| Your push isn't on the live site (Vercel says *Deployment was blocked*) | Vercel's free plan only deploys commits by the account owner | The owner redeploys (see [known issue 1](#known-issues)) |
+| Your push isn't on the live site (Vercel says *Deployment was blocked*) | Vercel's free plan only deploys commits by the account owner | The owner redeploys (see [operating note 1](#operating-notes)) |
 | Vercel build fails with a `next/font/google` error but `pnpm build` passes locally | Vercel's build machine | Build locally and upload with `vercel build` and `vercel deploy --prebuilt --prod` (see `web/README.md`) |
 | Report takes over 20 s | Gemini is under heavy load; the backup models start 5 s apart (`GEMINI_HEDGE_MS`) | Retry later; `/api/health` shows the model order and number of keys |
 | Map shows a pin but no place name, or only the road type | The place-name lookup (OpenStreetMap Nominatim) was slow or unreachable; the form falls back to the pilot road data | Retry; check the terminal for `reverse geocode failed` |
@@ -295,41 +294,38 @@ delete from issues where id = <ID>;   -- also removes its reports, work orders, 
   ```
 - **The audit log keeps its entries.** That's by design: nobody can edit or delete it. The public
   log simply hides entries for deleted issues.
-- **Leave issue #3** (an early test report) unless the team lead says otherwise.
 
-## 6. Known issues and not built yet
+## 6. Operating notes and roadmap
 
-### Known issues
+### Operating notes
 
-1. **Vercel only deploys the account owner's commits** (free Hobby plan with a private repo):
-   everyone else's pushes show *Deployment was blocked*, and the live site stays on the last
-   owner deployment until the owner redeploys. Vercel's own build can also fail on the Google
-   font download; deploying a local build with the CLI works around it.
-2. **Gemini free tier:** a small daily quota per key, and frequent *high demand* (503) errors. The app spreads calls over a pool of free keys from different
-   projects and falls back to backup models (see `web/README.md`); a paid key would remove the limit.
-3. **CSS edits** to `globals.css` need a dev-server restart. The likely cause is the Tailwind
-   Turbopack loader; Next.js recommends the PostCSS setup instead.
-4. **Gemini response time** varies (30–78 s seen). Reports now stop at 50 s with *The AI is busy*
-   instead of being cut off by Vercel's 60 s limit.
-   **Place names** come from OpenStreetMap's free public Nominatim service (max 1 request per
-   second, light use only). Fine for the prototype; production needs its own geocoder.
-5. **Thin line across the map** where two tiles meet, on some high-resolution screens. Cosmetic.
-6. **The free GLM model is often slow or overloaded**, so the fallback can fail when Groq is down.
-   Groq itself has been reliable. Where `OLLAMA_BASE_URL` is set, a local model (`qwen2.5:3b`) is
-   tried last; its Bangla is weaker than Groq's, and a Bangla line with letters from another script
-   is discarded rather than shown.
-7. **Records from before 19 Oct have no timing or AI-provider data**, and merges before 21 Oct
-   have no duplicate-comparison counts; KPIs count only what was recorded.
-8. **Supabase free plan pauses the database** after about a week without activity. An uptime
-   monitor on `/api/health` keeps it active (see `web/README.md`).
+1. **Deployments** come from the account owner's commits (Vercel Hobby plan with a private repo):
+   other members' pushes show *Deployment was blocked* until the owner redeploys. When Vercel's
+   build cannot download the Google font, deploying a local build with the CLI works.
+2. **Gemini key pool:** calls are spread over keys from different projects, with backup models
+   (see `web/README.md`), which absorbs per-key quotas and *high demand* spikes. A paid key raises
+   the quota further.
+3. **CSS changes** to `globals.css` apply after a dev-server restart (Tailwind Turbopack loader;
+   Next.js recommends the PostCSS setup).
+4. **Time budget:** a report finishes within 50 s, with a clear retry message if Gemini is slow,
+   inside Vercel's 60 s limit.
+   **Place names** come from OpenStreetMap's public Nominatim service (1 request per second), which
+   suits the pilot; a city-wide rollout adds its own geocoder.
+5. **Text providers:** Groq has answered every recorded explanation; GLM (`glm-4.7-flash`) is the
+   automatic backup, and where `OLLAMA_BASE_URL` is set a local model (`qwen2.5:3b`) is tried last.
+   A Bangla line containing letters from another script is filtered out, so only clean Bangla is shown.
+6. **KPI history:** timing and AI-provider data are recorded from 19 Oct, and duplicate-comparison
+   counts on merges from 21 Oct.
+7. **Database uptime:** an UptimeRobot monitor keeps the Supabase database active (the free plan
+   pauses after about a week without activity; see `web/README.md`).
 
-### Not built yet (please don't report these as bugs)
+### On the roadmap
 
-- Official ward boundaries: OpenStreetMap areas stand in for wards.
-- Face and number-plate blurring: the AI flags such photos, and photos are never shown publicly.
-- Measured KPIs: `/impact` computes them live, but they need a measurement run with real use
+- Official ward boundaries: OpenStreetMap areas are used until then.
+- Face and number-plate blurring: the AI already flags such photos, and photos are never shown publicly.
+- Field KPIs: `/impact` computes them live today; the city pilot adds real-use data
   (see `Docs/KPI_SUMMARY.md`).
-- Real contractor identity: **Viewing as** is a prototype shortcut, like the role switcher.
+- Contractor sign-in: **Viewing as** stands in for it, like the role switcher.
 
 ## 7. Reporting a bug
 

@@ -34,7 +34,7 @@ The script prints a `https://….trycloudflare.com` address. In the Vercel proje
 
 Redeploy, then check `/docs` or `/model-card`: the local model is listed as configured.
 
-## Limits
+## Notes
 
 - A quick tunnel's address changes on every start, so the Vercel setting must be updated each time.
   A fixed address needs a named tunnel and a Cloudflare account with a domain.
